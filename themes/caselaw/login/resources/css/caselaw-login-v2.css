@@ -226,6 +226,7 @@ input[type="text"],
 input[type="password"],
 input[type="email"] {
   background: #ffffff;
+  background-image: none;
   border: 1px solid #d4dce8;
   border-radius: 6px;
   box-shadow: none;
@@ -233,6 +234,35 @@ input[type="email"] {
   font-size: 15px;
   min-height: 44px;
   padding: 10px 12px;
+}
+
+.form-control[aria-invalid="true"],
+.pf-c-form-control[aria-invalid="true"],
+.pf-c-form-control.pf-m-error,
+.pf-c-form-control.pf-m-danger,
+input[aria-invalid="true"],
+.has-error .form-control,
+.has-error .pf-c-form-control {
+  background-color: #ffffff;
+  background-image: none;
+  border-color: var(--cle-danger);
+  color: var(--cle-text);
+}
+
+.pf-c-form-control.pf-m-icon,
+.pf-c-form-control.pf-m-error,
+.pf-c-form-control.pf-m-danger {
+  --pf-c-form-control--BackgroundUrl: none;
+  --pf-c-form-control--m-error--BackgroundUrl: none;
+  --pf-c-form-control--m-danger--BackgroundUrl: none;
+}
+
+.pf-c-form-control.pf-m-error::after,
+.pf-c-form-control.pf-m-danger::after,
+.pf-c-form__group-control.pf-m-error::after,
+.pf-c-form__group-control.pf-m-danger::after,
+.has-error::after {
+  content: none;
 }
 
 .form-control:hover,
