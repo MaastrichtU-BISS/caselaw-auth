@@ -13,6 +13,7 @@ ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
 COPY --from=provider /tmp/keycloak-magic-link.jar /opt/keycloak/providers/keycloak-magic-link.jar
 COPY realm/caselaw-realm.json /opt/keycloak/data/import/caselaw-realm.json
+COPY themes /opt/keycloak/themes
 RUN /opt/keycloak/bin/kc.sh build
 
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}

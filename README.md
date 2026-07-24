@@ -72,6 +72,210 @@ https://auth.caselawexplorer.tech/admin
 
 The baseline realm is imported as `caselaw` on first startup.
 
+## Auth Service Coolify Configuration
+
+This section is for the Coolify resource that runs this repository, usually:
+
+```text
+https://auth.caselawexplorer.tech
+```
+
+Use these Coolify settings:
+
+```text
+Build Pack: Docker Compose
+Base Directory: /
+Docker Compose file: docker-compose.yml
+Public service: keycloak
+Port Exposes: 8080
+Domain: https://auth.caselawexplorer.tech
+```
+
+Set these environment variables on the auth service:
+
+```env
+KEYCLOAK_VERSION=26.7.0
+MAGIC_LINK_VERSION=0.75
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD=<long random temporary bootstrap password>
+KEYCLOAK_HOSTNAME=https://auth.caselawexplorer.tech
+KEYCLOAK_HOSTNAME_STRICT=false
+KEYCLOAK_POSTGRES_DB=keycloak
+KEYCLOAK_POSTGRES_USER=keycloak
+KEYCLOAK_POSTGRES_PASSWORD=<long random postgres password>
+KC_LOG_LEVEL=info
+```
+
+After first deploy:
+
+1. Open `https://auth.caselawexplorer.tech/admin`.
+2. Log in with the temporary bootstrap admin.
+3. Create a permanent admin user.
+4. Delete or disable the temporary bootstrap admin.
+5. Switch to the `caselaw` realm.
+6. Configure SMTP under **Realm settings** → **Email**.
+7. Configure login policy under **Realm settings** → **Login**:
+
+```text
+User registration: On or Off depending on whether self-signup is allowed
+Verify email: On for production, only Off for temporary testing
+Forgot password: On
+Remember me: On
+Login with email: On
+```
+
+### Login Theme
+
+This image bundles a custom Keycloak login theme:
+
+```text
+caselaw
+```
+
+Fresh realm imports select it automatically. Existing deployed realms are not
+overwritten by realm import, so after redeploying this auth service image:
+
+1. Open the `caselaw` realm.
+2. Go to **Realm settings** → **Themes**.
+3. Set **Login theme** to:
+
+```text
+caselaw
+```
+
+4. Save.
+
+The theme applies to Keycloak-hosted login, registration, password reset,
+verification, required-action, and error pages. It intentionally overrides CSS
+only and inherits the built-in Keycloak login templates.
+
+### Required Client Settings In Keycloak
+
+Every product must have a Keycloak client in the `caselaw` realm. For browser
+apps, use a public OIDC client:
+
+```text
+Client authentication: Off
+Standard flow: On
+Direct access grants: Off
+PKCE: S256
+```
+
+For each deployed domain, add exact URLs:
+
+```text
+Valid redirect URIs:
+https://<client-domain>/auth/callback
+
+Web origins:
+https://<client-domain>
+```
+
+Using `+` for web origins is acceptable when the valid redirect URIs are
+accurate. The scheme matters: `http://...` and `https://...` are different to
+Keycloak.
+
+For the current demo frontend:
+
+```text
+Client: caselaw-frontend
+Valid redirect URI: https://demo-app.caselawexplorer.tech/auth/callback
+Web origin: https://demo-app.caselawexplorer.tech
+```
+
+For local development, also add:
+
+```text
+http://localhost:5173/auth/callback
+http://localhost:3000/auth/callback
+```
+
+When adding a new product, create a new client instead of reusing
+`caselaw-frontend`.
+
+## Client App Coolify Configuration
+
+This section is for each product that wants to use shared auth.
+
+All products should use the same issuer:
+
+```env
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+```
+
+That shared issuer is what gives users one account and Keycloak SSO across
+products.
+
+Each product should use its own client ID and callback URL:
+
+```env
+FRONTEND_AUTH_PROVIDER=oidc
+REQUIRE_FRONTEND_AUTH=true
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=<keycloak-client-id>
+PUBLIC_AUTH_REDIRECT_URI=https://<client-domain>/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=<product-specific-local-storage-key>
+```
+
+For the current Case Law Explorer demo app:
+
+```env
+FRONTEND_AUTH_PROVIDER=oidc
+REQUIRE_FRONTEND_AUTH=true
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=caselaw-frontend
+PUBLIC_AUTH_REDIRECT_URI=https://demo-app.caselawexplorer.tech/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=caselaw:frontend:auth
+```
+
+For the DB workbench:
+
+```env
+PUBLIC_AUTH_CLIENT_ID=caselaw-db-workbench
+PUBLIC_AUTH_REDIRECT_URI=https://demo-db.caselawexplorer.tech/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=caselaw:db-workbench:auth
+```
+
+Do not share `PUBLIC_AUTH_STORAGE_KEY` between products. Browser local storage
+is origin-local anyway, and each app should store only its own access token.
+SSO is shared through the central Keycloak session on
+`auth.caselawexplorer.tech`.
+
+For the current Case Law Explorer frontend, keep the existing API proxy token:
+
+```env
+API_TOKEN=<frontend mcit key>
+```
+
+The first OIDC phase changes browser login only. The frontend still proxies API
+requests server-side and injects `API_TOKEN`; saved query history remains
+Supabase-user based until the identity mapping/API migration is added.
+
+### Client App Verification Checklist
+
+After changing Coolify env vars:
+
+1. Redeploy or restart the client app.
+2. Open the client in a fresh browser session.
+3. Click login and confirm the browser reaches Keycloak.
+4. Confirm Keycloak redirects back to:
+
+```text
+https://<client-domain>/auth/callback
+```
+
+5. Confirm the callback page completes without `Failed to fetch`.
+6. Confirm logout returns to the app and clears the local app session.
+
+Common failures:
+
+| Symptom | Fix |
+|---|---|
+| `Invalid parameter: redirect_uri` | Add the exact callback URL to the Keycloak client's Valid redirect URIs. |
+| Callback page says `Failed to fetch` | Add the app origin to Web origins, or use `+`. |
+| Admin console user cannot log into the app | Create the user in the `caselaw` realm; `master` users are not app users. |
+| Registration fails when sending email | Configure SMTP or temporarily disable email verification only for testing. |
+
 ### Nixpacks Detection Failure
 
 If deployment fails with:
@@ -159,8 +363,9 @@ Clients imported by default:
 | `caselaw-db-workbench` | public OIDC + PKCE | SQL runner UI |
 | `caselaw-api` | confidential service account | API/resource server |
 
-We still need to update the frontend/API/workbench to trust this issuer once
-the auth service is deployed and tested.
+The current frontend can use this issuer through `caselaw-auth`; API JWT
+validation and Supabase-to-Keycloak identity mapping remain separate follow-up
+work.
 
 ## Reusable Frontend Package
 
@@ -247,6 +452,16 @@ AUTH_REDIRECT_URI=https://<product-domain>/auth/callback
 Public browser apps should not have `AUTH_CLIENT_SECRET`; they should use
 Authorization Code + PKCE.
 
+Browser apps using `caselaw-auth` typically expose these values with a public
+runtime prefix:
+
+```env
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=<keycloak-client-id>
+PUBLIC_AUTH_REDIRECT_URI=https://<product-domain>/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=<product-specific-local-storage-key>
+```
+
 ## Integrating Existing Services
 
 ### Main frontend
@@ -261,8 +476,12 @@ The frontend should redirect users to the shared issuer and keep its own app
 session after the OIDC callback. Required values:
 
 ```env
-AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
-AUTH_CLIENT_ID=caselaw-frontend
+FRONTEND_AUTH_PROVIDER=oidc
+REQUIRE_FRONTEND_AUTH=true
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=caselaw-frontend
+PUBLIC_AUTH_REDIRECT_URI=https://<frontend-domain>/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=caselaw:frontend:auth
 ```
 
 ### SQL runner UI / DB workbench
@@ -277,8 +496,10 @@ The DB workbench should require the shared `admin` realm role before allowing
 access to SQL tools.
 
 ```env
-AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
-AUTH_CLIENT_ID=caselaw-db-workbench
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=caselaw-db-workbench
+PUBLIC_AUTH_REDIRECT_URI=https://demo-db.caselawexplorer.tech/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=caselaw:db-workbench:auth
 AUTH_REQUIRED_ROLE=admin
 ```
 

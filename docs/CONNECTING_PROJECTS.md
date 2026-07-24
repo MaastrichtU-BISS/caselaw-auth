@@ -44,7 +44,7 @@ The `+` origin tells Keycloak to derive origins from valid redirect URIs.
 
 ## 3. Configure The Product
 
-Common OIDC environment:
+Common OIDC environment for server-side/confidential apps:
 
 ```env
 AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
@@ -57,6 +57,18 @@ Only server-side/confidential clients should have:
 ```env
 AUTH_CLIENT_SECRET=<secret>
 ```
+
+Browser apps using `caselaw-auth` should use public runtime variables:
+
+```env
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=<client-id>
+PUBLIC_AUTH_REDIRECT_URI=https://<product-domain>/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=<product-specific-local-storage-key>
+```
+
+Use the same `PUBLIC_AUTH_ISSUER` across products, but a different client ID
+and storage key per product.
 
 ## 4. Enforce Roles
 
@@ -91,6 +103,8 @@ Refresh/session renewal works
 Unauthorized users are rejected
 Expected roles are present in the token
 Local and deployed callback URLs both work
+No `redirect_uri` error
+No CORS/`Failed to fetch` error on callback
 ```
 
 ## 6. SURFconext
@@ -106,4 +120,3 @@ https://auth.caselawexplorer.tech/realms/caselaw
 ```
 
 Keycloak talks to SURFconext.
-

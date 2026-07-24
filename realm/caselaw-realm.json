@@ -2,6 +2,7 @@
   "realm": "caselaw",
   "displayName": "Case Law Explorer",
   "enabled": true,
+  "loginTheme": "caselaw",
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "rememberMe": true,

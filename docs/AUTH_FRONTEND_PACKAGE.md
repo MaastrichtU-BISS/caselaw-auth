@@ -20,9 +20,10 @@ SvelteKit, plain TypeScript, and non-Vue apps. Use `caselaw-auth/vue` from Vue
 Every project should depend on the same shape of environment variables:
 
 ```env
-AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
-AUTH_CLIENT_ID=<project-client-id>
-AUTH_REDIRECT_URI=https://<project-domain>/auth/callback
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=<project-client-id>
+PUBLIC_AUTH_REDIRECT_URI=https://<project-domain>/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=<product-specific-local-storage-key>
 ```
 
 Frontend build systems expose these differently:
@@ -81,9 +82,10 @@ For the main Caselaw frontend, use:
 ```env
 FRONTEND_AUTH_PROVIDER=oidc
 REQUIRE_FRONTEND_AUTH=true
-AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
-AUTH_CLIENT_ID=caselaw-frontend
-AUTH_REDIRECT_URI=https://<frontend-domain>/auth/callback
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=caselaw-frontend
+PUBLIC_AUTH_REDIRECT_URI=https://<frontend-domain>/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=caselaw:frontend:auth
 ```
 
 The frontend can keep using its existing server-side `API_TOKEN` proxy while

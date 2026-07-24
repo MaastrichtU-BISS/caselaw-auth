@@ -1,0 +1,295 @@
+:root {
+  --cle-bg: #f8fafc;
+  --cle-grid: rgba(148, 163, 184, 0.14);
+  --cle-card: #ffffff;
+  --cle-border: #d9e1ec;
+  --cle-text: #111827;
+  --cle-muted: #667085;
+  --cle-primary: #2f63ee;
+  --cle-primary-hover: #2454d6;
+  --cle-danger: #c4161c;
+  --cle-focus: rgba(47, 99, 238, 0.24);
+  --cle-shadow: 0 20px 54px rgba(15, 23, 42, 0.08);
+}
+
+html,
+body,
+.login-pf,
+.login-pf body {
+  min-height: 100%;
+}
+
+.login-pf body {
+  background-color: var(--cle-bg);
+  background-image:
+    linear-gradient(var(--cle-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
+  background-position: center center;
+  background-size: 32px 32px;
+  color: var(--cle-text);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: 0;
+}
+
+.login-pf-page {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: clamp(24px, 7vh, 96px) 20px;
+}
+
+.login-pf-page .login-pf-header,
+#kc-header,
+#kc-header-wrapper {
+  display: none;
+}
+
+.login-pf-page .card-pf {
+  background: var(--cle-card);
+  border: 1px solid var(--cle-border);
+  border-radius: 8px;
+  box-shadow: var(--cle-shadow);
+  margin: 0;
+  max-width: 520px;
+  padding: clamp(28px, 4vw, 40px);
+  width: min(100%, 520px);
+}
+
+.login-pf-page .card-pf::before {
+  color: #708099;
+  content: "CASE LAW EXPLORER";
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+#kc-page-title,
+.login-pf-page .card-pf h1 {
+  color: var(--cle-text);
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.06;
+  margin: 0 0 12px;
+}
+
+#kc-page-title + *,
+#kc-info-wrapper,
+#kc-registration,
+#kc-form-options,
+#kc-reset-password-form p,
+#kc-terms-text,
+.instruction {
+  color: var(--cle-muted);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+#kc-content,
+#kc-content-wrapper,
+#kc-form,
+#kc-form-wrapper {
+  margin: 0;
+}
+
+#kc-form {
+  margin-top: 24px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.pf-c-form__label,
+.control-label,
+label {
+  color: #526078;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.form-control,
+.pf-c-form-control,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  background: #ffffff;
+  border: 1px solid #d4dce8;
+  border-radius: 6px;
+  box-shadow: none;
+  color: var(--cle-text);
+  font-size: 15px;
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+.form-control:hover,
+.pf-c-form-control:hover,
+input[type="text"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover {
+  border-color: #b8c4d6;
+}
+
+.form-control:focus,
+.pf-c-form-control:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+  border-color: var(--cle-primary);
+  box-shadow: 0 0 0 3px var(--cle-focus);
+  outline: none;
+}
+
+.pf-c-input-group {
+  display: flex;
+}
+
+.pf-c-input-group .form-control,
+.pf-c-input-group .pf-c-form-control {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.pf-c-input-group .pf-c-button,
+.pf-c-input-group button {
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  min-height: 44px;
+}
+
+.pf-c-button,
+.btn {
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 0;
+  min-height: 44px;
+}
+
+.pf-c-button.pf-m-primary,
+.btn-primary,
+#kc-login,
+#kc-form-buttons input[type="submit"] {
+  background: var(--cle-primary);
+  border-color: var(--cle-primary);
+  color: #ffffff;
+  width: 100%;
+}
+
+.pf-c-button.pf-m-primary:hover,
+.btn-primary:hover,
+#kc-login:hover,
+#kc-form-buttons input[type="submit"]:hover {
+  background: var(--cle-primary-hover);
+  border-color: var(--cle-primary-hover);
+}
+
+.pf-c-button.pf-m-primary:focus,
+.btn-primary:focus,
+#kc-login:focus,
+#kc-form-buttons input[type="submit"]:focus {
+  box-shadow: 0 0 0 3px var(--cle-focus);
+}
+
+#kc-form-buttons {
+  margin-top: 26px;
+}
+
+#kc-form-options,
+#kc-registration {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+#kc-form-options .checkbox {
+  margin: 0;
+}
+
+a,
+.pf-c-button.pf-m-link,
+.btn-link {
+  color: var(--cle-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+a:hover,
+.pf-c-button.pf-m-link:hover,
+.btn-link:hover {
+  color: var(--cle-primary-hover);
+  text-decoration: underline;
+}
+
+.alert {
+  border-radius: 6px;
+  box-shadow: none;
+  margin-bottom: 18px;
+}
+
+.alert-error,
+.pf-m-danger,
+#input-error,
+.kc-feedback-text {
+  color: var(--cle-danger);
+}
+
+.login-pf-page .login-pf-settings {
+  margin: 0;
+}
+
+.login-pf-page .login-pf-signup {
+  margin: 22px 0 0;
+}
+
+#kc-social-providers {
+  margin-top: 22px;
+}
+
+#kc-social-providers hr {
+  border-color: var(--cle-border);
+}
+
+#kc-social-providers .pf-c-button,
+#kc-social-providers .btn {
+  background: #ffffff;
+  border: 1px solid var(--cle-border);
+  color: var(--cle-text);
+  width: 100%;
+}
+
+#kc-social-providers .pf-c-button:hover,
+#kc-social-providers .btn:hover {
+  border-color: #b8c4d6;
+}
+
+@media (max-width: 520px) {
+  .login-pf-page {
+    align-items: stretch;
+    padding: 16px;
+  }
+
+  .login-pf-page .card-pf {
+    margin: auto 0;
+    padding: 24px;
+  }
+
+  #kc-form-options,
+  #kc-registration {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
