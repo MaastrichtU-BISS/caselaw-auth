@@ -258,6 +258,10 @@ PUBLIC_AUTH_REDIRECT_URI=https://demo-db.caselawexplorer.tech/auth/callback
 PUBLIC_AUTH_STORAGE_KEY=caselaw:db-workbench:auth
 ```
 
+Also set **Valid post logout redirect URIs** to `+` for
+`caselaw-db-workbench`. This lets admin-only tools clear a non-admin Keycloak
+SSO session and return to the workbench after a failed role check.
+
 Do not share `PUBLIC_AUTH_STORAGE_KEY` between products. Browser local storage
 is origin-local anyway, and each app should store only its own access token.
 SSO is shared through the central Keycloak session on
@@ -453,6 +457,8 @@ Browser applications:
 6. Enable PKCE with method `S256`.
 7. Add redirect URIs for every deployed and local callback URL.
 8. Add web origins for every deployed origin, or `+` to mirror redirect origins.
+9. Set valid post-logout redirect URIs to `+` unless the product needs a
+   stricter logout allowlist.
 
 Server-side apps and APIs:
 
