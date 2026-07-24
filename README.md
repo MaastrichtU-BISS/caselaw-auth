@@ -126,6 +126,160 @@ Clients imported by default:
 We still need to update the frontend/API/workbench to trust this issuer once
 the auth service is deployed and tested.
 
+## Shared Account Model
+
+All Case Law Explorer products should use the same Keycloak realm:
+
+```text
+caselaw
+```
+
+That realm is the shared account boundary. A user signs up or logs in once and
+then uses the same identity across products. Each product gets its own Keycloak
+client, but users, sessions, roles, and identity providers live centrally in
+the `caselaw` realm.
+
+Recommended model:
+
+| Layer | What lives there |
+|---|---|
+| Realm | shared users, login policy, email setup, SURFconext, roles, groups |
+| Client | one application/product integration |
+| Realm roles | cross-product roles such as `admin`, `researcher`, `service_consumer` |
+| Client roles | product-specific permissions, only when a role should not apply globally |
+| Groups | organization/team membership, optionally mapped to roles |
+
+Use realm roles for permissions that mean the same thing everywhere. For
+example, `admin` should grant administrative access in every internal tool.
+Use client roles for product-specific permissions such as
+`citations-api:manage_keys` or `db-workbench:query`.
+
+## Adding Another Product
+
+For every new product, create a dedicated OIDC client in the `caselaw` realm.
+Do not reuse an existing client between unrelated apps.
+
+Browser applications:
+
+1. Go to **Clients** → **Create client**.
+2. Client type: `OpenID Connect`.
+3. Client authentication: `Off` for public browser apps.
+4. Standard flow: `On`.
+5. Direct access grants: `Off`.
+6. Enable PKCE with method `S256`.
+7. Add redirect URIs for every deployed and local callback URL.
+8. Add web origins for every deployed origin, or `+` to mirror redirect origins.
+
+Server-side apps and APIs:
+
+1. Create a confidential OIDC client.
+2. Client authentication: `On`.
+3. Standard flow: only enable if the server app performs user login.
+4. Service accounts: enable only for machine-to-machine access.
+5. Store the client secret only in the server/Coolify environment.
+
+For product configuration, most OIDC libraries need:
+
+```env
+AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+AUTH_CLIENT_ID=<keycloak-client-id>
+AUTH_CLIENT_SECRET=<only-for-confidential-clients>
+AUTH_REDIRECT_URI=https://<product-domain>/auth/callback
+```
+
+Public browser apps should not have `AUTH_CLIENT_SECRET`; they should use
+Authorization Code + PKCE.
+
+## Integrating Existing Services
+
+### Main frontend
+
+Create or use client:
+
+```text
+caselaw-frontend
+```
+
+The frontend should redirect users to the shared issuer and keep its own app
+session after the OIDC callback. Required values:
+
+```env
+AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+AUTH_CLIENT_ID=caselaw-frontend
+```
+
+### SQL runner UI / DB workbench
+
+Create or use client:
+
+```text
+caselaw-db-workbench
+```
+
+The DB workbench should require the shared `admin` realm role before allowing
+access to SQL tools.
+
+```env
+AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+AUTH_CLIENT_ID=caselaw-db-workbench
+AUTH_REQUIRED_ROLE=admin
+```
+
+### API
+
+The API should validate bearer JWTs from:
+
+```text
+https://auth.caselawexplorer.tech/realms/caselaw
+```
+
+Validation checklist:
+
+1. Fetch JWKS from the issuer metadata.
+2. Verify signature, expiry, issuer, and audience.
+3. Read realm roles from `realm_access.roles`.
+4. Read product-specific roles from `resource_access.<client-id>.roles`.
+5. Keep API keys for machine/external consumers where long-lived scoped keys
+   are still useful.
+
+### Other products
+
+For every future product:
+
+1. Add a new Keycloak client.
+2. Add product redirect URIs and web origins.
+3. Decide whether it uses realm roles or client roles.
+4. Configure the product with the shared issuer.
+5. Test login, logout, refresh, and role enforcement.
+
+## Logout and Single Sign-On
+
+Because all products use the same realm, browser users get single sign-on
+through the Keycloak session. Logging into one product can allow another product
+to authenticate without another password/code challenge.
+
+Each product should still keep its own local session cookie. On logout, decide
+between:
+
+- local logout: end only the current product session;
+- global logout: redirect to Keycloak end-session endpoint and end the shared
+  SSO session too.
+
+Global logout endpoint:
+
+```text
+https://auth.caselawexplorer.tech/realms/caselaw/protocol/openid-connect/logout
+```
+
+## Anonymous Access
+
+Keycloak should not be the first place we implement casual anonymous browsing.
+For products that support anonymous exploration, keep anonymous state in the
+product itself, then offer account linking when the user chooses to sign in.
+
+Use Keycloak once the user becomes identifiable: email-code, password/passkey,
+or SURFconext.
+
 ## Local Smoke Test
 
 ```sh
