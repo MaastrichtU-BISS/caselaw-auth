@@ -35,6 +35,7 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: ${KC_LOG_LEVEL:-info}
+      CASELAW_AUTH_FOOTER_MANAGED_BY: ${CASELAW_AUTH_FOOTER_MANAGED_BY:-Authentication managed by BISS Institute}
       CASELAW_AUTH_FOOTER_BISS_LABEL: ${CASELAW_AUTH_FOOTER_BISS_LABEL:-BISS Institute}
       CASELAW_AUTH_FOOTER_BISS_URL: ${CASELAW_AUTH_FOOTER_BISS_URL:-https://www.maastrichtuniversity.nl/research/brightlands-institute-smart-society}
       CASELAW_AUTH_FOOTER_LAW_TECH_LABEL: ${CASELAW_AUTH_FOOTER_LAW_TECH_LABEL:-Maastricht University Law & Tech Lab}

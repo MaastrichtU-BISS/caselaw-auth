@@ -19,16 +19,24 @@ html {
     linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
   background-position: center center;
   background-size: 32px 32px;
+  height: 100%;
   min-height: 100%;
 }
 
 body {
   background: transparent;
+  height: 100%;
   min-height: 100%;
 }
 
-body.login-pf {
-  background: transparent;
+.login-pf body {
+  background-color: var(--cle-bg);
+  background-image:
+    linear-gradient(var(--cle-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
+  background-position: center center;
+  background-size: 32px 32px;
+  background-attachment: fixed;
   color: var(--cle-text);
   font-family:
     ui-sans-serif,
@@ -43,13 +51,10 @@ body.login-pf {
   position: relative;
 }
 
-body.login-pf::before {
-  background-color: var(--cle-bg);
-  background-image:
-    linear-gradient(var(--cle-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
-  background-position: center center;
-  background-size: 32px 32px;
+.login-pf body::before {
+  background:
+    radial-gradient(circle at center, rgba(248, 250, 252, 0.82) 0, rgba(248, 250, 252, 0.52) 34%, rgba(248, 250, 252, 0) 62%),
+    linear-gradient(rgba(248, 250, 252, 0.08), rgba(248, 250, 252, 0.08));
   content: "";
   inset: 0;
   pointer-events: none;
@@ -57,13 +62,34 @@ body.login-pf::before {
   z-index: 0;
 }
 
+.login-pf body::after {
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--cle-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
+  background-position: center center;
+  background-size: 32px 32px;
+  background-attachment: fixed;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: -1;
+}
+
 .login-pf-page {
   align-items: center;
-  background: transparent;
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--cle-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
+  background-position: center center;
+  background-size: 32px 32px;
+  background-attachment: fixed;
   display: flex;
   justify-content: center;
   min-height: 100vh;
-  padding: clamp(24px, 7vh, 96px) 20px 56px;
+  padding: clamp(24px, 7vh, 96px) 20px 92px;
   position: relative;
   z-index: 1;
 }
@@ -85,42 +111,56 @@ body.login-pf::before {
   width: min(100%, 520px);
 }
 
-.cle-login-footer {
+.login-pf .cle-login-footer {
   align-items: center;
-  color: #a0a9b8;
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
-  font-size: 12px;
-  font-weight: 700;
-  gap: 8px;
+  gap: 7px;
   justify-content: center;
   left: 50%;
   line-height: 1.4;
   max-width: min(92vw, 760px);
   position: fixed;
-  bottom: 20px;
+  bottom: 24px;
   transform: translateX(-50%);
-  width: max-content;
+  width: min(92vw, 760px);
   z-index: 2;
 }
 
-.cle-login-footer a {
-  color: #a0a9b8;
-  font-weight: 700;
+.login-pf .cle-login-footer p {
+  color: #8792a4;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin: 0;
+  text-align: center;
+}
+
+.login-pf .cle-login-footer nav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  justify-content: center;
+}
+
+.login-pf .cle-login-footer a {
+  color: #99a3b3;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
   text-decoration: none;
 }
 
-.cle-login-footer a:hover {
+.login-pf .cle-login-footer a:hover {
   color: #667085;
   text-decoration: underline;
 }
 
-.cle-login-footer a + a::before {
-  color: #c3cad5;
-  content: "·";
-  display: inline-block;
-  margin-right: 8px;
-  text-decoration: none;
+.login-pf .cle-login-footer a + a {
+  border-left: 1px solid #cbd3df;
+  padding-left: 14px;
 }
 
 .login-pf-page .card-pf::before {
@@ -339,7 +379,7 @@ a:hover,
 @media (max-width: 520px) {
   .login-pf-page {
     align-items: stretch;
-    padding: 16px 16px 72px;
+    padding: 16px 16px 96px;
   }
 
   .login-pf-page .card-pf {
@@ -354,14 +394,18 @@ a:hover,
     gap: 10px;
   }
 
-  .cle-login-footer {
-    bottom: 14px;
-    font-size: 11px;
+  .login-pf .cle-login-footer {
+    bottom: 16px;
     gap: 6px;
     width: min(92vw, 360px);
   }
 
-  .cle-login-footer a + a::before {
-    margin-right: 6px;
+  .login-pf .cle-login-footer nav {
+    gap: 6px 10px;
+  }
+
+  .login-pf .cle-login-footer a + a {
+    border-left: 0;
+    padding-left: 0;
   }
 }

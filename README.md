@@ -110,6 +110,7 @@ Optional footer links shown on Keycloak login, registration, password reset,
 required-action, and error pages:
 
 ```env
+CASELAW_AUTH_FOOTER_MANAGED_BY=Authentication managed by BISS Institute
 CASELAW_AUTH_FOOTER_BISS_LABEL=BISS Institute
 CASELAW_AUTH_FOOTER_BISS_URL=https://www.maastrichtuniversity.nl/research/brightlands-institute-smart-society
 CASELAW_AUTH_FOOTER_LAW_TECH_LABEL=Maastricht University Law & Tech Lab
