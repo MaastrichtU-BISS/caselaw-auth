@@ -1,0 +1,86 @@
+{
+  "realm": "caselaw",
+  "displayName": "Case Law Explorer",
+  "enabled": true,
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "verifyEmail": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administrative access to Case Law Explorer tools."
+      },
+      {
+        "name": "researcher",
+        "description": "Authenticated researcher access."
+      },
+      {
+        "name": "service_consumer",
+        "description": "Machine or external service consumer."
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "caselaw-frontend",
+      "name": "Case Law Explorer Frontend",
+      "description": "Browser application for Case Law Explorer.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://app.caselawexplorer.tech/*",
+        "https://frontend-*.sslip.io/*",
+        "http://localhost:3000/*",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "https://app.caselawexplorer.tech",
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "caselaw-db-workbench",
+      "name": "Case Law Explorer DB Workbench",
+      "description": "SQL runner UI and database workbench.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://demo-db.caselawexplorer.tech/*",
+        "http://localhost:5174/*"
+      ],
+      "webOrigins": [
+        "https://demo-db.caselawexplorer.tech",
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "caselaw-api",
+      "name": "Case Law Explorer API",
+      "description": "Backend API resource server.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ]
+}
