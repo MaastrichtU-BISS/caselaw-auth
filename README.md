@@ -162,6 +162,32 @@ Clients imported by default:
 We still need to update the frontend/API/workbench to trust this issuer once
 the auth service is deployed and tested.
 
+## Reusable Frontend Package
+
+This repo also contains reusable auth packages:
+
+```text
+packages/auth-client
+packages/auth-vue
+```
+
+`packages/auth-client` provides generic OIDC login, callback handling, token
+refresh, logout, and role parsing for any frontend framework.
+
+`packages/auth-vue` wraps the shared client with Vue composables and small
+reusable account/login components.
+
+Both packages are provider-neutral: products configure an issuer and client ID,
+while Keycloak remains the current central provider.
+
+Use it for new Vue/Nuxt products instead of re-implementing auth per app. See:
+
+```text
+docs/AUTH_FRONTEND_PACKAGE.md
+packages/auth-client/README.md
+packages/auth-vue/README.md
+```
+
 ## Shared Account Model
 
 All Case Law Explorer products should use the same Keycloak realm:
