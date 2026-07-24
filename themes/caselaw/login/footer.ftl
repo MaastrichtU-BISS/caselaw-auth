@@ -9,13 +9,13 @@
   <#if bissUrl?has_content || lawTechUrl?has_content || apiUrl?has_content>
     <footer class="cle-login-footer" aria-label="Related links">
       <#if bissUrl?has_content>
-        <a href="${bissUrl?html}" target="_blank" rel="noopener noreferrer">${bissLabel?html}</a>
+        <a href="${bissUrl}" target="_blank" rel="noopener noreferrer">${bissLabel}</a>
       </#if>
       <#if lawTechUrl?has_content>
-        <a href="${lawTechUrl?html}" target="_blank" rel="noopener noreferrer">${lawTechLabel?html}</a>
+        <a href="${lawTechUrl}" target="_blank" rel="noopener noreferrer">${lawTechLabel}</a>
       </#if>
       <#if apiUrl?has_content>
-        <a href="${apiUrl?html}" target="_blank" rel="noopener noreferrer">${apiLabel?html}</a>
+        <a href="${apiUrl}" target="_blank" rel="noopener noreferrer">${apiLabel}</a>
       </#if>
     </footer>
   </#if>
