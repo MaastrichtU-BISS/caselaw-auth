@@ -207,7 +207,8 @@ export class OidcAuthClient {
   }
 
   private createSession(response: TokenResponse): AuthSession {
-    const token = response.id_token || response.access_token
+    const token = response.access_token ?? response.id_token
+    if (!token) throw new Error('OIDC token response did not include a JWT.')
     const claims = decodeJwtPayload(token)
     const expiresAt = Date.now() + Math.max(response.expires_in || 300, 1) * 1000
 
