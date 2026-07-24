@@ -106,6 +106,22 @@ KEYCLOAK_POSTGRES_PASSWORD=<long random postgres password>
 KC_LOG_LEVEL=info
 ```
 
+Optional footer links shown on Keycloak login, registration, password reset,
+required-action, and error pages:
+
+```env
+CASELAW_AUTH_FOOTER_BISS_LABEL=BISS Institute
+CASELAW_AUTH_FOOTER_BISS_URL=https://www.maastrichtuniversity.nl/research/brightlands-institute-smart-society
+CASELAW_AUTH_FOOTER_LAW_TECH_LABEL=Maastricht University Law & Tech Lab
+CASELAW_AUTH_FOOTER_LAW_TECH_URL=https://www.maastrichtuniversity.nl/research/law-and-tech-lab
+CASELAW_AUTH_FOOTER_API_LABEL=Citations API
+CASELAW_AUTH_FOOTER_API_URL=https://demo-api.caselawexplorer.tech
+```
+
+The Compose file supplies these defaults, so they only need to be added in
+Coolify when an environment wants different labels or URLs. To hide a link,
+set its URL variable to an empty value.
+
 After first deploy:
 
 1. Open `https://auth.caselawexplorer.tech/admin`.
@@ -148,6 +164,11 @@ caselaw
 The theme applies to Keycloak-hosted login, registration, password reset,
 verification, required-action, and error pages. It intentionally overrides CSS
 only and inherits the built-in Keycloak login templates.
+
+The login theme reads footer links from the `CASELAW_AUTH_FOOTER_*`
+environment variables listed above. These values are evaluated by Keycloak at
+theme-render time, so a Coolify environment variable change requires an auth
+service restart or redeploy before the login pages use the new footer links.
 
 ### Required Client Settings In Keycloak
 

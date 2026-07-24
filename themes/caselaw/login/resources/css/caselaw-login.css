@@ -12,20 +12,23 @@
   --cle-shadow: 0 20px 54px rgba(15, 23, 42, 0.08);
 }
 
-html,
-body,
-.login-pf,
-.login-pf body {
-  min-height: 100%;
-}
-
-.login-pf body {
+html {
   background-color: var(--cle-bg);
   background-image:
     linear-gradient(var(--cle-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
   background-position: center center;
   background-size: 32px 32px;
+  min-height: 100%;
+}
+
+body {
+  background: transparent;
+  min-height: 100%;
+}
+
+body.login-pf {
+  background: transparent;
   color: var(--cle-text);
   font-family:
     ui-sans-serif,
@@ -35,14 +38,34 @@ body,
     "Segoe UI",
     sans-serif;
   letter-spacing: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body.login-pf::before {
+  background-color: var(--cle-bg);
+  background-image:
+    linear-gradient(var(--cle-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cle-grid) 1px, transparent 1px);
+  background-position: center center;
+  background-size: 32px 32px;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
 }
 
 .login-pf-page {
   align-items: center;
+  background: transparent;
   display: flex;
   justify-content: center;
   min-height: 100vh;
-  padding: clamp(24px, 7vh, 96px) 20px;
+  padding: clamp(24px, 7vh, 96px) 20px 56px;
+  position: relative;
+  z-index: 1;
 }
 
 .login-pf-page .login-pf-header,
@@ -60,6 +83,44 @@ body,
   max-width: 520px;
   padding: clamp(28px, 4vw, 40px);
   width: min(100%, 520px);
+}
+
+.cle-login-footer {
+  align-items: center;
+  color: #a0a9b8;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  left: 50%;
+  line-height: 1.4;
+  max-width: min(92vw, 760px);
+  position: fixed;
+  bottom: 20px;
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 2;
+}
+
+.cle-login-footer a {
+  color: #a0a9b8;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cle-login-footer a:hover {
+  color: #667085;
+  text-decoration: underline;
+}
+
+.cle-login-footer a + a::before {
+  color: #c3cad5;
+  content: "·";
+  display: inline-block;
+  margin-right: 8px;
+  text-decoration: none;
 }
 
 .login-pf-page .card-pf::before {
@@ -278,7 +339,7 @@ a:hover,
 @media (max-width: 520px) {
   .login-pf-page {
     align-items: stretch;
-    padding: 16px;
+    padding: 16px 16px 72px;
   }
 
   .login-pf-page .card-pf {
@@ -291,5 +352,16 @@ a:hover,
     align-items: flex-start;
     flex-direction: column;
     gap: 10px;
+  }
+
+  .cle-login-footer {
+    bottom: 14px;
+    font-size: 11px;
+    gap: 6px;
+    width: min(92vw, 360px);
+  }
+
+  .cle-login-footer a + a::before {
+    margin-right: 6px;
   }
 }
