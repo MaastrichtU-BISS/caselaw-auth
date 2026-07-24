@@ -29,8 +29,25 @@ writing a custom Keycloak SPI immediately.
 
 ## Coolify Setup
 
-Create a new Coolify service from this repo and expose the `keycloak` service
-on port `8080`.
+Create a new Coolify service from this repo as a **Docker Compose** deployment.
+Do not use Nixpacks for this repo: Nixpacks cannot detect it because the app is
+not a Node/Python/static app, and it would not deploy the bundled Keycloak
+Postgres metadata database.
+
+Coolify settings:
+
+```text
+Build Pack: Docker Compose
+Base Directory: /
+Docker Compose file: docker-compose.yml
+Public service: keycloak
+Port Exposes: 8080
+Domain: https://auth.caselawexplorer.tech
+```
+
+If you already created the resource as a Nixpacks application, either change
+the build pack to Docker Compose if Coolify allows it, or delete/recreate the
+resource as a Docker Compose application from the same GitHub repository.
 
 Set:
 
@@ -54,6 +71,25 @@ https://auth.caselawexplorer.tech/admin
 ```
 
 The baseline realm is imported as `caselaw` on first startup.
+
+### Nixpacks Detection Failure
+
+If deployment fails with:
+
+```text
+Nixpacks failed to detect the application type
+```
+
+the Coolify resource is using the wrong build pack. Switch the resource to
+Docker Compose, or recreate it as a Docker Compose deployment. Also change
+`Port Exposes` from Coolify's default `3000` to:
+
+```text
+8080
+```
+
+Using the Dockerfile build pack alone is not enough for the default production
+setup in this repo, because the Compose file also creates `keycloak-db`.
 
 ## Email Setup
 
