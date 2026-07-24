@@ -1,19 +1,19 @@
 # Reusable Frontend Auth Package
 
-This repository includes a framework-neutral client and a Vue/Nuxt wrapper:
+This repository includes a single reusable frontend auth package:
 
 ```text
-packages/auth-client
-packages/auth-vue
+packages/caselaw-auth
 ```
 
-The shared client provides OIDC login/session/logout behavior for all Case Law
+The package provides OIDC login/session/logout behavior for all Case Law
 Explorer products. It is intentionally provider-neutral: products configure an
 OIDC issuer and client ID, while Keycloak remains an implementation detail of
 the central auth service.
 
-Use `@caselaw/auth-client` from SvelteKit, plain TypeScript, and non-Vue apps.
-Use `@caselaw/auth-vue` from Vue 3 and Nuxt apps.
+Use `caselaw-auth`, `caselaw-auth/client`, or `caselaw-auth/svelte` from
+SvelteKit, plain TypeScript, and non-Vue apps. Use `caselaw-auth/vue` from Vue
+3 and Nuxt apps.
 
 ## Package Contract
 
@@ -71,7 +71,7 @@ src/lib/auth.ts
 ```
 
 That adapter reads the product's env variables and initializes
-`@caselaw/auth-vue`. Product code then imports from the local adapter instead
+`caselaw-auth`. Product code then imports from the local adapter instead
 of importing the package everywhere. This keeps future migration easy.
 
 ## Caselaw Migration Path

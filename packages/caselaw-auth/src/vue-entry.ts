@@ -1,7 +1,7 @@
 import './styles/auth.css'
 
 export * from './types'
-export * from '@caselaw/auth-client'
+export * from './client'
 export * from './vue'
 
 export { default as AuthGate } from './components/AuthGate.vue'

@@ -7,16 +7,20 @@ export default defineConfig({
   build: {
     cssCodeSplit: false,
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'CaselawAuthVue',
-      fileName: 'caselaw-auth-vue',
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        client: resolve(__dirname, 'src/client-entry.ts'),
+        svelte: resolve(__dirname, 'src/svelte.ts'),
+        vue: resolve(__dirname, 'src/vue-entry.ts'),
+      },
       cssFileName: 'style',
       formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      external: ['vue'],
+      external: ['svelte/store', 'vue'],
       output: {
         globals: {
+          'svelte/store': 'SvelteStore',
           vue: 'Vue',
         },
       },

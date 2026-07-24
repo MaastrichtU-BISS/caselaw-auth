@@ -7,8 +7,8 @@ import {
   type App,
   type InjectionKey,
 } from 'vue'
-import { createAuthClient, type OidcAuthClient } from '@caselaw/auth-client'
-import type { AuthConfig, AuthSession, AuthState, LoginOptions } from '@caselaw/auth-client'
+import { createAuthClient, type OidcAuthClient } from './client'
+import type { AuthConfig, AuthSession, AuthState, LoginOptions } from './types'
 
 export interface CaselawAuth {
   client: OidcAuthClient

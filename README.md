@@ -164,28 +164,23 @@ the auth service is deployed and tested.
 
 ## Reusable Frontend Package
 
-This repo also contains reusable auth packages:
+This repo also contains a reusable frontend auth package:
 
 ```text
-packages/auth-client
-packages/auth-vue
+packages/caselaw-auth
 ```
 
-`packages/auth-client` provides generic OIDC login, callback handling, token
-refresh, logout, and role parsing for any frontend framework.
-
-`packages/auth-vue` wraps the shared client with Vue composables and small
-reusable account/login components.
-
-Both packages are provider-neutral: products configure an issuer and client ID,
-while Keycloak remains the current central provider.
+`caselaw-auth` provides generic OIDC login, callback handling, token refresh,
+logout, role parsing, a Svelte store wrapper, and Vue/Nuxt composables plus
+small reusable account/login components. It is provider-neutral: products
+configure an issuer and client ID, while Keycloak remains the current central
+provider.
 
 Use it for new Vue/Nuxt products instead of re-implementing auth per app. See:
 
 ```text
 docs/AUTH_FRONTEND_PACKAGE.md
-packages/auth-client/README.md
-packages/auth-vue/README.md
+packages/caselaw-auth/README.md
 ```
 
 ## Shared Account Model

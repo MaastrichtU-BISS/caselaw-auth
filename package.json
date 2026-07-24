@@ -2,7 +2,7 @@
   "name": "caselaw-auth-workspace",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/caselaw-auth"
   ],
   "scripts": {
     "build": "npm run build --workspaces",
