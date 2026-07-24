@@ -222,11 +222,13 @@ label {
 
 .form-control,
 .pf-c-form-control,
+.pf-v5-c-form-control,
+.pf-v5-c-text-input-group,
 input[type="text"],
 input[type="password"],
 input[type="email"] {
   background: #ffffff;
-  background-image: none;
+  background-image: none !important;
   border: 1px solid #d4dce8;
   border-radius: 6px;
   box-shadow: none;
@@ -238,29 +240,61 @@ input[type="email"] {
 
 .form-control[aria-invalid="true"],
 .pf-c-form-control[aria-invalid="true"],
+.pf-v5-c-form-control[aria-invalid="true"],
+.pf-v5-c-text-input-group[aria-invalid="true"],
 .pf-c-form-control.pf-m-error,
 .pf-c-form-control.pf-m-danger,
+.pf-v5-c-form-control.pf-m-error,
+.pf-v5-c-form-control.pf-m-danger,
+.pf-v5-c-form-control.pf-m-status,
+.pf-v5-c-text-input-group.pf-m-error,
+.pf-v5-c-text-input-group.pf-m-danger,
+.pf-v5-c-text-input-group.pf-m-status,
 input[aria-invalid="true"],
 .has-error .form-control,
-.has-error .pf-c-form-control {
+.has-error .pf-c-form-control,
+.has-error .pf-v5-c-form-control,
+.has-error .pf-v5-c-text-input-group {
   background-color: #ffffff;
-  background-image: none;
+  background-image: none !important;
   border-color: var(--cle-danger);
   color: var(--cle-text);
 }
 
 .pf-c-form-control.pf-m-icon,
 .pf-c-form-control.pf-m-error,
-.pf-c-form-control.pf-m-danger {
+.pf-c-form-control.pf-m-danger,
+.pf-v5-c-form-control.pf-m-icon,
+.pf-v5-c-form-control.pf-m-error,
+.pf-v5-c-form-control.pf-m-danger,
+.pf-v5-c-form-control.pf-m-status,
+.pf-v5-c-text-input-group.pf-m-icon,
+.pf-v5-c-text-input-group.pf-m-error,
+.pf-v5-c-text-input-group.pf-m-danger,
+.pf-v5-c-text-input-group.pf-m-status {
   --pf-c-form-control--BackgroundUrl: none;
   --pf-c-form-control--m-error--BackgroundUrl: none;
   --pf-c-form-control--m-danger--BackgroundUrl: none;
+  --pf-v5-c-form-control--BackgroundUrl: none;
+  --pf-v5-c-form-control--m-error--BackgroundUrl: none;
+  --pf-v5-c-form-control--m-danger--BackgroundUrl: none;
+  --pf-v5-c-form-control--m-status--BackgroundUrl: none;
+  --pf-v5-c-text-input-group--BackgroundUrl: none;
+  --pf-v5-c-text-input-group--m-error--BackgroundUrl: none;
+  --pf-v5-c-text-input-group--m-danger--BackgroundUrl: none;
+  --pf-v5-c-text-input-group--m-status--BackgroundUrl: none;
 }
 
 .pf-c-form-control.pf-m-error::after,
 .pf-c-form-control.pf-m-danger::after,
 .pf-c-form__group-control.pf-m-error::after,
 .pf-c-form__group-control.pf-m-danger::after,
+.pf-v5-c-form-control.pf-m-error::after,
+.pf-v5-c-form-control.pf-m-danger::after,
+.pf-v5-c-text-input-group.pf-m-error::after,
+.pf-v5-c-text-input-group.pf-m-danger::after,
+.pf-v5-c-form__group-control.pf-m-error::after,
+.pf-v5-c-form__group-control.pf-m-danger::after,
 .has-error::after {
   content: none;
 }
