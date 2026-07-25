@@ -10,6 +10,7 @@ import type {
 interface LoginState {
   verifier: string
   returnTo: string
+  createdAt: number
 }
 
 const defaultScope = 'openid profile email'
@@ -39,7 +40,11 @@ export class OidcAuthClient {
     const nonce = randomString(32)
     const returnTo = options.returnTo || `${window.location.pathname}${window.location.search}${window.location.hash}`
 
-    window.sessionStorage.setItem(this.loginStateKey(state), JSON.stringify({ verifier, returnTo } satisfies LoginState))
+    this.clearLoginState()
+    const stateKey = this.loginStateKey(state)
+    const loginState = JSON.stringify({ verifier, returnTo, createdAt: Date.now() } satisfies LoginState)
+    window.sessionStorage.setItem(stateKey, loginState)
+    window.localStorage.setItem(stateKey, loginState)
 
     const params = new URLSearchParams({
       response_type: 'code',
@@ -74,10 +79,12 @@ export class OidcAuthClient {
     }
 
     const stateKey = this.loginStateKey(state)
-    const stored = window.sessionStorage.getItem(stateKey)
+    const stored = window.sessionStorage.getItem(stateKey) || window.localStorage.getItem(stateKey)
     window.sessionStorage.removeItem(stateKey)
+    window.localStorage.removeItem(stateKey)
 
     if (!stored) {
+      this.clearLoginState()
       throw new Error('OIDC callback state was not found. Start login again.')
     }
 
@@ -100,6 +107,7 @@ export class OidcAuthClient {
     const tokenResponse = await readTokenResponse(response)
     const session = this.createSession(tokenResponse)
     this.setSession(session)
+    this.clearLoginState()
 
     const target = loginState.returnTo && loginState.returnTo !== '/auth/callback' ? loginState.returnTo : '/'
     window.history.replaceState({}, document.title, target)
@@ -179,6 +187,7 @@ export class OidcAuthClient {
   clearSession(): void {
     if (!isBrowser()) return
     window.localStorage.removeItem(this.config.storageKey)
+    this.clearLoginState()
   }
 
   shouldRefresh(session: AuthSession | null = this.getSession()): boolean {
@@ -225,6 +234,21 @@ export class OidcAuthClient {
 
   private loginStateKey(state: string): string {
     return `${this.config.storageKey}:state:${state}`
+  }
+
+  private loginStatePrefix(): string {
+    return `${this.config.storageKey}:state:`
+  }
+
+  private clearLoginState(): void {
+    if (!isBrowser()) return
+    const prefix = this.loginStatePrefix()
+    for (const storage of [window.sessionStorage, window.localStorage]) {
+      for (let i = storage.length - 1; i >= 0; i -= 1) {
+        const key = storage.key(i)
+        if (key?.startsWith(prefix)) storage.removeItem(key)
+      }
+    }
   }
 }
 
