@@ -414,6 +414,49 @@ docs/AUTH_FRONTEND_PACKAGE.md
 packages/caselaw-auth/README.md
 ```
 
+It is published on npm, so products install it rather than vendoring a tarball:
+
+```bash
+npm install caselaw-auth
+```
+
+### Releasing the package
+
+Released by GitHub Actions via npm trusted publishing. Nobody publishes from a
+laptop, and there is no npm token stored anywhere — the workflow's OIDC
+identity is the credential, which is also why releases no longer prompt for
+2FA.
+
+This repo is an npm workspace: the lockfile lives at the root, the package
+lives in `packages/caselaw-auth`, and `dist/` is **not** committed. Since
+`package.json` ships `files: ["dist"]`, the workflow builds before publishing —
+publishing without that step would push an empty tarball.
+
+**1. Bump `version` in `packages/caselaw-auth/package.json`.** The workflow
+refuses to publish if the tag and the manifest disagree.
+
+**2. Commit and push to `main`.**
+
+```bash
+git add packages/caselaw-auth/package.json
+git commit -m "Release the auth package 0.1.2"
+git push
+```
+
+**3. Tag and push the tag.** Pushing the tag is what publishes.
+
+```bash
+git tag v0.1.2 && git push origin v0.1.2
+```
+
+The workflow typechecks, builds, and runs `npm pack --dry-run` before the
+upload. To rehearse without spending a version, run it manually from the
+Actions tab with `dry_run` left ticked.
+
+npm will not accept the same version twice, so if a release fails check whether
+it actually landed before retrying — a genuine partial failure needs a patch
+bump rather than a re-run.
+
 ## Shared Account Model
 
 All Case Law Explorer products should use the same Keycloak realm:
