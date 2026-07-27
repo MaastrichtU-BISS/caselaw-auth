@@ -153,6 +153,12 @@ Vue and Svelte adapters ship alongside it. See
 **Sign-in ends on a blank page or an `invalid_redirect_uri` error.** The redirect URI
 does not exactly match one on the client. Trailing slashes count.
 
+**Signing out shows "Invalid redirect uri".** Keycloak validates where sign-out
+returns to, separately from where sign-in returns to. Set the client's **Valid post
+logout redirect URIs** to `+`, which reuses the sign-in list, or add the origin
+explicitly. This one is easy to miss because it appears after the session has already
+ended, so the user is signed out and looking at an error.
+
 **Redirects go to `http://` on an HTTPS site.** The proxy is not forwarding
 `X-Forwarded-Proto`, or `KC_HOSTNAME` is unset.
 

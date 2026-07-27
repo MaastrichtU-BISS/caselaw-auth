@@ -37,10 +37,11 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "https://app.caselawexplorer.tech/*",
-        "https://frontend-*.sslip.io/*",
         "http://localhost:3000/*",
-        "http://localhost:5173/*"
+        "http://localhost:5173/*",
+        "https://app.caselawexplorer.tech/*",
+        "https://demo-app.caselawexplorer.tech/*",
+        "https://frontend-*.sslip.io/*"
       ],
       "webOrigins": [
         "https://app.caselawexplorer.tech",
@@ -62,8 +63,8 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "https://demo-db.caselawexplorer.tech/*",
-        "http://localhost:5174/*"
+        "http://localhost:5174/*",
+        "https://demo-db.caselawexplorer.tech/*"
       ],
       "webOrigins": [
         "https://demo-db.caselawexplorer.tech",
@@ -84,6 +85,29 @@
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "caselaw-access",
+      "name": "Caselaw Access console",
+      "description": "Browser application for Case Law Explorer.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://access.caselawexplorer.tech/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "https://access.caselawexplorer.tech",
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+",
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ]
 }
