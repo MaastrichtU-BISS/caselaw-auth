@@ -78,7 +78,11 @@ export function createCaselawAuth(config: AuthConfig): CaselawAuth {
       return session
     },
     async logout(returnTo) {
-      setSession(null)
+      // Deliberately not clearing the reactive session first. Doing so told
+      // this application it was signed out while the redirect to the provider
+      // was still being worked out, and its route guard reacted by sending
+      // the browser to sign in again, cancelling the sign-out. The navigation
+      // below is the state change; there is nothing left to render after it.
       await client.logout(returnTo)
     },
     async refresh() {

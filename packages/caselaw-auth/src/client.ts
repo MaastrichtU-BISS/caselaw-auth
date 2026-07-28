@@ -145,24 +145,39 @@ export class OidcAuthClient {
     return session
   }
 
+  /**
+   * Sign out here and at the identity provider.
+   *
+   * The whole destination is worked out before any state is torn down, and
+   * nothing is awaited afterwards. That ordering is the fix for a race that
+   * made the first sign-out of a page load silently fail: discovery is a
+   * network round trip, and while it was in flight the application had
+   * already been told it was signed out, so its own route guard sent the
+   * browser to the authorize endpoint. The SSO cookie at the provider was
+   * still valid, so that came straight back with a fresh session and the
+   * logout redirect never ran. It appeared to work on the second attempt only
+   * because discovery was memoised by then and won the race.
+   */
   async logout(returnTo = this.config.postLogoutRedirectUri || '/'): Promise<void> {
     assertBrowser()
 
     const session = this.getSession()
-    this.clearSession()
+    const discovery = await this.discover().catch(() => null)
 
-    const discovery = await this.discover()
-    if (!discovery.end_session_endpoint) {
-      window.location.assign(returnTo)
-      return
+    let destination = returnTo
+    if (discovery?.end_session_endpoint) {
+      const params = new URLSearchParams({
+        client_id: this.config.clientId,
+        post_logout_redirect_uri: absoluteUrl(returnTo),
+      })
+      // Without this Keycloak cannot tell which session to end, and answers
+      // with a confirmation page instead of ending it.
+      if (session?.idToken) params.set('id_token_hint', session.idToken)
+      destination = `${discovery.end_session_endpoint}?${params.toString()}`
     }
 
-    const params = new URLSearchParams({
-      client_id: this.config.clientId,
-      post_logout_redirect_uri: absoluteUrl(returnTo),
-    })
-    if (session?.idToken) params.set('id_token_hint', session.idToken)
-    window.location.assign(`${discovery.end_session_endpoint}?${params.toString()}`)
+    this.clearSession()
+    window.location.assign(destination)
   }
 
   getSession(): AuthSession | null {
