@@ -105,8 +105,20 @@ they may call.
 ## The theme
 
 `themes/caselaw` styles the sign-in, registration and account pages to match the
-products. The realm file selects it already, as `loginTheme` and `accountTheme`;
-in a realm configured by hand it is set under Realm settings, then Themes.
+products. The realm file selects it, as `loginTheme` and `accountTheme`.
+
+That selection only reaches a realm that does not exist yet. `--import-realm`
+creates a realm from the file and then leaves it alone, so on a deployment that
+is already running, the realm's settings live in its database and editing the
+file changes nothing. Deploy so the image carries the theme, then apply it:
+
+```bash
+KEYCLOAK_URL=https://auth.example.tech KEYCLOAK_ADMIN=admin KEYCLOAK_ADMIN_PASSWORD=... ./scripts/apply-themes.sh
+```
+
+Or set it by hand under Realm settings, then Themes. Either way it is a
+one-off: once the realm points at `caselaw`, later edits to the theme's files
+ship with the next deployment.
 
 The two halves work differently, and it matters when editing them. The login
 theme overrides FreeMarker templates, which are ours to change. The account
