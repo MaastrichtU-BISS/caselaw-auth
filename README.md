@@ -1,5 +1,7 @@
 # caselaw-auth
 
+[![npm](https://img.shields.io/npm/v/caselaw-auth?logo=npm&label=npm&color=%23181849)](https://www.npmjs.com/package/caselaw-auth)
+
 One shared account across every Case Law Explorer product. A Keycloak realm, the theme
 it wears, and the browser client the applications sign in with.
 
