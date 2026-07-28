@@ -106,9 +106,20 @@ body,
    other consoles wear.
    --------------------------------------------------------------------------- */
 
+/* Set the component's own variable, not just background-color. The toolbar
+   living inside the masthead paints itself from
+   --pf-v5-c-masthead--c-toolbar--BackgroundColor, which is defined as this
+   variable, so overriding only the property left the brand area light and
+   everything to the right of it still black - a worse result than not having
+   tried. The variable reaches both. */
 .pf-v5-c-masthead {
+  --pf-v5-c-masthead--BackgroundColor: var(--cle-card);
+  /* Hairlines inside the bar default to near-black, which was chosen to sit
+     on a near-black bar. */
+  --pf-v5-c-masthead--item-border-color--base: var(--cle-border);
+  --pf-v5-c-masthead__main--before--BorderBottomColor: var(--cle-border);
+
   border-bottom: 1px solid var(--cle-border);
-  background-color: var(--cle-card);
   color: var(--cle-text);
 }
 
@@ -135,13 +146,19 @@ img.pf-v5-c-brand {
   white-space: nowrap;
 }
 
-/* The account menu in the corner, which is a dark dropdown by default. */
+/* The account menu in the corner. Left as a quiet piece of text rather than
+   given a border: on the black bar it needed an outline to be findable, on a
+   light bar an outlined box in the corner reads as a stray button. */
 .pf-v5-c-masthead .pf-v5-c-menu-toggle {
-  border: 1px solid var(--cle-border);
+  border: 0;
   border-radius: var(--cle-radius-sm);
-  background-color: var(--cle-card);
+  background-color: transparent;
   color: var(--cle-text);
   font-weight: 750;
+}
+
+.pf-v5-c-masthead .pf-v5-c-menu-toggle::before {
+  border: 0 !important;
 }
 
 .pf-v5-c-masthead .pf-v5-c-menu-toggle:hover {
