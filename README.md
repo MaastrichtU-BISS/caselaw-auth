@@ -105,7 +105,14 @@ they may call.
 ## The theme
 
 `themes/caselaw` styles the sign-in, registration and account pages to match the
-products. Select it per realm under Realm settings, then Themes.
+products. The realm file selects it already, as `loginTheme` and `accountTheme`;
+in a realm configured by hand it is set under Realm settings, then Themes.
+
+The two halves work differently, and it matters when editing them. The login
+theme overrides FreeMarker templates, which are ours to change. The account
+console is a compiled application, so its markup is not: `account/` restyles it
+by setting PatternFly's own custom properties, which survive a Keycloak upgrade
+where class names would not.
 
 Editing it during development:
 

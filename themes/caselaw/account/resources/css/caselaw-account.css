@@ -1,0 +1,314 @@
+/*
+  The account console, in the Case Law Explorer design language.
+
+  This page is the one piece of the product nobody chose to visit: people
+  arrive because they want to change a password or check what is held about
+  them, usually from a link in a console that looks nothing like this. Arriving
+  at a black PatternFly masthead with someone else's logo on it reads as having
+  been handed off to a third party, which is exactly the moment you do not want
+  a person to wonder whether they are still in the right place.
+
+  It is restyled through PatternFly's own custom properties rather than by
+  overriding its class names. Keycloak ships this console compiled, so its
+  markup is not ours to depend on; the variables are the supported surface and
+  survive an upgrade, the structure underneath them does not. Where a rule does
+  reach for a class it is one of the few whose name is effectively load bearing
+  in PatternFly, and it is written to fail quietly rather than break the page.
+
+  Tokens are repeated here rather than imported. A Keycloak theme is a folder
+  of static files with no build step and no access to npm, so caselaw-ui cannot
+  reach it. Keep these values in step with caselaw-ui/src/styles/tokens.css.
+*/
+
+:root {
+  --cle-bg: #f8fafc;
+  --cle-surface-subtle: #f8fafc;
+  --cle-surface-muted: #eef2f7;
+  --cle-card: #ffffff;
+  --cle-border: #d9e1ec;
+  --cle-border-subtle: #e8edf5;
+  --cle-border-strong: #c4cfdf;
+  --cle-text: #111827;
+  --cle-text-body: #344054;
+  --cle-muted: #667085;
+  --cle-primary: #2f63ee;
+  --cle-primary-hover: #2454d6;
+  --cle-danger: #c4161c;
+  --cle-focus: rgba(47, 99, 238, 0.24);
+  --cle-radius-sm: 6px;
+  --cle-radius-md: 10px;
+  --cle-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --cle-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  --cle-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* ---------------------------------------------------------------------
+     PatternFly's globals, pointed at the tokens above.
+
+     Setting these is what does most of the work: every button, card, form
+     control and table in the console reads from them, so the console changes
+     shape without this file knowing what any of those components are called.
+     --------------------------------------------------------------------- */
+
+  --pf-v5-global--FontFamily--text: var(--cle-sans);
+  --pf-v5-global--FontFamily--heading--sans-serif: var(--cle-sans);
+  --pf-v5-global--FontFamily--sans-serif: var(--cle-sans);
+  --pf-v5-global--FontFamily--redhatfont--sans-serif: var(--cle-sans);
+  --pf-v5-global--FontFamily--monospace: var(--cle-mono);
+
+  --pf-v5-global--primary-color--100: var(--cle-primary);
+  --pf-v5-global--primary-color--200: var(--cle-primary-hover);
+  --pf-v5-global--link--Color: var(--cle-primary);
+  --pf-v5-global--link--Color--hover: var(--cle-primary-hover);
+  --pf-v5-global--active-color--100: var(--cle-primary);
+
+  --pf-v5-global--Color--100: var(--cle-text);
+  --pf-v5-global--Color--200: var(--cle-muted);
+  --pf-v5-global--Color--light-100: #ffffff;
+
+  --pf-v5-global--BackgroundColor--100: var(--cle-card);
+  --pf-v5-global--BackgroundColor--200: var(--cle-surface-subtle);
+  --pf-v5-global--BackgroundColor--light-300: var(--cle-surface-muted);
+
+  --pf-v5-global--BorderColor--100: var(--cle-border);
+  --pf-v5-global--BorderColor--200: var(--cle-border-strong);
+  --pf-v5-global--BorderColor--300: var(--cle-border-subtle);
+
+  --pf-v5-global--BorderRadius--sm: var(--cle-radius-sm);
+  --pf-v5-global--BorderRadius--lg: var(--cle-radius-md);
+
+  --pf-v5-global--danger-color--100: var(--cle-danger);
+  --pf-v5-global--success-color--100: #157347;
+  --pf-v5-global--warning-color--100: #b25e09;
+
+  --pf-v5-global--BoxShadow--sm: var(--cle-shadow-sm);
+  --pf-v5-global--FontWeight--bold: 800;
+}
+
+/* The page itself, so the console sits on the same surface as every other
+   product rather than on PatternFly's grey. */
+html,
+body,
+.pf-v5-c-page,
+.pf-v5-c-page__main {
+  background-color: var(--cle-surface-subtle);
+  color: var(--cle-text);
+  font-family: var(--cle-sans);
+}
+
+/* ---------------------------------------------------------------------------
+   The masthead.
+
+   Black with a vendor logo on it is the single strongest signal that you have
+   left the product, and it is wrong: this page belongs to Case Law Explorer,
+   Keycloak is only what runs it. A light bar with a rule under it is what the
+   other consoles wear.
+   --------------------------------------------------------------------------- */
+
+.pf-v5-c-masthead {
+  border-bottom: 1px solid var(--cle-border);
+  background-color: var(--cle-card);
+  color: var(--cle-text);
+}
+
+.pf-v5-c-masthead__main,
+.pf-v5-c-masthead__content {
+  color: var(--cle-text);
+}
+
+/* Keycloak's own mark, replaced by the product's name. The image is hidden
+   rather than removed, because the element belongs to the compiled app. */
+.pf-v5-c-masthead__brand img,
+.pf-v5-c-brand img,
+img.pf-v5-c-brand {
+  display: none;
+}
+
+.pf-v5-c-masthead__brand::after,
+.pf-v5-c-brand::after {
+  content: "Case Law Explorer";
+  color: var(--cle-text);
+  font-size: 1.02rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* The account menu in the corner, which is a dark dropdown by default. */
+.pf-v5-c-masthead .pf-v5-c-menu-toggle {
+  border: 1px solid var(--cle-border);
+  border-radius: var(--cle-radius-sm);
+  background-color: var(--cle-card);
+  color: var(--cle-text);
+  font-weight: 750;
+}
+
+.pf-v5-c-masthead .pf-v5-c-menu-toggle:hover {
+  background-color: var(--cle-surface-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   The rail.
+
+   Dark navigation is PatternFly's default and the opposite of the light rail
+   every other console in this product uses. Matching it matters more here than
+   anywhere, because this is the page people arrive at from those consoles.
+   --------------------------------------------------------------------------- */
+
+.pf-v5-c-page__sidebar,
+.pf-v5-c-page__sidebar .pf-v5-c-nav,
+.pf-v5-c-nav {
+  border-right: 1px solid var(--cle-border);
+  background-color: var(--cle-card);
+  color: var(--cle-text);
+}
+
+.pf-v5-c-nav__link {
+  border-radius: var(--cle-radius-sm);
+  color: var(--cle-text-body);
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.pf-v5-c-nav__link:hover {
+  background-color: var(--cle-surface-muted);
+  color: var(--cle-text);
+}
+
+/* The active item is filled rather than marked with a bar, matching the rails
+   in the access console and the research workspace. */
+.pf-v5-c-nav__link.pf-m-current,
+.pf-v5-c-nav__item.pf-m-current > .pf-v5-c-nav__link,
+.pf-v5-c-nav__link[aria-current="page"] {
+  background-color: rgba(47, 99, 238, 0.1);
+  color: var(--cle-primary);
+}
+
+/* PatternFly draws the current item with a coloured left edge on a
+   pseudo-element. Ours is the fill above, so this would be a second signal
+   saying the same thing. */
+.pf-v5-c-nav__link::before,
+.pf-v5-c-nav__link::after {
+  border: 0 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Content: headings, cards, forms.
+   --------------------------------------------------------------------------- */
+
+.pf-v5-c-title,
+.pf-v5-c-content h1,
+.pf-v5-c-content h2 {
+  color: var(--cle-text);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.pf-v5-c-card,
+.pf-v5-c-panel {
+  border: 1px solid var(--cle-border);
+  border-radius: var(--cle-radius-md);
+  background-color: var(--cle-card);
+  box-shadow: none;
+}
+
+.pf-v5-c-form__label-text {
+  color: var(--cle-text);
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+/* PatternFly underlines its inputs. Ours are bordered boxes, which is the
+   difference between a form that looks like this product and one that looks
+   like the framework it was built with. */
+.pf-v5-c-form-control {
+  border: 1px solid var(--cle-border);
+  border-radius: var(--cle-radius-sm);
+  background-color: var(--cle-card);
+  background-image: none;
+  color: var(--cle-text);
+}
+
+.pf-v5-c-form-control::after {
+  border: 0 !important;
+}
+
+.pf-v5-c-form-control:focus-within,
+.pf-v5-c-form-control input:focus {
+  border-color: var(--cle-primary);
+  box-shadow: 0 0 0 3px var(--cle-focus);
+  outline: none;
+}
+
+/* A field Keycloak will not let you edit, said with a surface rather than left
+   looking like an input that has stopped working. */
+.pf-v5-c-form-control.pf-m-disabled,
+.pf-v5-c-form-control[disabled],
+.pf-v5-c-form-control input[disabled] {
+  background-color: var(--cle-surface-muted);
+  color: var(--cle-muted);
+  cursor: not-allowed;
+}
+
+/* Buttons. Square-ish, heavier, and the secondary one is a bordered white
+   button rather than an outlined blue one. */
+.pf-v5-c-button {
+  border-radius: var(--cle-radius-sm);
+  font-weight: 800;
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--cle-primary);
+  color: #ffffff;
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background-color: var(--cle-primary-hover);
+}
+
+.pf-v5-c-button.pf-m-secondary {
+  border: 1px solid var(--cle-border);
+  background-color: var(--cle-card);
+  color: var(--cle-text);
+}
+
+.pf-v5-c-button.pf-m-secondary:hover {
+  background-color: var(--cle-surface-muted);
+}
+
+.pf-v5-c-button.pf-m-link {
+  color: var(--cle-primary);
+  font-weight: 750;
+}
+
+.pf-v5-c-button.pf-m-danger {
+  background-color: var(--cle-danger);
+}
+
+/* Tables, for the applications and sessions pages: the same uppercase muted
+   header the consoles use, so a list of sessions here reads like a list of
+   anything there. */
+.pf-v5-c-table thead th {
+  color: var(--cle-muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pf-v5-c-table tbody tr:hover {
+  background-color: var(--cle-surface-subtle);
+}
+
+/* Anything still carrying a monospace identifier should look deliberate. */
+.pf-v5-c-clipboard-copy__text,
+code,
+pre {
+  font-family: var(--cle-mono);
+}
+
+/* Focus, everywhere, in the product's colour rather than the framework's. */
+:focus-visible {
+  outline: 2px solid var(--cle-primary);
+  outline-offset: 2px;
+}

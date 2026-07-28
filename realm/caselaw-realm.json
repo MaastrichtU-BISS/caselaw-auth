@@ -3,6 +3,7 @@
   "displayName": "Case Law Explorer",
   "enabled": true,
   "loginTheme": "caselaw",
+  "accountTheme": "caselaw",
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "rememberMe": true,
