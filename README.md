@@ -28,6 +28,22 @@ workspace has a `none` provider, and the access console is the only surface that
 requires an account at all. Deploy this when you want one login across products, not
 because something breaks without it.
 
+## Which half of this do you need
+
+Most people arrive here wanting the first of these, and the rest of this README is
+about the second.
+
+**Adding sign-in to your project**, against the instance already running at
+`auth.caselawexplorer.tech` — you do not need to deploy anything, read the realm
+file, or know any OIDC. Go to **[docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md)**:
+the Keycloak client to create and every field that matters, the environment
+variables for frontend and backend, the code for Vue, Svelte and everything else,
+how an API verifies a token, and Case Law Explorer worked through end to end.
+About an hour.
+
+**Running your own copy** of the realm, theme and Keycloak — the rest of this
+page.
+
 ## Self-hosting
 
 Requirements: Docker, a Postgres for Keycloak's own storage, and a domain with TLS.
@@ -88,6 +104,11 @@ In the admin console, under Clients:
 A redirect URI that does not match exactly fails at the end of sign-in, after the
 password has already been accepted, which reads as a broken application rather than a
 configuration error.
+
+That is the short version.
+[docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) has every field with its
+default, when to choose a confidential client instead, and why each of the four
+settings people get wrong matters.
 
 ## Roles
 
@@ -166,8 +187,13 @@ const auth = createAuthClient({
 });
 ```
 
-Vue and Svelte adapters ship alongside it. See
-[packages/caselaw-auth/README.md](packages/caselaw-auth/README.md).
+Vue and Svelte adapters ship alongside it, with `AuthGate`, `LoginButton`,
+`LogoutButton`, `AccountMenu` and `CallbackView` for Vue.
+
+- [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) — wiring it into a
+  product, with the callback route, the backend check and the role rules
+- [packages/caselaw-auth/README.md](packages/caselaw-auth/README.md) — the full
+  client API
 
 ## Troubleshooting
 
