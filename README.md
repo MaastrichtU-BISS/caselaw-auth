@@ -17,8 +17,8 @@ themes/caselaw/             the Case Law Explorer sign-in theme
 providers/                  Keycloak provider JARs
 packages/caselaw-auth/      the browser client, published on npm
 docker-compose.yml          Keycloak and its Postgres
-scripts/                    realm import and export helpers
-docs/                       client setup notes
+scripts/                    apply-themes.sh, smoke.sh
+docs/                       connecting a product, and configuring a realm
 ```
 
 ## Nothing depends on this
@@ -40,6 +40,11 @@ the Keycloak client to create and every field that matters, the environment
 variables for frontend and backend, the code for Vue, Svelte and everything else,
 how an API verifies a token, and Case Law Explorer worked through end to end.
 About an hour.
+
+**Configuring a realm** — your own rather than the shared one, or the shared one
+properly — is **[docs/REALM_SETUP.md](docs/REALM_SETUP.md)**: when a separate realm
+is the right call, every realm setting that matters and what this one chooses, roles,
+the four client shapes, and where an identity provider like SURFconext plugs in.
 
 **Running your own copy** of the realm, theme and Keycloak — the rest of this
 page.
@@ -70,6 +75,13 @@ docker compose up -d
 The realm imports on first start. Keycloak is then reachable at `KC_HOSTNAME`, with
 the admin console at `/admin` and the realm at `/realms/caselaw`.
 
+Two things to do before letting anyone in. The realm turns on **Verify email** and
+**Forgot password** but ships no mail server, so accounts cannot be confirmed and
+resets cannot be sent until you configure SMTP. And brute force detection and a
+password policy are both left at Keycloak's defaults, which is off and none.
+[docs/REALM_SETUP.md](docs/REALM_SETUP.md) walks the whole realm configuration,
+including a realm of your own rather than this one.
+
 ### Behind a reverse proxy
 
 Keycloak builds absolute URLs from the hostname it believes it has. Set `KC_HOSTNAME`
@@ -81,15 +93,17 @@ wrong produces redirects to `http://` on an HTTPS site, or to an internal hostna
 One client per application that signs users in. Each needs its own redirect URIs and
 its own web origins.
 
-| Client | Application |
-|---|---|
-| `caselaw-frontend` | the research workspace |
-| `caselaw-access` | the access console |
-| `caselaw-db-workbench` | the database workbench |
-| `citations-api` | the API's own pages, when it signs anyone in |
+| Client | Application | Kind |
+|---|---|---|
+| `caselaw-frontend` | the research workspace | public, browser |
+| `caselaw-access` | the access console | public, browser |
+| `caselaw-db-workbench` | the database workbench | public, browser |
+| `caselaw-api` | the API, acting as itself | confidential, service account |
 
-All are public clients using authorization code flow with PKCE. No client secrets in
-browsers.
+The three browser clients use authorization code flow with PKCE and hold no secret.
+`caselaw-api` is the other shape: standard flow off, service accounts on, no redirect
+URIs — it never signs a person in, it obtains tokens as itself, and its secret stays
+in the server's environment.
 
 ### Adding one
 
@@ -159,15 +173,15 @@ reload.
 ## Exporting realm changes
 
 Changes made in the admin console live in the database, not in this repository. Export
-them back so a fresh deployment gets them:
+them back so a fresh deployment gets them, from **Realm settings → Action → Partial
+export**, ticking groups, roles and clients.
 
-```bash
-./scripts/export-realm.sh
-```
+Write the result to `realm/caselaw-realm.json` and commit it. Secrets are stripped, so
+the file is safe to check in, but read the diff before committing: an export also
+captures anything else changed in the console since the last one.
 
-It writes `realm/caselaw-realm.json`. Commit the result. Secrets are stripped, so the
-file is safe to check in, but read the diff before committing: an export also captures
-anything else changed in the console since the last one.
+The API equivalent, and the rest of the realm's configuration, is in
+[docs/REALM_SETUP.md](docs/REALM_SETUP.md).
 
 ## The browser client
 

@@ -11,6 +11,12 @@ and you can read its source.
 **You will need:** realm-admin access to the Keycloak console (ask an existing
 admin), and a domain for your product.
 
+**On a realm that is not `caselaw`** — your own, or a staging one — everything
+below is unchanged except the issuer, which becomes
+`https://<keycloak-host>/realms/<realm-name>`. The client library discovers
+every endpoint from it and neither knows nor cares which realm answers. Setting
+that realm up is [REALM_SETUP.md](REALM_SETUP.md).
+
 ---
 
 ## What you get, and what you do not
@@ -434,10 +440,15 @@ Do these in order. Each catches a distinct failure.
 
 The whole estate, end to end.
 
-**Keycloak** — realm `caselaw`, four public clients: `caselaw-frontend` (the
-research workspace), `caselaw-api`, `caselaw-access` (the console),
-`caselaw-db-workbench`. Plus `caselaw-access-admin`, confidential, service
-accounts only, which the access service uses to read the user directory.
+**Keycloak** — realm `caselaw`, three public browser clients:
+`caselaw-frontend` (the research workspace), `caselaw-access` (the console) and
+`caselaw-db-workbench`. Plus `caselaw-api`, which is the other shape entirely:
+confidential, standard flow off, service accounts on, no redirect URIs. It
+never signs a person in; it obtains tokens as itself.
+
+The realm file is a seed, not a mirror of the running instance — anything added
+through the admin console lives in Keycloak's database until someone exports it
+back, so the live realm may hold clients this file does not.
 
 **The research workspace** (SvelteKit) builds its client in
 `app/src/lib/auth/oidc.ts` behind a `browser` guard, reading
@@ -500,6 +511,7 @@ instead of reading it from the client per request.
 
 ## Further reading
 
+- [REALM_SETUP.md](REALM_SETUP.md) — configuring a realm, or standing up your own
 - [packages/caselaw-auth/README.md](../packages/caselaw-auth/README.md) — the full client API
 - [AUTH_FRONTEND_PACKAGE.md](AUTH_FRONTEND_PACKAGE.md) — per-framework env plumbing
 - [caselaw-access](https://github.com/davidwickerhf/caselaw-access) — plans, keys, quotas
