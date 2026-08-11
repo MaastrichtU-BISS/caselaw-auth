@@ -27,7 +27,7 @@ Law product, so a person signs in once.
 
 It does not answer **what they may do** beyond coarse roles. Plans, quotas, API
 keys and per-endpoint permissions live in
-[caselaw-access](https://github.com/davidwickerhf/caselaw-access). If your
+[caselaw-access](https://github.com/MaastrichtU-BISS/caselaw-access). If your
 product needs rate limiting or API keys, you want both services, and you should
 read that repository's docs after this one.
 
@@ -514,5 +514,5 @@ instead of reading it from the client per request.
 - [REALM_SETUP.md](REALM_SETUP.md) — configuring a realm, or standing up your own
 - [packages/caselaw-auth/README.md](../packages/caselaw-auth/README.md) — the full client API
 - [AUTH_FRONTEND_PACKAGE.md](AUTH_FRONTEND_PACKAGE.md) — per-framework env plumbing
-- [caselaw-access](https://github.com/davidwickerhf/caselaw-access) — plans, keys, quotas
-- [caselaw-ui](https://github.com/davidwickerhf/caselaw-ui) — shared components, including the console shell
+- [caselaw-access](https://github.com/MaastrichtU-BISS/caselaw-access) — plans, keys, quotas
+- [caselaw-ui](https://github.com/MaastrichtU-BISS/caselaw-ui) — shared components, including the console shell

@@ -54,7 +54,7 @@ page.
 Requirements: Docker, a Postgres for Keycloak's own storage, and a domain with TLS.
 
 ```bash
-git clone https://github.com/davidwickerhf/caselaw-auth.git
+git clone https://github.com/MaastrichtU-BISS/caselaw-auth.git
 cd caselaw-auth
 cp .env.example .env
 ```
@@ -133,7 +133,7 @@ Assign it in the admin console under Users, then Role mapping. It can be a realm
 or a client role; the browser client reads both.
 
 Everything else about what a user may do comes from
-[caselaw-access](https://github.com/davidwickerhf/caselaw-access), which owns plans,
+[caselaw-access](https://github.com/MaastrichtU-BISS/caselaw-access), which owns plans,
 API keys and per-endpoint scopes. Keycloak answers who someone is. Access answers what
 they may call.
 
@@ -232,6 +232,6 @@ Restart Keycloak after changing theme files.
 
 ## Related repositories
 
-- [caselaw-access](https://github.com/davidwickerhf/caselaw-access), plans, API keys and rate limits
-- [caselaw-ui](https://github.com/davidwickerhf/caselaw-ui), shared interface components
-- [caselaw-coolify](https://github.com/davidwickerhf/caselaw-coolify), the deployment bundle
+- [caselaw-access](https://github.com/MaastrichtU-BISS/caselaw-access), plans, API keys and rate limits
+- [caselaw-ui](https://github.com/MaastrichtU-BISS/caselaw-ui), shared interface components
+- [caselaw-coolify](https://github.com/MaastrichtU-BISS/caselaw-coolify), the deployment bundle

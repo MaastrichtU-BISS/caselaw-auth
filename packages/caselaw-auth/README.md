@@ -4,7 +4,7 @@ Browser OIDC client for the Case Law Explorer products. Authorization code flow 
 PKCE, token refresh, role checks, and adapters for Vue and Svelte.
 
 Provider-neutral. It is used with the shared
-[Keycloak realm](https://github.com/davidwickerhf/caselaw-auth) because Keycloak
+[Keycloak realm](https://github.com/MaastrichtU-BISS/caselaw-auth) because Keycloak
 speaks standard OIDC, but any compliant provider works.
 
 ```bash
@@ -177,5 +177,5 @@ bytes a browser will hold for one cookie, and the browser discards it silently.
 
 ## Related
 
-- [caselaw-auth](https://github.com/davidwickerhf/caselaw-auth), the realm, themes and deployment
-- [caselaw-access](https://github.com/davidwickerhf/caselaw-access), which validates these tokens for API access
+- [caselaw-auth](https://github.com/MaastrichtU-BISS/caselaw-auth), the realm, themes and deployment
+- [caselaw-access](https://github.com/MaastrichtU-BISS/caselaw-access), which validates these tokens for API access
