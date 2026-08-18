@@ -41,6 +41,12 @@ variables for frontend and backend, the code for Vue, Svelte and everything else
 how an API verifies a token, and Case Law Explorer worked through end to end.
 About an hour.
 
+**Signing in from a server** rather than a browser — a server-rendered app, or
+anything holding a shared secret such as DiscourseConnect — is
+**[docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md)** and the
+`caselaw-auth/server` entry point. The browser client cannot do these: it throws
+off-browser, and a browser cannot keep a secret at all.
+
 **Configuring a realm** — your own rather than the shared one, or the shared one
 properly — is **[docs/REALM_SETUP.md](docs/REALM_SETUP.md)**: when a separate realm
 is the right call, every realm setting that matters and what this one chooses, roles,

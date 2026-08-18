@@ -10,6 +10,7 @@ export default defineConfig({
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
         client: resolve(__dirname, 'src/client-entry.ts'),
+        server: resolve(__dirname, 'src/server.ts'),
         svelte: resolve(__dirname, 'src/svelte.ts'),
         vue: resolve(__dirname, 'src/vue-entry.ts'),
       },
