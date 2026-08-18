@@ -246,6 +246,44 @@ confirms the address itself.
 
 ---
 
+## Worked example: the research workspace
+
+`MaastrichtU-BISS/citations` was migrated from the browser client to this one,
+and it is worth reading because it hit the two problems a real migration hits.
+
+**The session is two cookies, not one.** `caselaw_session` holds the identity,
+roles and id token; `caselaw_at` holds the access token. Together they do not
+reliably fit under 4096 bytes, and an oversized cookie is discarded silently,
+which presents as the app signing you straight back out.
+
+**Something still needs the user's token.** That app proxies every `/api/*` call
+server-side, and the citations API distinguishes a request made by a person from
+one made by the deployment — saved queries need an owner. The browser used to
+answer that by attaching its own token, which is precisely what made the token
+readable. Now it sets a marker header, `x-caselaw-as-user`, and the proxy reads
+the token from the cookie:
+
+```ts
+reqHeaders.delete('authorization');
+let credential = apiToken;                       // this deployment
+if (request.headers.get(AS_USER_HEADER)) {
+  const held = await auth.unsealSession(cookies.get(ACCESS_COOKIE));
+  if (held?.accessToken) credential = String(held.accessToken);   // this person
+}
+reqHeaders.set('authorization', `Bearer ${credential}`);
+```
+
+The marker is not a security boundary — any script can set it. It only chooses
+between two credentials the server already holds, and the worst case is a corpus
+read arriving as the signed-in user, which they could have made anyway. That is
+a much smaller surface than handing the browser a token.
+
+**What the move deleted:** a "checking session" screen, a reactive redirect, and
+a second render of every protected page. All three existed only because the
+browser held the session and had to resolve it after mount. The server knows
+before anything renders, so an unauthorised visitor is redirected before a byte
+of HTML is produced.
+
 ## Why not just use the browser client
 
 The browser client keeps the whole session — **including the refresh token** —

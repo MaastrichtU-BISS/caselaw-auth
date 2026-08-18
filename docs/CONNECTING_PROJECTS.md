@@ -164,10 +164,19 @@ the endpoints) is discovered from it. A confidential client adds
 npm install caselaw-auth
 ```
 
-One package, three entry points. `caselaw-auth/client` is framework-neutral,
-`caselaw-auth/vue` and `caselaw-auth/svelte` wrap it. Vue and Svelte are
-optional peer dependencies, so installing this does not drag in a framework you
-are not using.
+One package, four entry points. `caselaw-auth/client` is framework-neutral,
+`caselaw-auth/vue` and `caselaw-auth/svelte` wrap it, and `caselaw-auth/server`
+is the other half entirely. Vue and Svelte are optional peer dependencies, so
+installing this does not drag in a framework you are not using.
+
+> **Does your product have a server?** Then this section is probably the wrong
+> one. The browser client keeps the session — refresh token included — in
+> `localStorage`, where page script can read it. With a server you can put it in
+> an httpOnly cookie instead, which script cannot touch, and the browser never
+> holds a credential at all. That is what
+> [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) covers, and it is what the research
+> workspace now does. Read on only if the product is a static SPA with no server
+> of its own — that is the case the browser client is right for.
 
 ### Vue and Nuxt
 
