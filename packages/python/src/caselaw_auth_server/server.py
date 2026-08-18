@@ -230,6 +230,37 @@ class ServerAuth:
             raise AuthError(f"token exchange failed with {response.status_code}: {response.text}")
         return response.json()
 
+    def refresh_token(self, refresh_token: str) -> dict[str, Any] | None:
+        """Trades a refresh token for a fresh access token.
+
+        Necessary wherever a server holds a token on a user's behalf for longer
+        than the token lives. Keycloak's access tokens expire in about five
+        minutes and an application session lasts hours, so a server that stores
+        one at sign-in and reuses it is broken from the sixth minute.
+
+        Returns ``None`` rather than raising when the provider refuses: the
+        usual reason is an expired or revoked session, and the caller's response
+        is to sign the person in again rather than to fail the request.
+        """
+        body = {
+            "grant_type": "refresh_token",
+            "client_id": self.config.client_id,
+            "refresh_token": refresh_token,
+        }
+        if self.config.client_secret:
+            body["client_secret"] = self.config.client_secret
+        try:
+            response = httpx.post(
+                self.discover()["token_endpoint"],
+                data=body,
+                timeout=self.config.timeout_seconds,
+            )
+        except httpx.HTTPError as exc:
+            raise AuthBackendUnavailable(f"refresh failed: {exc}") from exc
+        if response.status_code >= 400:
+            return None
+        return response.json()
+
     # ── verification ─────────────────────────────────────────────────────────
 
     def _jwks_client(self, force: bool = False) -> PyJWKClient:

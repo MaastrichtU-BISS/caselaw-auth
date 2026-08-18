@@ -218,3 +218,37 @@ def test_session_omits_auth_time_when_the_claim_is_absent():
     a freshness check treats as stale rather than as unknown."""
     session = auth().session_from_claims(CASES["step_up"]["session_omits_auth_time_when_absent"]["claims"])
     assert "authTime" not in session
+
+
+def test_refresh_returns_nothing_when_the_provider_refuses(monkeypatch):
+    """A refused refresh is an expired session, not an error to surface: the
+    caller signs the person in again rather than failing their request."""
+    import httpx
+
+    a = _seeded_auth()
+    a._discovery["token_endpoint"] = "https://auth.example.org/token"
+    monkeypatch.setattr(
+        httpx, "post", lambda *args, **kwargs: httpx.Response(400, json={"error": "invalid_grant"})
+    )
+    assert a.refresh_token("stale") is None
+    assert CASES["refresh"]["refusal_returns_empty"] is True
+
+
+def test_refresh_sends_the_grant_the_contract_pins(monkeypatch):
+    import httpx
+
+    captured = {}
+
+    def fake_post(url, data=None, **kwargs):
+        captured.update(data or {})
+        return httpx.Response(200, json={"access_token": "new"})
+
+    a = _seeded_auth()
+    a._discovery["token_endpoint"] = "https://auth.example.org/token"
+    monkeypatch.setattr(httpx, "post", fake_post)
+    assert a.refresh_token("r")["access_token"] == "new"
+    for required in CASES["refresh"]["required_body_params"]:
+        key, _, expected = required.partition("=")
+        assert key in captured
+        if expected:
+            assert captured[key] == expected

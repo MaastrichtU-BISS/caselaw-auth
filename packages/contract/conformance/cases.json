@@ -251,5 +251,15 @@
       },
       "$comment": "Absent rather than null or zero: a session with authTime 0 would read as authenticated at the epoch, which every freshness check would treat as stale rather than unknown."
     }
+  },
+  "refresh": {
+    "$comment": "Refreshing an access token. The grant body is pinned because a server holding a token for longer than it lives has to refresh it, and getting the body wrong fails only after the token expires -- minutes after sign-in, in a place nobody is looking.",
+    "required_body_params": [
+      "grant_type=refresh_token",
+      "client_id",
+      "refresh_token"
+    ],
+    "$comment_refusal": "A refused refresh returns nothing rather than raising. The usual cause is an expired or revoked session, and the caller's answer is to sign the person in again, not to fail their request.",
+    "refusal_returns_empty": true
   }
 }

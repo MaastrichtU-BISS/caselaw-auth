@@ -266,6 +266,37 @@ export class ServerAuth {
    * names the client in `azp`. Checking `aud` therefore rejects every valid
    * token, which reads as the tokens being broken. Use `azp` instead.
    */
+  /**
+   * Trades a refresh token for a fresh access token.
+   *
+   * Necessary wherever a server holds a token on a user's behalf for longer
+   * than the token lives. Keycloak's access tokens expire in about five
+   * minutes and an application session lasts hours, so a server that stores one
+   * at sign-in and reuses it is broken from the sixth minute -- the browser
+   * client refreshed on its own, and a server-side session has to do it itself.
+   *
+   * Returns null rather than throwing when the provider refuses, because the
+   * usual reason is an expired or revoked session, and the caller's response to
+   * that is to sign the person in again rather than to fail the request.
+   */
+  async refreshToken(refreshToken: string): Promise<TokenResponse | null> {
+    const discovery = await this.discover()
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: this.config.clientId,
+      refresh_token: refreshToken,
+    })
+    if (this.config.clientSecret) body.set('client_secret', this.config.clientSecret)
+
+    const response = await fetch(discovery.token_endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body,
+    })
+    if (!response.ok) return null
+    return (await response.json()) as TokenResponse
+  }
+
   async verifyToken(token: string, options: { audience?: string; azp?: string; nonce?: string } = {}): Promise<JwtClaims> {
     let lastError: unknown = null
     for (const force of [false, true]) {

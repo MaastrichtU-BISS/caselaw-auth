@@ -198,3 +198,40 @@ test('session omits authTime when the claim is absent', () => {
   const session = auth().sessionFromClaims(CASES.step_up.session_omits_auth_time_when_absent.claims)
   assert.equal('authTime' in session, false)
 })
+
+test('refresh returns nothing when the provider refuses', async () => {
+  // A refused refresh is an expired session, not an error to surface.
+  const a = seeded()
+  a._discovery = { token_endpoint: 'https://auth.example.org/token' }
+  a.discover = async () => ({ token_endpoint: 'https://auth.example.org/token' })
+  const original = globalThis.fetch
+  globalThis.fetch = async () => new Response('{"error":"invalid_grant"}', { status: 400 })
+  try {
+    assert.equal(await a.refreshToken('stale'), null)
+  } finally {
+    globalThis.fetch = original
+  }
+  assert.equal(CASES.refresh.refusal_returns_empty, true)
+})
+
+test('refresh sends the grant the contract pins', async () => {
+  const a = seeded()
+  a.discover = async () => ({ token_endpoint: 'https://auth.example.org/token' })
+  const original = globalThis.fetch
+  let sent
+  globalThis.fetch = async (_url, init) => {
+    sent = new URLSearchParams(init.body)
+    return new Response('{"access_token":"new"}', { status: 200 })
+  }
+  try {
+    const tokens = await a.refreshToken('r')
+    assert.equal(tokens.access_token, 'new')
+  } finally {
+    globalThis.fetch = original
+  }
+  for (const required of CASES.refresh.required_body_params) {
+    const [key, expected] = required.split('=')
+    assert.ok(sent.has(key), `missing ${key}`)
+    if (expected) assert.equal(sent.get(key), expected)
+  }
+})
