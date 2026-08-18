@@ -1,0 +1,92 @@
+{
+  "$comment": "Single source of truth for the server-side auth implementations. Both packages/caselaw-auth (TypeScript) and packages/python (Python) implement this, and both load conformance/cases.json at test time by relative path. Never inline those cases into a language's own tests: the anti-drift guarantee depends on there being one copy.",
+  "version": "1.0.0",
+  "name": "caselaw-auth server contract",
+
+  "session_cookie": {
+    "$comment": "A session is signed, not encrypted. The contents are the user's own identity, which they already know; what matters is that they cannot change it. An unsigned cookie would let anyone promote themselves by editing a role.",
+    "format": "<payload>.<signature>",
+    "payload": {
+      "encoding": "base64url, unpadded",
+      "of": "the session object, serialised as JSON"
+    },
+    "json_serialisation": {
+      "$comment": "Pinned so that a value sealed by either implementation is byte-identical, not merely mutually readable. Divergence here is invisible until someone diffs two cookies.",
+      "separators": "no whitespace between tokens (',' and ':')",
+      "non_ascii": "emitted as UTF-8, never escaped to \\uXXXX",
+      "key_order": "insertion order, as constructed by session_from_claims"
+    },
+    "signature": {
+      "algorithm": "HMAC-SHA256",
+      "key": "the configured session secret, as UTF-8 bytes",
+      "over": "the base64url payload string, as UTF-8 bytes",
+      "encoding": "base64url, unpadded"
+    },
+    "comparison": "constant-time; a length mismatch is a mismatch",
+    "byte_limit": 4096,
+    "byte_limit_behaviour": "sealing MUST raise when `<name>=<value>` exceeds the limit, rather than return a value the browser will silently discard"
+  },
+
+  "session_record": {
+    "$comment": "What sessionFromClaims / session_from_claims builds. Extra keys are permitted and preserved; these are the ones both implementations guarantee.",
+    "user": {
+      "id": "the `sub` claim, as a string",
+      "email": "`email`, else `preferred_username`, else null",
+      "name": "`name`, else `preferred_username`, else null"
+    },
+    "roles": "realm_access.roles plus resource_access[clientId].roles, de-duplicated, realm roles first",
+    "expiresAt": "unix seconds; now + session_ttl_seconds. NOT the token's exp",
+    "idToken": "present only when supplied by the caller; kept for id_token_hint at sign-out"
+  },
+
+  "unseal": {
+    "$comment": "Returns the session, or nothing. It never raises for untrusted input: a tampered cookie and an absent one lead to the same place, and distinguishing them only tells an attacker which half they got right.",
+    "returns_empty_for": [
+      "absent or empty input",
+      "input without exactly one '.' separator",
+      "signature mismatch",
+      "payload that is not valid base64url or not valid JSON",
+      "payload missing user.id or expiresAt",
+      "expiresAt at or before now"
+    ]
+  },
+
+  "token_verification": {
+    "algorithms": ["RS256", "RS384", "RS512", "ES256"],
+    "checks": ["signature", "issuer", "expiry", "not-before"],
+    "audience": {
+      "default": "not checked",
+      "$comment": "Keycloak does not put the client id in `aud` for a public client's access token; it puts `account` and names the requesting client in `azp`. Verifying `aud` by default therefore rejects every valid token, which reads as the tokens being broken. Callers who want the check pass `azp`."
+    },
+    "jwks": {
+      "cache_seconds_default": 300,
+      "retry": "exactly one retry against a freshly fetched key set",
+      "retry_excludes": "a token that is itself invalid — malformed, expired, wrong issuer, bad signature — is never retried, because it says the same thing twice"
+    },
+    "errors": {
+      "invalid_token": "raised for anything wrong with the token; distinguishable from a transport failure",
+      "backend_unavailable": "raised when the key set cannot be fetched, after the retry"
+    }
+  },
+
+  "cookie_attributes": {
+    "httpOnly": true,
+    "sameSite": "lax",
+    "$comment": "Not `strict`: that drops the cookie on the top-level redirect back from the identity provider, leaving the user signed in everywhere except the page they just landed on.",
+    "secure": "true by default; callers set false only for plaintext localhost",
+    "path": "/"
+  },
+
+  "pkce": {
+    "verifier": "43-128 characters of unreserved URL-safe alphabet",
+    "challenge": "base64url(SHA-256(verifier)), unpadded",
+    "method": "S256"
+  },
+
+  "naming": {
+    "$comment": "The two implementations are idiomatic in their own language rather than identical in spelling. This maps them.",
+    "typescript": "camelCase methods, camelCase session keys",
+    "python": "snake_case methods, camelCase session keys",
+    "$comment_keys": "Session keys stay camelCase in BOTH languages. They are wire format, not API surface — a cookie sealed by one implementation must unseal in the other, and renaming keys per language would break exactly that."
+  }
+}

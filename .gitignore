@@ -4,3 +4,9 @@ target/
 *.log
 node_modules/
 packages/*/dist/
+
+# Python package: local virtualenv and build output
+packages/python/.venv/
+packages/python/dist/
+packages/python/**/__pycache__/
+packages/python/*.egg-info/

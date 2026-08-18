@@ -7,7 +7,14 @@ Integrating a product that has a backend, using `caselaw-auth/server`.
 secret.
 
 **Prerequisites.** Realm-administrator access to the Keycloak console, a domain
-for the product, and `caselaw-auth` v0.2.1 or later.
+for the product, and either `caselaw-auth` v0.2.1 or later (Node) or
+`caselaw-auth-server` (Python).
+
+> **Python backends use `caselaw-auth-server`.** Every step below applies
+> unchanged — the two implementations are interchangeable, and a session sealed
+> by one unseals in the other. Method names are snake_case there; session keys
+> stay camelCase in both, because they are wire format. See
+> [packages/python/README.md](../packages/python/README.md).
 
 **Related.** [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) for static SPAs,
 [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.

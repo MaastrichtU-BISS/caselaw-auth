@@ -1,0 +1,89 @@
+name: Publish to PyPI
+
+# Two published packages now share this repository, so the tag says which.
+# `v*` remains the npm package (it predates this one and retagging published
+# releases would be worse than the asymmetry); Python releases are `python-v*`.
+# An unprefixed tag fires the npm workflow only.
+on:
+  push:
+    tags:
+      - "python-v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and check without publishing"
+        type: boolean
+        default: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        working-directory: packages/python
+        run: pip install -e ".[dev]"
+
+      # Loads packages/contract/conformance/cases.json by relative path, so it
+      # runs from the checkout rather than from an installed wheel.
+      - name: Conformance suite
+        working-directory: packages/python
+        run: python -m pytest -q
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # The property neither language's own suite can prove: that a session
+      # sealed by one unseals in the other. Without this a release could ship
+      # two implementations that each pass and cannot talk to each other.
+      - name: Cross-language interoperability
+        run: |
+          npm --prefix packages/caselaw-auth ci || npm --prefix packages/caselaw-auth install
+          npm --prefix packages/caselaw-auth run build
+          node packages/contract/conformance/interop.mjs "$(which python)"
+
+      - name: Tag matches the version
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: packages/python
+        run: |
+          version="$(python -c 'import tomllib;print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          tag="${GITHUB_REF_NAME#python-v}"
+          if [ "$version" != "$tag" ]; then
+            echo "pyproject.toml says $version, tag says $tag" >&2
+            exit 1
+          fi
+
+  publish:
+    needs: check
+    if: startsWith(github.ref, 'refs/tags/') || inputs.dry_run == false
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # the OIDC exchange for trusted publishing
+      contents: read    # declaring any permission drops the defaults
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build
+        working-directory: packages/python
+        run: |
+          pip install build
+          python -m build
+
+      # Trusted publishing: no token. The publisher is configured on PyPI
+      # against owner + repository + this workflow's filename, so renaming this
+      # file silently breaks releases — the exchange is never attempted and the
+      # registry answers as though the package does not exist.
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: packages/python/dist

@@ -17,6 +17,20 @@ its theme, and the `caselaw-auth` npm package.
 Both paths use the same realm, the same package and the same Keycloak client
 model. They differ only in where the session is held.
 
+### Server path, by language
+
+| Backend | Package | Install |
+|---|---|---|
+| Node, Astro, SvelteKit, Deno, workers | `caselaw-auth/server` | `npm install caselaw-auth` |
+| Python — FastAPI, Django, Flask, `http.server` | `caselaw-auth-server` | `pip install caselaw-auth-server` |
+
+The two are interchangeable: a session cookie sealed by either unseals in the
+other, byte for byte. They are held to that by a shared contract and a
+cross-language suite — see
+[packages/contract/README.md](../packages/contract/README.md).
+
+### Session location
+
 | | `caselaw-auth/server` | `caselaw-auth/client` |
 |---|---|---|
 | **Use when** | The product has a backend | The product is a static SPA |

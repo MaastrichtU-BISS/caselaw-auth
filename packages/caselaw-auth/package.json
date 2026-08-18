@@ -48,7 +48,8 @@
   },
   "scripts": {
     "build": "vite build && vue-tsc --emitDeclarationOnly",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "test": "node --test test/"
   },
   "peerDependencies": {
     "svelte": "^5.0.0",
