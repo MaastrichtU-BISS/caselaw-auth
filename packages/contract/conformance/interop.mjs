@@ -13,7 +13,10 @@
  *
  *   node packages/contract/conformance/interop.mjs [path-to-python]
  *
- * Defaults to packages/python/.venv/bin/python.
+ * Defaults to packages/python/.venv/bin/python. Point it at a virtualenv with
+ * the published package installed to check a release as shipped rather than as
+ * written — the two are not the same thing, and only one of them is what users
+ * get.
  */
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
@@ -56,16 +59,32 @@ const SESSIONS = [
   { user: { id: 'u-3', email: null, name: 'Ruben Sørensen' }, roles: ['redacteur'], expiresAt: future },
 ]
 
-const runPython = (source) =>
-  JSON.parse(execFileSync(python, ['-c', source], { encoding: 'utf8', cwd: root }))
+const runPython = (source) => {
+  const result = execFileSync(python, ['-c', source], { encoding: 'utf8', cwd: root, stdio: ['pipe', 'pipe', 'pipe'] })
+  return JSON.parse(result)
+}
 
 /** Embeds data as a JSON string for json.loads, never as a literal: JSON's
  *  null/true/false are not Python's, and interpolating them is a NameError. */
 const pyValue = (value) => `json.loads(${JSON.stringify(JSON.stringify(value))})`
 
+/*
+ * The source tree is a fallback, not the default.
+ *
+ * This used to prepend packages/python/src unconditionally, which meant that
+ * pointing the script at a virtualenv with the *published* package installed
+ * still imported the working tree — so a release could have been checked
+ * against code that was never shipped. Import first, fall back only if the
+ * package is not installed, and say which one was used.
+ */
 const PY_PREAMBLE = `
 import json, sys
-sys.path.insert(0, "packages/python/src")
+try:
+    import caselaw_auth_server as _m
+except ModuleNotFoundError:
+    sys.path.insert(0, "packages/python/src")
+    import caselaw_auth_server as _m
+print(_m.__file__, file=sys.stderr)
 from caselaw_auth_server import create_server_auth
 auth = create_server_auth(
     issuer=${JSON.stringify(CONFIG.issuer)},
