@@ -169,8 +169,17 @@ class ServerAuth:
         nonce: str | None = None,
         prompt: str | None = None,
         login_hint: str | None = None,
+        max_age: int | None = None,
     ) -> str:
-        """Where to send the browser to start a sign-in."""
+        """Where to send the browser to start a sign-in.
+
+        ``max_age`` is seconds since the user last authenticated, beyond which
+        the provider must ask again. This is what step-up authentication is
+        built on: a privileged action sends a small value, and the returned
+        token's ``auth_time`` proves the person was present rather than a
+        session being replayed. Prefer it to ``prompt='login'``, which
+        re-prompts even someone who signed in a second ago.
+        """
         params = {
             "response_type": "code",
             "client_id": self.config.client_id,
@@ -187,6 +196,9 @@ class ServerAuth:
             params["prompt"] = prompt
         if login_hint:
             params["login_hint"] = login_hint
+        # 0 is meaningful -- "authenticate now, whatever happened before".
+        if max_age is not None:
+            params["max_age"] = str(max_age)
         return f"{self.discover()['authorization_endpoint']}?{urlencode(params)}"
 
     def exchange_code(self, *, code: str, code_verifier: str | None = None) -> dict[str, Any]:
@@ -312,6 +324,12 @@ class ServerAuth:
             "roles": self.roles_from_claims(claims),
             "expiresAt": int(time.time()) + self.config.session_ttl_seconds,
         }
+        # When the person last actually authenticated, as the provider reports
+        # it -- not when this session was created. A session refreshed for eight
+        # hours keeps its original authTime, which is what makes it usable for
+        # deciding whether to ask again before something destructive.
+        if claims.get("auth_time") is not None:
+            session["authTime"] = int(claims["auth_time"])
         if id_token:
             session["idToken"] = id_token
         return session

@@ -178,3 +178,43 @@ def test_serialised_cookie_carries_the_flags():
 
 def test_contract_and_cases_agree_on_the_byte_limit():
     assert CONTRACT["session_cookie"]["byte_limit"] == COOKIE_BYTE_LIMIT
+
+
+# ── step-up authentication ──────────────────────────────────────────────────
+
+
+def _seeded_auth():
+    a = auth()
+    a._discovery = {"authorization_endpoint": "https://auth.example.org/auth"}
+    return a
+
+
+def test_authorization_url_carries_max_age():
+    case = CASES["step_up"]["authorization_url_max_age"]
+    url = _seeded_auth().authorization_url(state="s", max_age=case["max_age"])
+    assert case["expected_param"] in url
+
+
+def test_authorization_url_emits_a_zero_max_age():
+    """0 means 'authenticate now'. Treating it as absent silently downgrades
+    every step-up prompt that asked for exactly that."""
+    case = CASES["step_up"]["authorization_url_max_age"]
+    url = _seeded_auth().authorization_url(state="s", max_age=case["zero_max_age"])
+    assert case["zero_expected_param"] in url
+
+
+def test_authorization_url_omits_max_age_when_unset():
+    assert "max_age" not in _seeded_auth().authorization_url(state="s")
+
+
+def test_session_carries_auth_time():
+    case = CASES["step_up"]["session_carries_auth_time"]
+    session = auth().session_from_claims(case["claims"])
+    assert session["authTime"] == case["expected_auth_time"]
+
+
+def test_session_omits_auth_time_when_the_claim_is_absent():
+    """Absent, not zero: authTime 0 reads as authenticated at the epoch, which
+    a freshness check treats as stale rather than as unknown."""
+    session = auth().session_from_claims(CASES["step_up"]["session_omits_auth_time_when_absent"]["claims"])
+    assert "authTime" not in session

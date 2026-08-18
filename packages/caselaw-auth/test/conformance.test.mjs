@@ -156,3 +156,45 @@ test('serialised cookie carries the flags', () => {
 test('contract and cases agree on the byte limit', () => {
   assert.equal(CONTRACT.session_cookie.byte_limit, COOKIE_BYTE_LIMIT)
 })
+
+// ── step-up authentication ──────────────────────────────────────────────────
+
+/* Overrides the public method rather than the private field: this suite runs
+   against dist/, which is minified, so `_discovery` does not exist under that
+   name there. Stubbing discover() keeps the test off the network without
+   depending on how the bundle happens to be built. */
+const seeded = () => {
+  const a = auth()
+  a.discover = async () => ({ authorization_endpoint: 'https://auth.example.org/auth' })
+  return a
+}
+
+test('authorizationUrl carries max_age', async () => {
+  const c = CASES.step_up.authorization_url_max_age
+  const url = await seeded().authorizationUrl({ state: 's', maxAge: c.max_age })
+  assert.match(url, new RegExp(c.expected_param))
+})
+
+test('authorizationUrl emits a zero max_age', async () => {
+  // 0 means "authenticate now". Treating it as absent silently downgrades
+  // every step-up prompt that asked for exactly that.
+  const c = CASES.step_up.authorization_url_max_age
+  const url = await seeded().authorizationUrl({ state: 's', maxAge: c.zero_max_age })
+  assert.match(url, new RegExp(c.zero_expected_param))
+})
+
+test('authorizationUrl omits max_age when unset', async () => {
+  assert.equal((await seeded().authorizationUrl({ state: 's' })).includes('max_age'), false)
+})
+
+test('session carries authTime', () => {
+  const c = CASES.step_up.session_carries_auth_time
+  assert.equal(auth().sessionFromClaims(c.claims).authTime, c.expected_auth_time)
+})
+
+test('session omits authTime when the claim is absent', () => {
+  // Absent, not zero: authTime 0 reads as authenticated at the epoch, which a
+  // freshness check treats as stale rather than as unknown.
+  const session = auth().sessionFromClaims(CASES.step_up.session_omits_auth_time_when_absent.claims)
+  assert.equal('authTime' in session, false)
+})

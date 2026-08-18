@@ -182,6 +182,16 @@ export class ServerAuth {
     nonce?: string
     prompt?: 'login' | 'none' | 'consent' | 'select_account'
     loginHint?: string
+    /**
+     * Seconds since the user last authenticated, beyond which the provider must
+     * ask again. This is what step-up authentication is built on: a privileged
+     * action sends a small max_age, and the returned token's auth_time proves
+     * the person was actually present rather than a session being replayed.
+     *
+     * Prefer this to `prompt: 'login'`, which re-prompts even someone who
+     * signed in a second ago.
+     */
+    maxAge?: number
   }): Promise<string> {
     const discovery = await this.discover()
     const params = new URLSearchParams({
@@ -198,6 +208,8 @@ export class ServerAuth {
     if (options.nonce) params.set('nonce', options.nonce)
     if (options.prompt) params.set('prompt', options.prompt)
     if (options.loginHint) params.set('login_hint', options.loginHint)
+    // 0 is meaningful — "authenticate now, whatever happened before".
+    if (options.maxAge !== undefined) params.set('max_age', String(options.maxAge))
     return `${discovery.authorization_endpoint}?${params.toString()}`
   }
 
@@ -338,6 +350,11 @@ export class ServerAuth {
       },
       roles: this.rolesFromClaims(claims),
       expiresAt: Math.floor(Date.now() / 1000) + this.config.sessionTtlSeconds,
+      // When the person last actually authenticated, as the provider reports
+      // it -- not when this session was created. A session refreshed for eight
+      // hours keeps its original authTime, which is exactly what makes it
+      // usable for deciding whether to ask again before something destructive.
+      ...(claims.auth_time !== undefined ? { authTime: Number(claims.auth_time) } : {}),
       ...(options.idToken ? { idToken: options.idToken } : {}),
     }
   }

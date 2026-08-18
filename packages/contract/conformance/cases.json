@@ -1,16 +1,18 @@
 {
   "$comment": "Executable cases every server implementation must pass. Both languages load this file by relative path at test time — never copy it into a language's own tests, because one copy is the whole point. A behaviour with no case here is a behaviour that can drift.",
   "version": "1.0.0",
-
   "secret": "conformance-secret-do-not-use-in-production",
-
   "seal": {
     "$comment": "Sealing is pinned to exact bytes, not merely to round-tripping. Two implementations that each read their own cookies but write different ones would pass a weaker test and still be unable to hand a session to each other.",
     "cases": [
       {
         "name": "minimal session",
         "session": {
-          "user": { "id": "user-1", "email": null, "name": null },
+          "user": {
+            "id": "user-1",
+            "email": null,
+            "name": null
+          },
           "roles": [],
           "expiresAt": 4102444800
         },
@@ -19,8 +21,15 @@
       {
         "name": "roles and an id token",
         "session": {
-          "user": { "id": "user-2", "email": "a@example.org", "name": "A Person" },
-          "roles": ["admin", "researcher"],
+          "user": {
+            "id": "user-2",
+            "email": "a@example.org",
+            "name": "A Person"
+          },
+          "roles": [
+            "admin",
+            "researcher"
+          ],
           "expiresAt": 4102444800,
           "idToken": "id-token-value"
         },
@@ -30,7 +39,11 @@
         "name": "non-ascii is UTF-8, not escaped",
         "$comment": "Python's json.dumps escapes non-ASCII by default and JavaScript does not. Left unpinned, two implementations would seal the same Dutch or Armenian name to different bytes.",
         "session": {
-          "user": { "id": "user-3", "email": null, "name": "Ruben Sørensen" },
+          "user": {
+            "id": "user-3",
+            "email": null,
+            "name": "Ruben Sørensen"
+          },
           "roles": [],
           "expiresAt": 4102444800
         },
@@ -38,28 +51,47 @@
       }
     ]
   },
-
   "unseal_rejects": {
     "$comment": "Every one of these must yield nothing rather than raise, and must not be distinguishable from each other by the caller.",
     "cases": [
-      { "name": "empty", "value": "" },
-      { "name": "no separator", "value": "nonsense" },
-      { "name": "payload only", "value": "eyJhIjoxfQ" },
-      { "name": "signature from a different payload", "value": "eyJ1c2VyIjp7ImlkIjoieCJ9LCJyb2xlcyI6W10sImV4cGlyZXNBdCI6NDEwMjQ0NDgwMH0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
-      { "name": "payload that is not base64url", "value": "!!!!.AAAA" },
-      { "name": "payload that is not JSON", "value": "bm90LWpzb24.AAAA" }
+      {
+        "name": "empty",
+        "value": ""
+      },
+      {
+        "name": "no separator",
+        "value": "nonsense"
+      },
+      {
+        "name": "payload only",
+        "value": "eyJhIjoxfQ"
+      },
+      {
+        "name": "signature from a different payload",
+        "value": "eyJ1c2VyIjp7ImlkIjoieCJ9LCJyb2xlcyI6W10sImV4cGlyZXNBdCI6NDEwMjQ0NDgwMH0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      {
+        "name": "payload that is not base64url",
+        "value": "!!!!.AAAA"
+      },
+      {
+        "name": "payload that is not JSON",
+        "value": "bm90LWpzb24.AAAA"
+      }
     ]
   },
-
   "unseal_rejects_expired": {
     "$comment": "Sealed with the conformance secret, expiresAt in the past. Must yield nothing even though the signature is valid.",
     "session": {
-      "user": { "id": "user-4", "email": null, "name": null },
+      "user": {
+        "id": "user-4",
+        "email": null,
+        "name": null
+      },
       "roles": [],
       "expiresAt": 1000000000
     }
   },
-
   "session_from_claims": {
     "$comment": "Claim mapping, including the fallbacks. An implementation that reached for `email` only would pass a naive test and lose the name of every account that signs in with a username.",
     "clientId": "conformance-client",
@@ -71,19 +103,43 @@
           "email": "a@example.org",
           "name": "A Person",
           "preferred_username": "aperson",
-          "realm_access": { "roles": ["admin"] },
-          "resource_access": { "conformance-client": { "roles": ["editor"] } }
+          "realm_access": {
+            "roles": [
+              "admin"
+            ]
+          },
+          "resource_access": {
+            "conformance-client": {
+              "roles": [
+                "editor"
+              ]
+            }
+          }
         },
         "expected": {
-          "user": { "id": "abc", "email": "a@example.org", "name": "A Person" },
-          "roles": ["admin", "editor"]
+          "user": {
+            "id": "abc",
+            "email": "a@example.org",
+            "name": "A Person"
+          },
+          "roles": [
+            "admin",
+            "editor"
+          ]
         }
       },
       {
         "name": "falls back to preferred_username for both email and name",
-        "claims": { "sub": "def", "preferred_username": "someone" },
+        "claims": {
+          "sub": "def",
+          "preferred_username": "someone"
+        },
         "expected": {
-          "user": { "id": "def", "email": "someone", "name": "someone" },
+          "user": {
+            "id": "def",
+            "email": "someone",
+            "name": "someone"
+          },
           "roles": []
         }
       },
@@ -91,35 +147,65 @@
         "name": "another client's roles are not this client's",
         "claims": {
           "sub": "ghi",
-          "realm_access": { "roles": ["researcher"] },
-          "resource_access": { "some-other-client": { "roles": ["admin"] } }
+          "realm_access": {
+            "roles": [
+              "researcher"
+            ]
+          },
+          "resource_access": {
+            "some-other-client": {
+              "roles": [
+                "admin"
+              ]
+            }
+          }
         },
         "expected": {
-          "user": { "id": "ghi", "email": null, "name": null },
-          "roles": ["researcher"]
+          "user": {
+            "id": "ghi",
+            "email": null,
+            "name": null
+          },
+          "roles": [
+            "researcher"
+          ]
         }
       },
       {
         "name": "a role held in both places appears once",
         "claims": {
           "sub": "jkl",
-          "realm_access": { "roles": ["admin"] },
-          "resource_access": { "conformance-client": { "roles": ["admin"] } }
+          "realm_access": {
+            "roles": [
+              "admin"
+            ]
+          },
+          "resource_access": {
+            "conformance-client": {
+              "roles": [
+                "admin"
+              ]
+            }
+          }
         },
         "expected": {
-          "user": { "id": "jkl", "email": null, "name": null },
-          "roles": ["admin"]
+          "user": {
+            "id": "jkl",
+            "email": null,
+            "name": null
+          },
+          "roles": [
+            "admin"
+          ]
         }
       }
     ]
   },
-
   "pkce": {
     "$comment": "Fixed verifier, so both implementations must derive the same challenge.",
     "verifier": "conformance-verifier-0123456789-0123456789-0123456789",
     "challenge": "KCp5DqNdKy7Q1VdsVJgjEF7usjYnP9HmjRVH01w7ORc"
   },
-
   "authorization_url": {
     "$comment": "Query parameters that must be present. Checked as a set rather than as a string, since parameter order is not meaningful.",
     "required_params": [
@@ -131,10 +217,39 @@
       "code_challenge",
       "code_challenge_method=S256"
     ],
-    "forbidden_params": ["client_secret"]
+    "forbidden_params": [
+      "client_secret"
+    ]
   },
-
   "cookie_options": {
-    "expected": { "httpOnly": true, "sameSite": "lax", "secure": true, "path": "/" }
+    "expected": {
+      "httpOnly": true,
+      "sameSite": "lax",
+      "secure": true,
+      "path": "/"
+    }
+  },
+  "step_up": {
+    "$comment": "Step-up authentication. max_age asks the provider to re-authenticate anyone whose last sign-in is older than it, and auth_time comes back saying when that was. Both are needed for a privileged action to tell a present person from a replayed session, so both are pinned.",
+    "authorization_url_max_age": {
+      "max_age": 300,
+      "expected_param": "max_age=300",
+      "$comment_zero": "0 must be emitted, not treated as absent: it means 'authenticate now, whatever happened before'.",
+      "zero_max_age": 0,
+      "zero_expected_param": "max_age=0"
+    },
+    "session_carries_auth_time": {
+      "claims": {
+        "sub": "abc",
+        "auth_time": 1700000000
+      },
+      "expected_auth_time": 1700000000
+    },
+    "session_omits_auth_time_when_absent": {
+      "claims": {
+        "sub": "abc"
+      },
+      "$comment": "Absent rather than null or zero: a session with authTime 0 would read as authenticated at the epoch, which every freshness check would treat as stale rather than unknown."
+    }
   }
 }
