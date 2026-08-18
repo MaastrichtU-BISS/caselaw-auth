@@ -257,6 +257,14 @@ client id there for a public client's access token — it puts `account`, and
 names the client in `azp`. Checking `aud` rejects every valid token, which
 reads as the tokens being broken. Pass `azp` instead.
 
+**One session secret per product, never shared.** The two implementations are
+byte-compatible on purpose, so any of them will unseal a cookie sealed with the
+same secret. Two products sharing one would therefore each accept sessions
+minted by the other, roles included — a session on a low-privilege surface would
+be a session on an administrative one. Generate one per product with
+`openssl rand -base64 48`, and do not derive it from an API token or any other
+value already in the environment.
+
 **JWKS is cached for five minutes and retried once.** A blip on the refetch
 would otherwise fail a request with nothing wrong with it; the access service
 learned that by turning a filled-in form into a bare 503.
