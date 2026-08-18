@@ -1,17 +1,31 @@
-# Setting up a realm
+# Realm configuration
 
-For anyone who needs a realm of their own rather than the shared `caselaw` one:
-a separate realm on the hosted Keycloak, or a realm on a Keycloak you run
-yourself. It covers every setting that matters, what the shared realm chooses,
-and why.
+Configuring a Keycloak realm for Case Law products: the shared `caselaw` realm,
+a separate realm on the same server, or a realm on a Keycloak you run yourself.
 
-If you only want to add sign-in to a product against a realm that already
-exists, you do not need any of this — see
-[CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md).
+**Audience.** Realm administrators and anyone standing up a new environment.
+
+**Prerequisites.** Administrator access to the Keycloak console.
+
+**Related.** [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) and
+[CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) for connecting a product to a
+realm that already exists — neither requires anything on this page.
+
+## Contents
+
+1. [Deciding whether to create a realm](#1-deciding-whether-to-create-a-realm)
+2. [Creating a realm](#2-creating-a-realm)
+3. [Realm settings](#3-realm-settings)
+4. [Roles](#4-roles)
+5. [Clients](#5-clients)
+6. [Identity providers](#6-identity-providers)
+7. [Connecting a product](#7-connecting-a-product)
+8. [Exporting changes](#8-exporting-changes)
+9. [Commissioning checklist](#9-commissioning-checklist)
 
 ---
 
-## Do you actually need one
+## 1. Deciding whether to create a realm
 
 A realm is an isolation boundary. Separate realms share no users, no sessions,
 no roles: an account in one does not exist in the other, and a person with
@@ -34,9 +48,9 @@ two realms afterwards is not.
 
 ---
 
-## Two ways to create one
+## 2. Creating a realm
 
-### Import the shared realm as a starting point
+### From the shared realm file
 
 `realm/caselaw-realm.json` is a working realm: themes, roles and four clients.
 Copy it, change `realm` and `displayName`, drop the clients you do not want.
@@ -53,7 +67,7 @@ as this repository's `docker-compose.yml` does.
 > running realm, change it in the admin console (or over the admin API) and
 > export it back.
 
-### Build one by hand
+### From scratch
 
 **Realms → Create realm**, give it a name, then work down the next section. The
 name becomes part of your issuer URL and cannot be changed later without
@@ -68,7 +82,7 @@ is conventionally `caselaw-staging`.
 
 ---
 
-## The settings that matter
+## 3. Realm settings
 
 Everything here is under **Realm settings** in the admin console. The "shared
 realm" column is what `caselaw-realm.json` sets, so you can see which choices
@@ -190,7 +204,7 @@ against a known username.
 
 ---
 
-## Roles
+## 4. Roles
 
 The shared realm defines three realm roles:
 
@@ -214,7 +228,7 @@ Create them under **Realm roles**, assign under **Users → Role mapping**.
 
 ---
 
-## Clients
+## 5. Clients
 
 One per application. The shared realm ships four, and they are worth reading as
 a set because they cover every shape you are likely to need:
@@ -231,11 +245,11 @@ under its own identity rather than on behalf of a user. It has a secret, which
 lives in the server's environment and never reaches a browser.
 
 Creating clients, with every field and the four people get wrong, is in
-[CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md#step-1--create-the-keycloak-client).
+[CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md#3-keycloak-client-configuration).
 
 ---
 
-## Identity providers
+## 6. Identity providers
 
 Not configured in the shared realm today. When SURFconext is added, it is added
 **to the realm**, and every product keeps pointing at the same issuer. Nothing
@@ -250,7 +264,7 @@ Keycloak user under that provider's **Mappers** tab.
 
 ---
 
-## Pointing a product at your realm
+## 7. Connecting a product
 
 Only the issuer changes:
 
@@ -269,7 +283,7 @@ isolation working.
 
 ---
 
-## Exporting changes back
+## 8. Exporting changes
 
 Anything you change in the admin console lives in the database, not in this
 repository. A rebuilt deployment loses it unless you export.
@@ -298,7 +312,7 @@ safe to check in.
 
 ---
 
-## Before you call it done
+## 9. Commissioning checklist
 
 - [ ] Issuer resolves: `curl https://<host>/realms/<realm>/.well-known/openid-configuration`
 - [ ] SMTP configured, **or** Verify email and Forgot password both off

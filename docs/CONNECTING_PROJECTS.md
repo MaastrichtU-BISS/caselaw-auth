@@ -1,25 +1,41 @@
-# Connecting a project to Case Law Auth
+# Connecting a single-page application
 
-For anyone at BISS adding sign-in to a product against the **hosted** service at
-`https://auth.caselawexplorer.tech`. You do not need to run Keycloak, read the
-realm file, or understand OIDC to follow this.
+Integrating a product with no backend, using `caselaw-auth/client`.
 
-Case Law Explorer is used throughout as the worked example, because it is real
-and you can read its source.
+**Audience.** Engineers adding sign-in to a static SPA served against the hosted
+service at `https://auth.caselawexplorer.tech`.
 
-**Time:** about an hour for a frontend, another for an API.
-**You will need:** realm-admin access to the Keycloak console (ask an existing
-admin), and a domain for your product.
+**Prerequisites.** Realm-administrator access to the Keycloak console (ask an
+existing administrator) and a domain for the product.
 
-**On a realm that is not `caselaw`** — your own, or a staging one — everything
-below is unchanged except the issuer, which becomes
-`https://<keycloak-host>/realms/<realm-name>`. The client library discovers
-every endpoint from it and neither knows nor cares which realm answers. Setting
-that realm up is [REALM_SETUP.md](REALM_SETUP.md).
+**Related.** [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) for products that have a
+backend, [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
+
+> **If the product has a backend, use the server path instead.** This guide
+> stores the session — refresh token included — in `localStorage`, where page
+> script can read it. With a backend the session belongs in an httpOnly cookie.
+> Every product in this estate has a backend; see
+> [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md).
+
+> **On a realm other than `caselaw`**, everything below is unchanged except the
+> issuer, which becomes `https://<keycloak-host>/realms/<realm-name>`.
+
+## Contents
+
+1. [Scope of the service](#1-scope-of-the-service)
+2. [Decisions to make first](#2-decisions-to-make-first)
+3. [Keycloak client configuration](#3-keycloak-client-configuration)
+4. [Environment variables](#4-environment-variables)
+5. [Frontend implementation](#5-frontend-implementation)
+6. [Backend token verification](#6-backend-token-verification)
+7. [Roles](#7-roles)
+8. [Verification checklist](#8-verification-checklist)
+9. [Reference implementation](#9-reference-implementation)
+10. [Troubleshooting](#10-troubleshooting)
 
 ---
 
-## What you get, and what you do not
+## 1. Scope of the service
 
 Keycloak answers **who someone is**. It gives you a verified identity — a
 stable `sub`, an email, a name, and a set of roles — shared across every Case
@@ -38,7 +54,7 @@ in from the start — it is what makes your app runnable in CI and on a laptop.
 
 ---
 
-## Decide these three things first
+## 2. Decisions to make first
 
 Everything below follows from them.
 
@@ -57,12 +73,12 @@ It must be a real route in your app that renders something, not a placeholder.
 
 ---
 
-## Step 1 — Create the Keycloak client
+## 3. Keycloak client configuration
 
 In the admin console at `https://auth.caselawexplorer.tech/admin`, realm
 **`caselaw`**, go to **Clients → Create client**.
 
-### Public client (browser apps — the usual case)
+### Public client
 
 | Setting | Value |
 |---|---|
@@ -97,7 +113,7 @@ PKCE challenge; setting this makes Keycloak *require* it.
 Add the localhost URI now. It costs nothing and you will otherwise add it in a
 hurry, later, while trying to debug something else.
 
-### Confidential client (server-side or machine-to-machine)
+### Confidential client
 
 Same, except **Client authentication: On**, and:
 
@@ -112,7 +128,7 @@ user directory.
 
 ---
 
-## Step 2 — Environment variables
+## 4. Environment variables
 
 ### Frontend
 
@@ -158,7 +174,7 @@ the endpoints) is discovered from it. A confidential client adds
 
 ---
 
-## Step 3 — Frontend code
+## 5. Frontend implementation
 
 ```bash
 npm install caselaw-auth
@@ -283,7 +299,7 @@ Guard construction behind `browser` — `createAuthClient` reaches for
 returns `null` when the issuer is unset so the app runs unconfigured rather
 than crashing.
 
-### The callback route — the step people forget
+### The callback route
 
 You must have a route at your redirect URI that calls `handleCallback()`. Until
 it does, sign-in appears to work, the password is accepted, and the user lands
@@ -304,7 +320,7 @@ onMounted(async () => {
 `handleCallback()` exchanges the code, stores the session and returns it.
 Afterwards, send the user to `returnTo` if you passed one to `login()`.
 
-### Neither adapter, or another framework
+### Other frameworks
 
 ```ts
 import { createAuthClient } from "caselaw-auth/client";
@@ -338,7 +354,7 @@ look like a server fault.
 
 ---
 
-## Step 4 — Backend code
+## 6. Backend token verification
 
 Your API must verify the token itself. Never trust a client-supplied user id,
 and never call Keycloak per request to ask about a token — the signature is
@@ -400,7 +416,7 @@ client_roles = claims.get("resource_access", {}).get("your-client-id", {}).get("
 
 ---
 
-## Step 5 — Roles
+## 7. Roles
 
 `admin` is the only role the shared platform reads. It gates the access
 console, the database workbench, and administrator routes in the access
@@ -429,7 +445,7 @@ people are not shown doors they cannot open.
 
 ---
 
-## Step 6 — Test it
+## 8. Verification checklist
 
 Do these in order. Each catches a distinct failure.
 
@@ -445,7 +461,7 @@ Do these in order. Each catches a distinct failure.
 
 ---
 
-## Worked example: Case Law Explorer
+## 9. Reference implementation
 
 The whole estate, end to end.
 
@@ -485,7 +501,7 @@ needs quotas: verify identity here, ask access what the caller may do.
 
 ---
 
-## Troubleshooting
+## 10. Troubleshooting
 
 **`invalid_redirect_uri` after the password is accepted.** The URI does not
 match a registered one *exactly*. Trailing slashes count; `http` and `https`

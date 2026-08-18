@@ -3,7 +3,8 @@
 [![npm](https://img.shields.io/npm/v/caselaw-auth?logo=npm&label=npm&color=%23181849)](https://www.npmjs.com/package/caselaw-auth)
 
 One shared account across every Case Law Explorer product. A Keycloak realm, the theme
-it wears, and the browser client the applications sign in with.
+it wears, and the client library applications sign in with — in the browser or on
+their own server.
 
 Users sign in once. The Citations API, the research workspace, the access console and
 the database workbench all accept the same account, and roles decide what each one
@@ -15,10 +16,10 @@ shows.
 realm/caselaw-realm.json    the realm: clients, roles, login settings
 themes/caselaw/             the Case Law Explorer sign-in theme
 providers/                  Keycloak provider JARs
-packages/caselaw-auth/      the browser client, published on npm
+packages/caselaw-auth/      the client library, published on npm
 docker-compose.yml          Keycloak and its Postgres
 scripts/                    apply-themes.sh, smoke.sh
-docs/                       connecting a product, and configuring a realm
+docs/                       integration guides and realm reference
 ```
 
 ## Nothing depends on this
@@ -28,32 +29,27 @@ workspace has a `none` provider, and the access console is the only surface that
 requires an account at all. Deploy this when you want one login across products, not
 because something breaks without it.
 
-## Which half of this do you need
+## Documentation
 
-Most people arrive here wanting the first of these, and the rest of this README is
-about the second.
+Most people arrive here to connect a product, not to run this. The guides are
+indexed in **[docs/](docs/README.md)**; the rest of this README is about operating the
+service itself.
 
-**Adding sign-in to your project**, against the instance already running at
-`auth.caselawexplorer.tech` — you do not need to deploy anything, read the realm
-file, or know any OIDC. Go to **[docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md)**:
-the Keycloak client to create and every field that matters, the environment
-variables for frontend and backend, the code for Vue, Svelte and everything else,
-how an API verifies a token, and Case Law Explorer worked through end to end.
-About an hour.
+| Task | Guide |
+|---|---|
+| Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |
+| Connect a **static SPA** | [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) |
+| Configure a realm | [docs/REALM_SETUP.md](docs/REALM_SETUP.md) |
+| Run your own Keycloak | The rest of this page |
 
-**Signing in from a server** rather than a browser — a server-rendered app, or
-anything holding a shared secret such as DiscourseConnect — is
-**[docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md)** and the
-`caselaw-auth/server` entry point. The browser client cannot do these: it throws
-off-browser, and a browser cannot keep a secret at all.
+Neither integration guide requires deploying anything: both work against the instance
+already running at `auth.caselawexplorer.tech`.
 
-**Configuring a realm** — your own rather than the shared one, or the shared one
-properly — is **[docs/REALM_SETUP.md](docs/REALM_SETUP.md)**: when a separate realm
-is the right call, every realm setting that matters and what this one chooses, roles,
-the four client shapes, and where an identity provider like SURFconext plugs in.
-
-**Running your own copy** of the realm, theme and Keycloak — the rest of this
-page.
+> **Where a backend exists, use the server path.** The browser client keeps the
+> session — refresh token included — in `localStorage`, where page script can read it.
+> The server path keeps it in an httpOnly cookie that script cannot reach. Some things
+> only the server path can do at all: anything holding a shared secret, such as
+> DiscourseConnect, is impossible in a browser.
 
 ## Self-hosting
 

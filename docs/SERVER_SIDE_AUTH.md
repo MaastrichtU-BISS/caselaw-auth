@@ -1,15 +1,31 @@
-# Server-side sign-in
+# Server-side authentication
 
-For products where the browser client is the wrong tool: server-rendered apps
-(Astro, SvelteKit with an adapter, Nuxt with a server, Express) and anything
-holding a shared secret.
+Integrating a product that has a backend, using `caselaw-auth/server`.
 
-The worked example is **DiscourseConnect**, because it is the case that forces
-the issue.
+**Audience.** Engineers adding sign-in to a server-rendered application
+(Astro, SvelteKit, Nuxt, Express) or to any service that must hold a shared
+secret.
+
+**Prerequisites.** Realm-administrator access to the Keycloak console, a domain
+for the product, and `caselaw-auth` v0.2.1 or later.
+
+**Related.** [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) for static SPAs,
+[REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
+
+## Contents
+
+1. [When to use this path](#1-when-to-use-this-path)
+2. [Request flow](#2-request-flow)
+3. [Keycloak client configuration](#3-keycloak-client-configuration)
+4. [API reference](#4-api-reference)
+5. [Design decisions](#5-design-decisions)
+6. [DiscourseConnect](#6-discourseconnect)
+7. [Reference implementation](#7-reference-implementation)
+8. [Comparison with the browser client](#8-comparison-with-the-browser-client)
 
 ---
 
-## When you need this
+## 1. When to use this path
 
 Reach for `caselaw-auth/client` (or `/vue`, `/svelte`) for a browser app that
 talks to an API with a bearer token. It is the right tool and most products
@@ -26,14 +42,14 @@ Reach for `caselaw-auth/server` when any of these is true:
   call `assertBrowser()`.
 - **You want the session out of reach of page script.** An httpOnly cookie
   cannot be read by JavaScript; `localStorage` can. See
-  [the note on that trade](#why-not-just-use-the-browser-client).
+  [section 8](#8-comparison-with-the-browser-client).
 
 The two can coexist. A product may render server-side and still hand a
 short-lived token to a browser widget.
 
 ---
 
-## The flow
+## 2. Request flow
 
 Three routes. Names are conventional, not required.
 
@@ -117,7 +133,7 @@ Passing `id_token_hint` is what makes this a real single sign-out. Without it
 Keycloak keeps its own session and the next sign-in completes with no prompt,
 which reads as the sign-out having silently failed.
 
-### Reading the session on a page
+### Reading the session
 
 ```ts
 const session = await auth.unsealSession(getCookie("caselaw_session"));
@@ -129,7 +145,7 @@ Cheap — an HMAC check, no network call.
 
 ---
 
-## Keycloak client
+## 3. Keycloak client configuration
 
 A fifth shape alongside the four in the realm: it signs users in **and** holds a
 secret.
@@ -150,7 +166,64 @@ to the browser.
 
 ---
 
-## Decisions this module makes for you
+## 4. API reference
+
+### `createServerAuth(config): ServerAuth`
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `issuer` | `string` | — | Realm URL, e.g. `https://auth.example.org/realms/caselaw`. Required |
+| `clientId` | `string` | — | Keycloak client id. Required |
+| `clientSecret` | `string` | — | Confidential clients only. Never expose to a browser |
+| `redirectUri` | `string` | — | Must match a Valid Redirect URI on the client. Required |
+| `scope` | `string` | `openid profile email` | Requested scopes |
+| `sessionSecret` | `string` | — | Signs the session cookie. Required |
+| `sessionTtlSeconds` | `number` | `28800` (8 h) | Application session lifetime |
+| `jwksCacheSeconds` | `number` | `300` | How long a fetched key set is reused |
+
+### Methods
+
+| Method | Returns | Description |
+|---|---|---|
+| `discover()` | `Promise<OidcDiscovery>` | Fetches and memoises the realm's discovery document |
+| `authorizationUrl(options)` | `Promise<string>` | Builds the URL to redirect a browser to. Options: `state`, `codeChallenge`, `nonce`, `prompt`, `loginHint` |
+| `exchangeCode(options)` | `Promise<TokenResponse>` | Redeems an authorization code. Options: `code`, `codeVerifier` |
+| `verifyToken(token, options?)` | `Promise<JwtClaims>` | Verifies signature, issuer, expiry and optionally `audience`, `azp`, `nonce`. Throws on failure |
+| `rolesFromClaims(claims)` | `string[]` | Realm roles plus this client's roles, de-duplicated |
+| `sessionFromClaims(claims, options?)` | `SessionRecord` | Builds a session from verified claims. Options: `idToken` |
+| `sealSession(session, cookieName?)` | `Promise<string>` | Signs a session into a cookie value. Throws above 4096 bytes |
+| `unsealSession(value)` | `Promise<SessionRecord \| null>` | Verifies and decodes. `null` for tampered, malformed or expired input |
+| `cookieOptions(maxAge, options?)` | `object` | Cookie attributes. Options: `secure`, `path` |
+| `serializeCookie(name, value, options)` | `string` | `Set-Cookie` value, for runtimes without a cookie helper |
+| `endSessionUrl(options)` | `Promise<string>` | Sign-out URL. Options: `idToken`, `returnTo` |
+
+### Standalone exports
+
+| Export | Description |
+|---|---|
+| `createPkcePair()` | `Promise<{ verifier, challenge }>` — S256 |
+| `randomToken(bytes?)` | URL-safe random string; default 32 bytes |
+| `COOKIE_BYTE_LIMIT` | `4096`, the per-cookie browser limit |
+
+### Types
+
+| Type | Notable fields |
+|---|---|
+| `SessionRecord` | `user: { id, email, name }`, `roles: string[]`, `expiresAt: number`, `idToken?: string`. Extra fields permitted |
+| `JwtClaims` | `sub`, `iss`, `exp`, `azp?`, `email?`, `realm_access?`, `resource_access?` |
+
+### Errors
+
+| Condition | Behaviour |
+|---|---|
+| Token malformed, expired, wrong issuer, bad signature | `verifyToken` throws with `name === 'TokenInvalid'`; not retried |
+| JWKS or network failure | `verifyToken` retries once against a fresh key set, then throws |
+| Session cookie over 4096 bytes | `sealSession` throws |
+| Tampered, malformed or expired cookie | `unsealSession` returns `null` |
+
+---
+
+## 5. Design decisions
 
 Each of these was arrived at the hard way in `sql-runner-ui`, which is the
 implementation this was extracted from.
@@ -183,7 +256,7 @@ learned that by turning a filled-in form into a bare 503.
 
 ---
 
-## DiscourseConnect
+## 6. DiscourseConnect
 
 Discourse redirects to your endpoint with `sso` (base64 of a query string) and
 `sig` (HMAC-SHA256 of `sso`, using the shared secret). You verify it,
@@ -246,7 +319,7 @@ confirms the address itself.
 
 ---
 
-## Worked example: the research workspace
+## 7. Reference implementation
 
 `MaastrichtU-BISS/citations` was migrated from the browser client to this one,
 and it is worth reading because it hit the two problems a real migration hits.
@@ -284,7 +357,7 @@ browser held the session and had to resolve it after mount. The server knows
 before anything renders, so an unauthorised visitor is redirected before a byte
 of HTML is produced.
 
-## Why not just use the browser client
+## 8. Comparison with the browser client
 
 The browser client keeps the whole session — **including the refresh token** —
 in `localStorage`, where any script running on the page can read it. That is
