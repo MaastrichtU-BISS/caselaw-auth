@@ -1,7 +1,16 @@
 {
   "name": "caselaw-auth",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared OIDC auth client and Svelte/Vue integrations for Case Law Explorer projects.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaastrichtU-BISS/caselaw-auth.git",
+    "directory": "packages/caselaw-auth"
+  },
+  "homepage": "https://github.com/MaastrichtU-BISS/caselaw-auth#readme",
+  "bugs": {
+    "url": "https://github.com/MaastrichtU-BISS/caselaw-auth/issues"
+  },
   "type": "module",
   "files": [
     "dist"
