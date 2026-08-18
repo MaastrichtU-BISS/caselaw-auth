@@ -110,5 +110,12 @@
         "pkce.code.challenge.method": "S256"
       }
     }
-  ]
+  ],
+  "revokeRefreshToken": true,
+  "refreshTokenMaxReuse": 1,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "bruteForceProtected": true,
+  "passwordPolicy": "length(12) and notUsername and passwordHistory(3)",
+  "sslRequired": "external"
 }

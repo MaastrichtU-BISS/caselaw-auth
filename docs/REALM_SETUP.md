@@ -145,14 +145,43 @@ while working. That controls how long they may be away, and costs far less.
 
 ### Security
 
-All unset in the shared realm, so all at Keycloak's defaults. Worth a deliberate
-decision on your own realm:
+The realm file now sets these. **On a realm that already exists they do
+nothing** — `--import-realm` only ever creates — so on the running deployment
+they have to be applied by hand, under Realm settings → Sessions, → Tokens and
+→ Security defenses.
 
-| Setting | Default | Consider |
+| Setting | Value in the file | Why |
 |---|---|---|
-| Require SSL | `external` — HTTPS except localhost | Correct for nearly everyone. `none` only for a local container |
-| Brute force detection | **Off** | Turn it **on** for any realm reachable from the internet. Without it, password guessing is unlimited |
-| Password policy | **None** | At minimum a length. Keycloak enforces nothing by default |
+| Require SSL | `external` | HTTPS except localhost |
+| Brute force detection | **On** | Without it, password guessing is unlimited |
+| Password policy | length 12, not the username, last 3 remembered | Keycloak enforces nothing by default |
+| SSO session idle | 30 min | Bounds how long a stolen refresh token keeps working |
+| SSO session max | 10 h | Absolute cap regardless of activity |
+| Revoke refresh token | **On** | Rotation — see below |
+| Refresh token max reuse | 1 | Tolerates one race, still detects theft |
+
+**Rotation is the one that matters for a browser app.** Products that use
+`caselaw-auth/client` keep their session — refresh token included — in
+`localStorage`, where any script on the page can read it. Rotation does not stop
+that, but it changes what a stolen token is worth: with *Revoke refresh token*
+on, each refresh returns a new token and invalidates the previous one, so a
+thief and the real browser cannot both keep using it. The second one to refresh
+is refused and the session dies, which turns silent, indefinite reuse into an
+event.
+
+The browser client handles this correctly — `refresh()` stores
+`tokenResponse.refresh_token` when the provider sends one and falls back to the
+existing token when it does not — so turning rotation on does not break it.
+
+*Max reuse* is 1 rather than 0 on purpose. At 0 a refresh token is strictly
+single-use, and two tabs refreshing at the same moment will race, one of them
+losing its session for no reason the user can see. 1 absorbs that without
+giving up detection.
+
+Sessions have a second effect worth knowing: shortening **SSO session idle** is
+what actually limits a leaked token's life, because a refresh token is only good
+while its session is. Lengthening it because "people keep getting signed out" is
+the wrong lever — it extends exactly the window this is trying to shrink.
 
 Brute force detection is under **Realm settings → Security defenses**. Its
 default lockout is temporary and escalating, which is the behaviour you want:
