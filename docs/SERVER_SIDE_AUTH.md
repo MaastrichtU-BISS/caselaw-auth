@@ -150,6 +150,57 @@ if (!session.roles.includes("admin")) return new Response("Forbidden", { status:
 
 Cheap — an HMAC check, no network call.
 
+### Showing who is signed in
+
+The session you just unsealed already carries the identity:
+
+```ts
+session.user.name    // "Ada Lovelace"
+session.user.email   // "ada@example.org"
+session.roles        // ["admin"]
+```
+
+Pass that to the page as ordinary data and render it. Nothing else is needed
+for a name, an avatar, or a sign-out button — the tokens stay in the cookie and
+only the identity crosses to the browser.
+
+**Do not add the browser client alongside this.** `caselaw-auth/client` runs its
+own sign-in and writes the session, refresh token included, to `localStorage`.
+Adding it back gives you two independent sessions that can disagree — signing
+out of one leaves the other signed in — and undoes the single reason to be on
+this path. The same applies to the Vue and Svelte bindings and their
+`AuthGate`, `LoginButton`, `LogoutButton`, `AccountMenu` and `CallbackView`
+components: they are built on that client, so they are not usable here.
+
+Those components have no server-side counterpart because they do not need one.
+They are two things bolted together — an OIDC flow and a piece of UI — and this
+path already owns the first half. What is left is a component that takes a name
+and emits an event, which is presentational and belongs in a UI library rather
+than an auth one.
+
+That is exactly what the reference implementation does. It renders
+[`caselaw-ui`](https://github.com/MaastrichtU-BISS/caselaw-ui)'s
+`CleSidebarUser`, which imports nothing from this package:
+
+```svelte
+<CleSidebarUser name={userEmail} accountHref={accountUrl()} signOut on:signOut={logout} />
+```
+
+`logout` is a navigation, not a `fetch`:
+
+```ts
+window.location.href = "/auth/logout";
+```
+
+It has to be. That route clears the cookies and then redirects to Keycloak's
+`end_session` endpoint, and a `fetch` would follow the redirect in the
+background: the local cookies would go, Keycloak's own session would survive,
+and the next sign-in would complete with no prompt — which reads as sign-out
+having silently failed.
+
+Any component that takes a name and emits an event works the same way; there is
+nothing special about that one.
+
 ---
 
 ## 3. Keycloak client configuration
@@ -338,6 +389,10 @@ confirms the address itself.
 
 `MaastrichtU-BISS/citations` was migrated from the browser client to this one,
 and it is worth reading because it hit the two problems a real migration hits.
+
+It also answers the first question everyone asks after the routes work — how to
+show a name and a sign-out button — without using the browser client anywhere.
+See [Showing who is signed in](#showing-who-is-signed-in).
 
 **The session is two cookies, not one.** `caselaw_session` holds the identity,
 roles and id token; `caselaw_at` holds the access token. Together they do not
