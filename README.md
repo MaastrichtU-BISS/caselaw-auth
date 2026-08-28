@@ -6,28 +6,29 @@ One shared account across every Case Law Explorer product. A Keycloak realm, the
 it wears, and the client library applications sign in with — in the browser or on
 their own server.
 
-Users sign in once. The Citations API, the research workspace, the access console and
-the database workbench all accept the same account, and roles decide what each one
-shows.
+Users sign in once with a code or single-use link sent to their email. The Citations
+API, the research workspace, the access console and the database workbench all accept
+the same account, and roles decide what each one shows.
 
 ## What is in here
 
 ```
 realm/caselaw-realm.json    the realm: clients, roles, login settings
 themes/caselaw/             the Case Law Explorer sign-in theme
-providers/                  Keycloak provider JARs
+providers/                  Keycloak OTP and magic-link provider
 packages/caselaw-auth/      the client library, published on npm
 docker-compose.yml          Keycloak and its Postgres
-scripts/                    apply-themes.sh, smoke.sh
+scripts/                    live-realm installers and smoke checks
 docs/                       integration guides and realm reference
 ```
 
 ## Nothing depends on this
 
-Products treat sign-in as optional. The Citations API runs without it, the research
-workspace has a `none` provider, and the access console is the only surface that
-requires an account at all. Deploy this when you want one login across products, not
-because something breaks without it.
+Products keep an explicit unauthenticated or API-key-only mode where that makes
+sense. The Citations API can run without browser login and the research workspace has
+a `none` provider for local development and CI; the hosted access console and database
+workbench require accounts. Deploy this when you want one login across products, not
+to make local services boot.
 
 ## Documentation
 
@@ -37,6 +38,7 @@ service itself.
 
 | Task | Guide |
 |---|---|
+| Roll out email OTP and magic links across Case Law | [docs/PASSWORDLESS_ROLLOUT.md](docs/PASSWORDLESS_ROLLOUT.md) |
 | Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |
 | Connect a **static SPA** | [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) |
 | Configure a realm | [docs/REALM_SETUP.md](docs/REALM_SETUP.md) |
@@ -77,10 +79,9 @@ docker compose up -d
 The realm imports on first start. Keycloak is then reachable at `KC_HOSTNAME`, with
 the admin console at `/admin` and the realm at `/realms/caselaw`.
 
-Two things to do before letting anyone in. The realm turns on **Verify email** and
-**Forgot password** but ships no mail server, so accounts cannot be confirmed and
-resets cannot be sent until you configure SMTP. And brute force detection and a
-password policy are both left at Keycloak's defaults, which is off and none.
+Configure SMTP before letting anyone in. Email OTP, magic links, **Verify email** and
+**Forgot password** all need it, but the realm deliberately ships without mail-server
+credentials. Brute force detection and a password policy are already enabled.
 [docs/REALM_SETUP.md](docs/REALM_SETUP.md) walks the whole realm configuration,
 including a realm of your own rather than this one.
 
@@ -100,12 +101,14 @@ its own web origins.
 | `caselaw-frontend` | the research workspace | public, browser |
 | `caselaw-access` | the access console | public, browser |
 | `caselaw-db-workbench` | the database workbench | public, browser |
-| `caselaw-api` | the API, acting as itself | confidential, service account |
+| `citations-api` | the Citations API docs/account UI | public, browser |
+| `caselaw-api` | backend-to-backend calls | confidential, service account |
 
-The three browser clients use authorization code flow with PKCE and hold no secret.
+The four browser clients use authorization code flow with PKCE and hold no secret.
 `caselaw-api` is the other shape: standard flow off, service accounts on, no redirect
 URIs — it never signs a person in, it obtains tokens as itself, and its secret stays
-in the server's environment.
+in the server's environment. The browser-facing `citations-api` client must not reuse
+it.
 
 ### Adding one
 
@@ -118,8 +121,8 @@ In the admin console, under Clients:
 5. PKCE method `S256`
 
 A redirect URI that does not match exactly fails at the end of sign-in, after the
-password has already been accepted, which reads as a broken application rather than a
-configuration error.
+email challenge has already succeeded, which reads as a broken application rather
+than a configuration error.
 
 That is the short version.
 [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) has every field with its

@@ -77,7 +77,8 @@ of importing the package everywhere. This keeps future migration easy.
 
 ## Caselaw Migration Path
 
-For the main Caselaw frontend, use:
+For the main Caselaw frontend, use the server entry point (the current
+SvelteKit implementation already does) with:
 
 ```env
 FRONTEND_AUTH_PROVIDER=oidc
@@ -86,11 +87,18 @@ PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
 PUBLIC_AUTH_CLIENT_ID=caselaw-frontend
 PUBLIC_AUTH_REDIRECT_URI=https://<frontend-domain>/auth/callback
 PUBLIC_AUTH_STORAGE_KEY=caselaw:frontend:auth
+AUTH_SESSION_SECRET=<unique random value>
 ```
 
-The frontend can keep using its existing server-side `API_TOKEN` proxy while
-the API is migrated. That gives us shared login first without breaking API-key
-scoping, rate limits, or admin flows.
+The server starts OIDC with PKCE and keeps its session and tokens in httpOnly
+cookies. `PUBLIC_AUTH_STORAGE_KEY` remains accepted for compatibility but does
+not name the server cookie. The frontend can keep using its existing
+server-side `API_TOKEN` proxy while the API is migrated. That gives us shared
+login first without breaking API-key scoping, rate limits, or admin flows.
+
+Email OTP and magic-link UX belongs to the shared realm. The platform only
+navigates to `/auth/login`; it must not copy the old Supabase code-entry form
+into the OIDC path. See [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).
 
 After that, update the API to trust JWTs from:
 
