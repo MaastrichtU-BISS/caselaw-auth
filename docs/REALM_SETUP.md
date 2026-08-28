@@ -231,9 +231,14 @@ a successful email OTP marks the user's address verified. The browser and
 server libraries need no changes: both still start the same standard OIDC
 authorization-code flow with PKCE.
 
-The realm JSON configures this automatically only for a newly created realm.
-For an existing deployment, deploy the image first so the provider is present,
-then apply and validate the flow through the Admin API:
+The realm JSON configures this during a fresh import. For an existing
+deployment, the production image starts Keycloak and then applies the same
+configuration through the loopback Admin API. This is enabled by default with
+`CASELAW_PASSWORDLESS_AUTO_APPLY=true`; it is idempotent, refuses drift, and
+logs a warning without stopping Keycloak if reconciliation fails.
+
+For manual recovery, or when automatic apply is disabled, deploy the image
+first so the provider is present and then run:
 
 ```bash
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
@@ -242,9 +247,10 @@ KEYCLOAK_ADMIN_PASSWORD='...' \
 node scripts/apply-passwordless-flow.mjs
 ```
 
-The script refuses to overwrite drift. Do not bind the flow before deploying
-the provider JAR: its `ext-email-otp` and `ext-magic-form` executions will be
-unknown. The estate-wide rollout and rollback procedure is in
+Both the image configurator and the operator script refuse to overwrite drift.
+Do not bind the flow before deploying the provider JAR: its `ext-email-otp` and
+`ext-magic-form` executions will be unknown. The estate-wide rollout and
+rollback procedure is in
 [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).
 
 Operational checks:

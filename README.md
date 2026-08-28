@@ -150,7 +150,9 @@ products. The realm file selects it, as `loginTheme` and `accountTheme`.
 That selection only reaches a realm that does not exist yet. `--import-realm`
 creates a realm from the file and then leaves it alone, so on a deployment that
 is already running, the realm's settings live in its database and editing the
-file changes nothing. Deploy so the image carries the theme, then apply it:
+file changes nothing. Passwordless flow and client configuration are reconciled
+automatically on container startup; theme selection is separate. Deploy so the
+image carries the theme, then apply that setting when needed:
 
 ```bash
 KEYCLOAK_URL=https://auth.example.tech KEYCLOAK_ADMIN=admin KEYCLOAK_ADMIN_PASSWORD=... ./scripts/apply-themes.sh

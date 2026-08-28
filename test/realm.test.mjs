@@ -3,6 +3,9 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 const realm = JSON.parse(await readFile(new URL('../realm/caselaw-realm.json', import.meta.url)))
+const dockerfile = await readFile(new URL('../Dockerfile', import.meta.url), 'utf8')
+const compose = await readFile(new URL('../docker-compose.yml', import.meta.url), 'utf8')
+const entrypoint = await readFile(new URL('../scripts/keycloak-entrypoint.sh', import.meta.url), 'utf8')
 
 function flow(alias) {
   const found = realm.authenticationFlows.find((item) => item.alias === alias)
@@ -77,4 +80,11 @@ test('the browser-facing API UI is separate from the machine API client', () => 
   assert.equal(machineApi.directAccessGrantsEnabled, false)
   assert.equal(machineApi.serviceAccountsEnabled, true)
   assert.deepEqual(machineApi.redirectUris ?? [], [])
+})
+
+test('the production image reconciles an existing realm without making availability depend on it', () => {
+  assert.match(dockerfile, /caselaw-passwordless-configurator/)
+  assert.match(dockerfile, /keycloak-entrypoint\.sh/)
+  assert.match(compose, /CASELAW_PASSWORDLESS_AUTO_APPLY: \$\{CASELAW_PASSWORDLESS_AUTO_APPLY:-true\}/)
+  assert.match(entrypoint, /Keycloak will remain available on its previous browser flow/)
 })

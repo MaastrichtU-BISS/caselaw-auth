@@ -270,8 +270,27 @@ older containers do not know the provider IDs.
 
 ### 7.3 Apply an existing realm
 
-`--import-realm` creates a missing realm and skips an existing one. For the
-hosted realm, run the conservative Admin API installer:
+`--import-realm` creates a missing realm and skips an existing one. The
+production image closes that gap automatically: after Keycloak starts, its
+static configurator authenticates to the loopback Admin API with the existing
+`KEYCLOAK_ADMIN` credentials, creates or validates the flow and client, and
+binds the flow. It runs on every container start and is idempotent.
+
+The compose defaults are:
+
+```env
+CASELAW_PASSWORDLESS_AUTO_APPLY=true
+CASELAW_PASSWORDLESS_APPLY_TIMEOUT_SECONDS=180
+KEYCLOAK_REALM=caselaw
+KEYCLOAK_ADMIN_REALM=master
+```
+
+Configuration failure never stops Keycloak. The container logs a warning and
+keeps the previous browser flow available, so a stale or rotated administrator
+credential cannot turn a configuration problem into an identity outage.
+
+For manual recovery or an installation that disables automatic apply, run the
+same conservative installer from a Node 18+ operator environment:
 
 ```bash
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
@@ -280,7 +299,7 @@ KEYCLOAK_ADMIN_PASSWORD='...' \
 node scripts/apply-passwordless-flow.mjs
 ```
 
-It performs these operations:
+Both installers perform these operations:
 
 - verifies both provider IDs are installed;
 - creates or validates the nested passwordless flow;

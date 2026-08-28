@@ -23,6 +23,14 @@ services:
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?KEYCLOAK_ADMIN is required}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD is required}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-caselaw}
+      KEYCLOAK_ADMIN_REALM: ${KEYCLOAK_ADMIN_REALM:-master}
+      # Existing realms are not changed by --import-realm. The image therefore
+      # applies and validates the passwordless flow through the Admin API after
+      # Keycloak becomes ready. A failed apply is logged but never takes the
+      # existing identity service down.
+      CASELAW_PASSWORDLESS_AUTO_APPLY: ${CASELAW_PASSWORDLESS_AUTO_APPLY:-true}
+      CASELAW_PASSWORDLESS_APPLY_TIMEOUT_SECONDS: ${CASELAW_PASSWORDLESS_APPLY_TIMEOUT_SECONDS:-180}
       KC_DB: postgres
       KC_DB_URL_HOST: keycloak-db
       KC_DB_URL_DATABASE: ${KEYCLOAK_POSTGRES_DB:-keycloak}
