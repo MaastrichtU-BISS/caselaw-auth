@@ -205,14 +205,16 @@ The UI needs the dedicated public `citations-api` client added by this change:
 
 ```env
 API_PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
-API_PUBLIC_AUTH_CLIENT_ID=citations-api
+API_UI_AUTH_CLIENT_ID=citations-api
 API_PUBLIC_AUTH_REDIRECT_URI=https://demo-api.caselawexplorer.tech/auth/callback
-API_PUBLIC_AUTH_STORAGE_KEY=caselaw:citations-api:auth
+API_UI_AUTH_STORAGE_KEY=caselaw:citations-api:auth
 ```
 
-The production API domain uses its matching callback. The Coolify default used
-to name `caselaw-api`; override or update it to `citations-api`. The two clients
-are intentionally different:
+The production API domain uses its matching callback. The Coolify-side
+`API_UI_AUTH_*` inputs are mapped to `PUBLIC_AUTH_*` inside the API container.
+Their names deliberately differ from the old Coolify variables so a stored
+legacy `caselaw-api` value cannot override this safe default during rollout.
+The two clients are intentionally different:
 
 - `citations-api` is public, has standard flow and PKCE, and may redirect a
   browser;
