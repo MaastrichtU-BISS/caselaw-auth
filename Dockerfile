@@ -1,6 +1,12 @@
 ARG KEYCLOAK_VERSION=26.7.0
 ARG MAGIC_LINK_VERSION=0.75
 
+FROM golang:1.25.0-alpine AS configurator
+WORKDIR /src
+COPY scripts/passwordless-configurator/main.go ./main.go
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" \
+    -o /out/caselaw-passwordless-configurator ./main.go
+
 FROM curlimages/curl:8.11.1 AS provider
 ARG MAGIC_LINK_VERSION
 RUN curl -fsSL \
@@ -18,5 +24,7 @@ RUN /opt/keycloak/bin/kc.sh build
 
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+COPY --from=configurator /out/caselaw-passwordless-configurator /opt/keycloak/bin/caselaw-passwordless-configurator
+COPY --chmod=0755 scripts/keycloak-entrypoint.sh /opt/keycloak/bin/caselaw-entrypoint.sh
+ENTRYPOINT ["/opt/keycloak/bin/caselaw-entrypoint.sh"]
 CMD ["start", "--optimized", "--import-realm"]

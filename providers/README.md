@@ -13,6 +13,11 @@ sessions the same 10-minute bound. See
 [`docs/PASSWORDLESS_ROLLOUT.md`](../docs/PASSWORDLESS_ROLLOUT.md) before
 upgrading either the provider or Keycloak.
 
+The final image also contains a small static configurator. On startup it waits
+for Keycloak, validates the provider IDs, and reconciles the passwordless flow
+for an existing realm. Set `CASELAW_PASSWORDLESS_AUTO_APPLY=false` to disable
+that behavior; a failed reconciliation is logged and does not stop Keycloak.
+
 If we decide to vendor the jar for supply-chain review, place the reviewed jar
 here and adjust the Dockerfile to `COPY providers/<file>.jar
 /opt/keycloak/providers/`.
