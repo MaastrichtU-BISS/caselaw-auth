@@ -60,7 +60,9 @@ Everything below follows from them.
 
 **1. Your client ID.** One per application, lowercase and hyphenated. The
 existing ones are `caselaw-frontend`, `caselaw-api`, `caselaw-access`,
-`caselaw-db-workbench`. Pick something a stranger can map to your product.
+`caselaw-db-workbench`, `citations-api`. Note that `citations-api` is the public
+browser client for the API UI, while `caselaw-api` is a confidential machine
+client. Pick something a stranger can map to your product.
 
 **2. Public or confidential.** If the code that holds the secret runs in a
 browser, it is **public** — a browser cannot keep a secret, and the flow is
@@ -295,15 +297,16 @@ works in markup. Methods match the Vue adapter: `init`, `login`,
 `handleCallback`, `logout`, `refresh`, `hasRole`, `hasAnyRole`.
 
 Guard construction behind `browser` — `createAuthClient` reaches for
-`localStorage`. Case Law Explorer's `app/src/lib/auth/oidc.ts` does this, and
-returns `null` when the issuer is unset so the app runs unconfigured rather
-than crashing.
+`localStorage`. A static SvelteKit deployment should return `null` when the
+issuer is unset so the app runs unconfigured rather than crashing. The hosted
+Case Law Explorer itself now uses the server path described in
+[SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md), not this browser adapter.
 
 ### The callback route
 
 You must have a route at your redirect URI that calls `handleCallback()`. Until
-it does, sign-in appears to work, the password is accepted, and the user lands
-on a blank page holding an authorization code nobody redeemed.
+it does, sign-in appears to work, the identity challenge succeeds, and the user
+lands on a blank page holding an authorization code nobody redeemed.
 
 ```vue
 <!-- pages/auth/callback.vue -->
@@ -451,6 +454,8 @@ Do these in order. Each catches a distinct failure.
 
 - [ ] Sign in from the deployed domain.
 - [ ] Sign in from `localhost`.
+- [ ] Complete both email OTP and magic-link sign-in through the shared realm.
+- [ ] Confirm an unknown email creates no account and reveals no account status.
 - [ ] **Reload while signed in.** Catches a missing `ready` check and a wrong storage key.
 - [ ] **Sign out, then confirm you are actually signed out** — reload and check you are not silently back in.
 - [ ] **Wait past five minutes and make an API call.** Catches a copied-once token and a broken refresh.
@@ -465,30 +470,32 @@ Do these in order. Each catches a distinct failure.
 
 The whole estate, end to end.
 
-**Keycloak** — realm `caselaw`, three public browser clients:
+**Keycloak** — realm `caselaw`, four public browser clients:
 `caselaw-frontend` (the research workspace), `caselaw-access` (the console) and
-`caselaw-db-workbench`. Plus `caselaw-api`, which is the other shape entirely:
-confidential, standard flow off, service accounts on, no redirect URIs. It
-never signs a person in; it obtains tokens as itself.
+`caselaw-db-workbench`, plus `citations-api` for the Citations API UI. There is
+also `caselaw-api`, which is the other shape entirely: confidential, standard
+flow off, service accounts on, no redirect URIs. It never signs a person in;
+it obtains tokens as itself.
 
 The realm file is a seed, not a mirror of the running instance — anything added
 through the admin console lives in Keycloak's database until someone exports it
 back, so the live realm may hold clients this file does not.
 
-**The research workspace** (SvelteKit) builds its client in
-`app/src/lib/auth/oidc.ts` behind a `browser` guard, reading
-`PUBLIC_AUTH_ISSUER` / `PUBLIC_AUTH_CLIENT_ID` / `PUBLIC_AUTH_REDIRECT_URI` /
-`PUBLIC_AUTH_STORAGE_KEY` from `$env/dynamic/public`, with storage key
-`caselaw:frontend:auth`. When the issuer is unset it returns `null` and the app
-runs signed-out — which is how `FRONTEND_AUTH_PROVIDER=none` works locally.
+**The research workspace** (SvelteKit) uses the server path. `GET /auth/login`
+creates state and PKCE on the server, `/auth/callback` exchanges the code, and
+the session, access token and refresh token remain in separate httpOnly
+cookies. It reads the shared issuer and client `caselaw-frontend`; setting
+`FRONTEND_AUTH_PROVIDER=none` keeps the local/CI escape hatch. The realm renders
+OTP and magic-link screens, so the workspace contains no OIDC email-code API.
 
-**The access console** (Nuxt) registers `createCaselawAuthPlugin` in
-`ui/plugins/auth.client.ts`, fetching issuer and client ID from its own
-`/v1/config` at runtime rather than baking them in — which is why it can be
-repointed at another realm without a rebuild. Its account area is a single gate
-wrapping the layout in `ui/layouts/account.vue`; that one is its own
-`ui/components/AuthGate.vue`, not the package's, with an `auto-sign-in` prop
-that skips the prompt and redirects straight to Keycloak.
+**The access console** uses the Python server path. FastAPI owns `/auth/login`,
+`/auth/callback`, `/auth/logout` and `/auth/session`; its SPA receives the user
+identity but never an OIDC token. It fetches public issuer/client metadata from
+`/v1/config`, while `ACCESS_SESSION_SECRET` remains server-only.
+
+**The Citations API UI** uses the public `citations-api` client. Do not point it
+at `caselaw-api`: that client has standard flow off because it exists only for
+machine-to-machine tokens.
 
 **The access service** (FastAPI) verifies tokens in `app/auth.py` exactly as in
 Step 4 — cached JWKS, one retry, `verify_aud: False`, 401 versus 503 kept
@@ -503,7 +510,7 @@ needs quotas: verify identity here, ask access what the caller may do.
 
 ## 10. Troubleshooting
 
-**`invalid_redirect_uri` after the password is accepted.** The URI does not
+**`invalid_redirect_uri` after the email challenge succeeds.** The URI does not
 match a registered one *exactly*. Trailing slashes count; `http` and `https`
 count; a port counts.
 

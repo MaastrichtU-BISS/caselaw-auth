@@ -26,6 +26,105 @@
       }
     ]
   },
+  "authenticationFlows": [
+    {
+      "alias": "caselaw-browser-passwordless",
+      "description": "Browser SSO with email OTP and single-use magic-link sign-in.",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "identity-provider-redirector",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "flowAlias": "Case Law passwordless forms",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "Case Law passwordless forms",
+      "description": "Collect an email address, then let the user authenticate with a code or a link.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-username-form",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "flowAlias": "Case Law email methods",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "Case Law email methods",
+      "description": "Alternative passwordless methods available after the user supplies an email address.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticatorConfig": "caselaw-email-otp",
+          "authenticator": "ext-email-otp",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorConfig": "caselaw-magic-link",
+          "authenticator": "ext-magic-form",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "alias": "caselaw-email-otp",
+      "config": {
+        "ext-magic-create-nonexistent-user": "false"
+      }
+    },
+    {
+      "alias": "caselaw-magic-link",
+      "config": {
+        "ext-magic-create-nonexistent-user": "false",
+        "ext-magic-update-profile-action": "false",
+        "ext-magic-update-password-action": "false",
+        "ext-magic-allow-token-reuse": "false",
+        "ext-magic-token-life-span": "600"
+      }
+    }
+  ],
+  "browserFlow": "caselaw-browser-passwordless",
   "clients": [
     {
       "clientId": "caselaw-frontend",
@@ -79,13 +178,38 @@
     {
       "clientId": "caselaw-api",
       "name": "Case Law Explorer API",
-      "description": "Backend API resource server.",
+      "description": "Machine client for backend-to-backend calls. It never signs a person in.",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "citations-api",
+      "name": "Citations API documentation",
+      "description": "Public browser client for the Citations API documentation and account UI.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/auth/callback",
+        "https://demo-api.caselawexplorer.tech/auth/callback",
+        "https://api.caselawexplorer.tech/auth/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "https://demo-api.caselawexplorer.tech",
+        "https://api.caselawexplorer.tech"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+",
+        "pkce.code.challenge.method": "S256"
+      }
     },
     {
       "clientId": "caselaw-access",
@@ -113,6 +237,7 @@
   ],
   "revokeRefreshToken": true,
   "refreshTokenMaxReuse": 1,
+  "accessCodeLifespanLogin": 600,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 36000,
   "bruteForceProtected": true,

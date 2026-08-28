@@ -16,12 +16,13 @@ realm that already exists — neither requires anything on this page.
 1. [Deciding whether to create a realm](#1-deciding-whether-to-create-a-realm)
 2. [Creating a realm](#2-creating-a-realm)
 3. [Realm settings](#3-realm-settings)
-4. [Roles](#4-roles)
-5. [Clients](#5-clients)
-6. [Identity providers](#6-identity-providers)
-7. [Connecting a product](#7-connecting-a-product)
-8. [Exporting changes](#8-exporting-changes)
-9. [Commissioning checklist](#9-commissioning-checklist)
+4. [Passwordless sign-in](#4-passwordless-sign-in)
+5. [Roles](#5-roles)
+6. [Clients](#6-clients)
+7. [Identity providers](#7-identity-providers)
+8. [Connecting a product](#8-connecting-a-product)
+9. [Exporting changes](#9-exporting-changes)
+10. [Commissioning checklist](#10-commissioning-checklist)
 
 ---
 
@@ -52,7 +53,7 @@ two realms afterwards is not.
 
 ### From the shared realm file
 
-`realm/caselaw-realm.json` is a working realm: themes, roles and four clients.
+`realm/caselaw-realm.json` is a working realm: themes, roles and five clients.
 Copy it, change `realm` and `displayName`, drop the clients you do not want.
 
 In the admin console: **Realms → Create realm → Browse**, upload the file.
@@ -112,10 +113,11 @@ were deliberate.
 
 ### Email
 
-Required if you enabled either of the above. Host, port, from address, and
-credentials if your relay wants them. Send the test message from that page —
-it is the only cheap way to find out the relay rejects your from-address before
-a real user does.
+Required for the shared realm's email OTP and magic-link sign-in, as well as
+email verification and password resets. Set the host, port, from address, and
+credentials if your relay wants them. Send the test message from that page — it
+is the only cheap way to find out the relay rejects your from-address before a
+real user does.
 
 ### Themes
 
@@ -204,7 +206,58 @@ against a known username.
 
 ---
 
-## 4. Roles
+## 4. Passwordless sign-in
+
+The image includes the pinned Phase Two `keycloak-magic-link` provider. The
+shared realm binds `caselaw-browser-passwordless` as its browser flow:
+
+```text
+existing SSO cookie ─┐
+identity provider ───┼─ alternative ways to finish sign-in
+email address ───────┘
+  └─ required email-methods subflow
+     ├─ six-digit email OTP
+     └─ emailed magic link
+```
+
+Only existing, enabled users can sign in. Both authenticators have automatic
+account creation disabled, matching the realm's disabled self-registration.
+Entering an unknown email shows the same continuation UI as a known one so the
+login page does not reveal which addresses have accounts.
+
+Magic links and login actions, including OTP sessions, expire after 10 minutes;
+links are single-use. OTP attempts feed Keycloak's brute-force protection, and
+a successful email OTP marks the user's address verified. The browser and
+server libraries need no changes: both still start the same standard OIDC
+authorization-code flow with PKCE.
+
+The realm JSON configures this automatically only for a newly created realm.
+For an existing deployment, deploy the image first so the provider is present,
+then apply and validate the flow through the Admin API:
+
+```bash
+KEYCLOAK_URL=https://auth.caselawexplorer.tech \
+KEYCLOAK_ADMIN=admin \
+KEYCLOAK_ADMIN_PASSWORD='...' \
+node scripts/apply-passwordless-flow.mjs
+```
+
+The script refuses to overwrite drift. Do not bind the flow before deploying
+the provider JAR: its `ext-email-otp` and `ext-magic-form` executions will be
+unknown. The estate-wide rollout and rollback procedure is in
+[PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).
+
+Operational checks:
+
+1. Send a test message under **Realm settings → Email**.
+2. Sign in with an existing account using the six-digit code.
+3. Sign out fully, request a magic link, and open it in a second browser.
+4. Confirm reusing that link fails and a link older than 10 minutes fails.
+5. Try an unknown address and confirm no account is created.
+
+---
+
+## 5. Roles
 
 The shared realm defines three realm roles:
 
@@ -228,9 +281,9 @@ Create them under **Realm roles**, assign under **Users → Role mapping**.
 
 ---
 
-## 5. Clients
+## 6. Clients
 
-One per application. The shared realm ships four, and they are worth reading as
+One per application. The shared realm ships five, and they are worth reading as
 a set because they cover every shape you are likely to need:
 
 | Client | Kind | Configuration |
@@ -238,9 +291,12 @@ a set because they cover every shape you are likely to need:
 | `caselaw-frontend` | public, browser | Standard flow on, PKCE `S256`, direct access grants off |
 | `caselaw-access` | public, browser | Same |
 | `caselaw-db-workbench` | public, browser | Same |
+| `citations-api` | public, browser | Citations API docs/account UI; standard flow on, PKCE `S256`, direct access grants off |
 | `caselaw-api` | **confidential, machine** | Standard flow **off**, service accounts **on**, no redirect URIs — it never signs a person in, it obtains tokens as itself |
 
-That last one is the pattern for a backend that needs to call another service
+The similarly named API clients are not interchangeable. `citations-api` is a
+public browser client; `caselaw-api` holds a secret and acts as a machine. That
+last one is the pattern for a backend that needs to call another service
 under its own identity rather than on behalf of a user. It has a secret, which
 lives in the server's environment and never reaches a browser.
 
@@ -249,7 +305,7 @@ Creating clients, with every field and the four people get wrong, is in
 
 ---
 
-## 6. Identity providers
+## 7. Identity providers
 
 Not configured in the shared realm today. When SURFconext is added, it is added
 **to the realm**, and every product keeps pointing at the same issuer. Nothing
@@ -264,7 +320,7 @@ Keycloak user under that provider's **Mappers** tab.
 
 ---
 
-## 7. Connecting a product
+## 8. Connecting a product
 
 Only the issuer changes:
 
@@ -283,7 +339,7 @@ isolation working.
 
 ---
 
-## 8. Exporting changes
+## 9. Exporting changes
 
 Anything you change in the admin console lives in the database, not in this
 repository. A rebuilt deployment loses it unless you export.
@@ -312,11 +368,14 @@ safe to check in.
 
 ---
 
-## 9. Commissioning checklist
+## 10. Commissioning checklist
 
 - [ ] Issuer resolves: `curl https://<host>/realms/<realm>/.well-known/openid-configuration`
-- [ ] SMTP configured, **or** Verify email and Forgot password both off
+- [ ] SMTP configured (required for passwordless sign-in)
 - [ ] Test email actually sends
+- [ ] Email OTP and magic-link sign-in both complete for an existing user
+- [ ] The Citations API UI uses `citations-api`, not the machine client `caselaw-api`
+- [ ] Magic links expire after 10 minutes and cannot be reused
 - [ ] Brute force detection on, if reachable from the internet
 - [ ] A password policy exists
 - [ ] `admin` role exists, if you use anything from this estate
