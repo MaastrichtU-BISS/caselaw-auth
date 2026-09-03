@@ -48,18 +48,19 @@ body {
   position: relative;
 }
 
-/* Keep the crossed-bar motif, but invert it onto white and crop its blue edge. */
+/* The shared auth background: a quiet square grid on white. */
 .login-pf body::before {
-  background-image: url("../../../common/keycloak/vendor/patternfly-v3/img/bg-login.jpg");
-  background-position: center -6px;
-  background-repeat: no-repeat;
-  background-size: cover;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+  background-position: center center;
+  background-size: 32px 32px;
   border: 0 !important;
   content: "";
   display: block;
-  filter: grayscale(1) invert(1);
+  filter: none;
   inset: 0;
-  opacity: 0.56;
+  opacity: 1;
   pointer-events: none;
   position: fixed;
   z-index: 0;
