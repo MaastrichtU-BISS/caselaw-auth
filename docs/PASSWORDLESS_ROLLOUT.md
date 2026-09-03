@@ -205,15 +205,20 @@ The UI needs the dedicated public `citations-api` client added by this change:
 
 ```env
 API_PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
-API_UI_AUTH_CLIENT_ID=citations-api
 API_PUBLIC_AUTH_REDIRECT_URI=https://demo-api.caselawexplorer.tech/auth/callback
-API_UI_AUTH_STORAGE_KEY=caselaw:citations-api:auth
 ```
 
-The production API domain uses its matching callback. The Coolify-side
-`API_UI_AUTH_*` inputs are mapped to `PUBLIC_AUTH_*` inside the API container.
-Their names deliberately differ from the old Coolify variables so a stored
-legacy `caselaw-api` value cannot override this safe default during rollout.
+The production API domain uses its matching callback. The Coolify bundle fixes
+`PUBLIC_AUTH_CLIENT_ID=citations-api` and
+`PUBLIC_AUTH_STORAGE_KEY=caselaw:citations-api:auth` at both image-build and
+container-runtime boundaries. These are estate invariants, so a stored legacy
+`caselaw-api` value cannot override them. Verify the deployed container rather
+than trusting the panel:
+
+```bash
+curl -fsS https://demo-api.caselawexplorer.tech/api/config | jq .auth
+```
+
 The two clients are intentionally different:
 
 - `citations-api` is public, has standard flow and PKCE, and may redirect a
