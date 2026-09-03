@@ -1,5 +1,5 @@
 :root {
-  --cle-bg: #f3f5f8;
+  --cle-bg: #ffffff;
   --cle-surface: #ffffff;
   --cle-surface-soft: #f7f9fc;
   --cle-border: #dce2eb;
@@ -18,8 +18,10 @@
   box-sizing: border-box;
 }
 
-html {
-  background: var(--cle-bg);
+html.login-pf,
+html.login-pf body {
+  background: #ffffff !important;
+  background-image: none !important;
   min-height: 100%;
 }
 
@@ -46,23 +48,17 @@ body {
   position: relative;
 }
 
-/* A restrained document grid keeps the product's research-tool character. */
+/* Fully neutralize the parent Keycloak artwork and its colored top edge. */
 .login-pf body::before {
-  background-image:
-    linear-gradient(rgba(114, 130, 153, 0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(114, 130, 153, 0.09) 1px, transparent 1px);
-  background-position: center top;
-  background-size: 48px 48px;
-  content: "";
-  inset: 0;
-  mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.36) 62%, transparent 92%);
-  pointer-events: none;
-  position: fixed;
+  background: none !important;
+  border: 0 !important;
+  content: none;
+  display: none;
 }
 
 .login-pf-page {
   align-items: center;
-  background: transparent;
+  background: #ffffff;
   display: flex;
   justify-content: center;
   min-height: 100vh;
