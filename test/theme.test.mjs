@@ -18,11 +18,12 @@ test('the OTP page keeps the provider contract and mobile code semantics', async
 
 test('the login theme uses a versioned stylesheet entry point', async () => {
   const properties = await read('themes/caselaw/login/theme.properties')
-  const entrypoint = await read('themes/caselaw/login/resources/css/caselaw-login-v4.css')
+  const entrypoint = await read('themes/caselaw/login/resources/css/caselaw-login-v5.css')
   const styles = await read('themes/caselaw/login/resources/css/caselaw-login-v2.css')
 
-  assert.match(properties, /^styles=css\/caselaw-login-v4\.css$/m)
-  assert.match(entrypoint, /caselaw-login-v2\.css\?revision=4/)
+  assert.match(properties, /^styles=css\/caselaw-login-v5\.css$/m)
+  assert.match(entrypoint, /caselaw-login-v2\.css\?revision=5/)
   assert.match(styles, /html\.login-pf body \{[\s\S]*?background: #ffffff !important;[\s\S]*?background-image: none !important;/)
-  assert.match(styles, /\.login-pf body::before \{[\s\S]*?display: none;/)
+  assert.match(styles, /\.login-pf body::before \{[\s\S]*?bg-login\.jpg[\s\S]*?background-position: center -6px;/)
+  assert.match(styles, /\.login-pf body::before \{[\s\S]*?filter: grayscale\(1\) invert\(1\);/)
 })
