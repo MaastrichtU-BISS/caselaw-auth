@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "node --test test/ && npm test --workspaces --if-present",
+    "test": "node --test test/*.test.mjs && npm test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces"
   }
 }
