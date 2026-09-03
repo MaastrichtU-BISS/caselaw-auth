@@ -49,7 +49,7 @@
   "scripts": {
     "build": "vite build && vue-tsc --emitDeclarationOnly",
     "typecheck": "vue-tsc --noEmit",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.mjs"
   },
   "peerDependencies": {
     "svelte": "^5.0.0",

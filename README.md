@@ -147,6 +147,18 @@ they may call.
 `themes/caselaw` styles the sign-in, registration and account pages to match the
 products. The realm file selects it, as `loginTheme` and `accountTheme`.
 
+The email-code step is a local override of the provider's `otp-form.ftl`. It keeps
+the provider's `submit` and `resend` form contract, while adding a six-digit input,
+mobile one-time-code autofill, accessible hint/error relationships, and a clearer
+action hierarchy. User-facing OTP copy lives in `login/messages/messages_en.properties`
+and `messages_nl.properties`; the shared visual system lives in
+`login/resources/css/caselaw-login-v2.css`.
+
+`theme.properties` loads that CSS through a versioned entry point. Bump the entry
+point filename and its import revision when changing cached login styles, because
+the public Keycloak resource URL can otherwise remain stable across a deployment
+and an existing browser may retain the old screen.
+
 That selection only reaches a realm that does not exist yet. `--import-realm`
 creates a realm from the file and then leaves it alone, so on a deployment that
 is already running, the realm's settings live in its database and editing the
