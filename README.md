@@ -91,10 +91,12 @@ password policy are already enabled.
 including a realm of your own rather than this one.
 
 The imported realm and Compose deployment both keep Keycloak's built-in password
-browser flow by default. To enable OTP, an administrator must run
-`scripts/apply-passwordless-flow.mjs` against the target realm, or explicitly set
-`CASELAW_PASSWORDLESS_AUTO_APPLY=true`. Either path creates/validates and binds the
-email flow; SMTP or application configuration alone does not. See
+browser flow by default. To enable OTP, an administrator can run
+`npx --yes caselaw-auth@0.5.0 apply-passwordless-flow` against the target realm from
+any Node 18+ machine—no repository checkout or server shell is needed. Alternatively,
+a deployment operator can explicitly set `CASELAW_PASSWORDLESS_AUTO_APPLY=true`.
+Either path creates/validates and binds the email flow; SMTP or application
+configuration alone does not. See
 [docs/OTP_SETUP.md](docs/OTP_SETUP.md) before enabling it.
 
 ### Behind a reverse proxy

@@ -6,7 +6,7 @@ const realm = JSON.parse(await readFile(new URL('../realm/caselaw-realm.json', i
 const dockerfile = await readFile(new URL('../Dockerfile', import.meta.url), 'utf8')
 const compose = await readFile(new URL('../docker-compose.yml', import.meta.url), 'utf8')
 const entrypoint = await readFile(new URL('../scripts/keycloak-entrypoint.sh', import.meta.url), 'utf8')
-const nodeConfigurator = await readFile(new URL('../scripts/apply-passwordless-flow.mjs', import.meta.url), 'utf8')
+const nodeConfigurator = await readFile(new URL('../packages/caselaw-auth/admin/apply-passwordless-flow.mjs', import.meta.url), 'utf8')
 const goConfigurator = await readFile(new URL('../scripts/passwordless-configurator/main.go', import.meta.url), 'utf8')
 
 function flow(alias) {

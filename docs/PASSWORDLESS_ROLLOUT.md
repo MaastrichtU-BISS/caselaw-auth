@@ -283,9 +283,10 @@ older containers do not know the provider IDs.
 ### 7.3 Apply an existing realm
 
 This is the required activation step. Deploying the provider, configuring SMTP, and
-configuring applications do not enable OTP. An operator must either run
-`scripts/apply-passwordless-flow.mjs` or explicitly enable automatic apply; the
-realm keeps its current password flow until one of those actions succeeds.
+configuring applications do not enable OTP. An administrator must either run the
+published `caselaw-auth` installer, or a deployment operator must explicitly enable
+automatic apply; the realm keeps its current password flow until one of those
+actions succeeds.
 
 `--import-realm` creates a missing realm and skips an existing one. The supplied
 realm contains the custom flow but keeps Keycloak's built-in `browser` password
@@ -313,15 +314,19 @@ Configuration failure never stops Keycloak. The container logs a warning and
 keeps the previous browser flow available, so a stale or rotated administrator
 credential cannot turn a configuration problem into an identity outage.
 
-To opt in manually, run the conservative installer from a Node 18+ operator
-environment:
+To opt in manually without cloning the repository, run the conservative installer
+from any Node 18+ environment that can reach the Keycloak Admin API:
 
 ```bash
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-node scripts/apply-passwordless-flow.mjs
+npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
 ```
+
+The administrator does not need shell access to the Keycloak host. Operators who
+already have a repository checkout can use the equivalent
+`node scripts/apply-passwordless-flow.mjs` command.
 
 Both installers perform these operations:
 

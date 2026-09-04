@@ -12,6 +12,29 @@ speaks standard OIDC, but any compliant provider works.
 npm install caselaw-auth
 ```
 
+## Realm administration CLI
+
+The package also ships the opt-in Keycloak OTP/magic-link flow installer. A realm
+administrator can run it from any Node 18+ machine that can reach Keycloak; cloning
+the repository or obtaining shell access to the Keycloak host is not required:
+
+```bash
+KEYCLOAK_URL=https://auth.example.org \
+KEYCLOAK_REALM=my-realm \
+KEYCLOAK_ADMIN_REALM=master \
+KEYCLOAK_ADMIN=admin \
+KEYCLOAK_ADMIN_PASSWORD='...' \
+CASELAW_PASSWORDLESS_ESTATE_MODE=false \
+npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+```
+
+The command obtains a short-lived admin token, verifies the required email provider
+is installed, creates or validates the flow, and binds it to the target realm. Use a
+secret manager or temporary environment variable for the password rather than
+leaving the value in shell history. Full prerequisites and rollback instructions are
+in the repository's
+[OTP setup guide](https://github.com/MaastrichtU-BISS/caselaw-auth/blob/main/docs/OTP_SETUP.md).
+
 ## Which half
 
 **If your application has a server, use `caselaw-auth/server`.** The session becomes

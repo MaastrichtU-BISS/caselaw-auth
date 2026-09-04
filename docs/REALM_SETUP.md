@@ -256,20 +256,27 @@ configuration through the loopback Admin API. It is opt-in with
 idempotent, refuses drift, and logs a warning without stopping Keycloak if
 reconciliation fails.
 
-For manual recovery, or when automatic apply is disabled, deploy the image
-first so the provider is present and then run:
+For manual recovery, or when automatic apply is disabled, deploy the image first so
+the provider is present. An administrator can then run the published package from
+any Node 18+ machine that can reach Keycloak—no repository checkout or Keycloak-host
+shell is needed:
 
 ```bash
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-node scripts/apply-passwordless-flow.mjs
+npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
 ```
 
-**Running this script is required to enable OTP on an existing or independently
+Repository operators can instead run the equivalent
+`node scripts/apply-passwordless-flow.mjs` command from a checkout.
+
+**Running an installer is required to enable OTP on an existing or independently
 created realm.** SMTP and the provider image are prerequisites, but neither changes
 the browser-flow binding. Running the command is the explicit opt-in because it
-creates/validates and binds the passwordless flow.
+creates/validates and binds the passwordless flow. The Admin Console cannot execute
+the script itself; it is only used to configure the prerequisites and verify the
+result.
 Both the image configurator and the operator script refuse to overwrite drift.
 Do not bind the flow before deploying the provider JAR: its `ext-email-otp` and
 `ext-magic-form` executions will be unknown. The estate-wide rollout and
