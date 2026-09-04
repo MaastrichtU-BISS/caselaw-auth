@@ -1,233 +1,428 @@
-# Optional email OTP and magic-link setup
+# Add optional email OTP to a project
 
-This is the colleague-facing setup guide for adding email OTP and magic links to a
-Case Law Keycloak realm. It is deliberately opt-in: a new realm and a default
-Compose deployment use Keycloak's built-in username/email-and-password browser flow.
-Nothing in an application needs OTP-specific code.
+This guide starts with a project that needs sign-in and ends with a working
+six-digit email OTP flow. It covers both the shared `caselaw` realm and a project
+using a different realm.
 
-Use this guide when you administer the realm. Product developers who only need to
-connect an application should use [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) or
-[CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md).
+Username/email plus password is the default. Email OTP and magic link are enabled
+only when a realm administrator explicitly changes that realm's browser-flow
+binding.
 
-## 1. Choose the sign-in mode
+## Start here: which setup are you doing?
 
-There are two realm-level modes:
+| Your project uses | What you need to do |
+|---|---|
+| Existing `caselaw` realm | Create an OIDC client for the project, configure the project, and test. The realm, SMTP, theme, OTP flow and users already exist. |
+| A different realm on the Case Law Keycloak server | Configure SMTP and users in that realm, create the project client, configure the project, then install and bind the generic OTP flow with `CASELAW_PASSWORDLESS_ESTATE_MODE=false`. |
+| A different Keycloak server | Deploy this repository's Keycloak image first, then follow the different-realm path. The OTP provider and Case Law theme are installed at server level by the image. |
 
-| Mode | Browser-flow binding | Requirements |
+If you only remember one rule, remember this one: the issuer, SMTP configuration,
+users, browser-flow binding, and OIDC client must all belong to the **same target
+realm**.
+
+## The three pieces
+
+OTP setup spans three different scopes. They are configured separately:
+
+```text
+Keycloak server
+  └─ OTP/magic-link provider JAR and Case Law theme
+       └─ target realm
+            ├─ SMTP, users, OTP flow and browser-flow binding
+            └─ project OIDC client
+                 └─ project
+                      ├─ issuer and client ID
+                      ├─ login/callback/logout routes
+                      └─ local session
+```
+
+| Scope | Configured once per | Owns |
 |---|---|---|
-| Username/email + password (default) | `browser` | User has a password credential |
-| Email OTP + magic link (optional) | `caselaw-browser-passwordless` | User has a unique reachable email; realm SMTP works |
+| Keycloak server | Keycloak installation | Provider code and theme files |
+| Realm | Realm | Users, SMTP, authentication flow, sessions and roles |
+| Project/client | Application | Redirect URIs, PKCE/client secret, callback and application session |
 
-The choice applies to every interactive OIDC client in that realm. It does not
-change service accounts, API keys, roles, access plans, stable user IDs (`sub`), or
-existing application integration. It is not a per-application switch.
+The application never sends an OTP or validates a code. It starts an ordinary OIDC
+authorization-code flow; Keycloak performs the email challenge and returns the same
+OIDC authorization code that password login would return.
 
-The supplied passwordless flow offers OTP and magic link as alternatives to each
-other. It does not show password as a third choice on the same screen. To return to
-passwords, bind the built-in `browser` flow again as described in [Rollback](#8-rollback).
+## Path A: project using the shared `caselaw` realm
 
-## 2. Prerequisites
+Use this path for another Case Law Explorer service whose users should share the
+existing production accounts and SSO session.
 
-Before enabling the optional flow, confirm all of the following:
+### A1. Choose the project values
 
-- the deployed Keycloak image comes from this repository and contains the pinned
-  Phase Two provider;
-- you can administer the target realm and the `master` realm credentials are
-  available to the installer;
-- every intended user is enabled and has a unique, correctly spelled email address;
-- those users have password credentials if password rollback must work immediately;
-- you have a separate signed-in administrator session for recovery;
-- the SMTP relay permits the intended From address/domain;
-- you know the currently bound browser flow.
+Example values used below:
 
-The realm file contains the passwordless flow definition but leaves it unbound. The
-Compose default is also `CASELAW_PASSWORDLESS_AUTO_APPLY=false`. Merely deploying the
-image therefore does not change how colleagues sign in.
+```text
+realm:        caselaw
+issuer:       https://auth.caselawexplorer.tech/realms/caselaw
+client ID:    my-project
+project URL:  https://my-project.caselawexplorer.tech
+callback:     https://my-project.caselawexplorer.tech/auth/callback
+```
 
-## 3. Configure SMTP in the target realm
+Use a unique lowercase client ID. Do not reuse `caselaw-frontend`, `caselaw-api`, or
+another product's client.
 
-SMTP settings are realm-scoped. Configuration in `master` does not configure
-`caselaw`, staging, or any other realm.
+### A2. Create the project client in Keycloak
 
-In Keycloak Admin Console:
+In `https://auth.caselawexplorer.tech/admin`, select realm **caselaw**, then open
+**Clients → Create client**.
 
-1. Select the realm that will send the OTP, such as `caselaw`.
-2. Open **Realm settings → Email**.
-3. Set the From address and, when required, From display name, Reply-To address, and
-   envelope-from address.
-4. Set the SMTP host and port supplied by the relay.
-5. Select the relay's required transport: usually STARTTLS on port 587 or TLS/SSL on
-   port 465. Do not enable both unless the provider explicitly requires it.
-6. Enable authentication and enter the SMTP username and password when required.
-7. Save, then use **Test connection** and confirm the message reaches the actual
-   mailbox—not merely that Keycloak reports a successful socket connection.
+For a browser-only SPA:
 
-Keycloak masks a saved SMTP password in Admin API responses. Copying the visible
-`smtpServer` object from one realm to another does **not** copy the secret; enter the
-password separately in every realm. This is a common reason the OTP form appears but
-no email arrives.
+| Setting | Value |
+|---|---|
+| Client type | OpenID Connect |
+| Client ID | `my-project` |
+| Client authentication | Off |
+| Standard flow | On |
+| Direct access grants | Off |
+| Service account roles | Off |
+| Valid redirect URIs | `https://my-project.caselawexplorer.tech/auth/callback` |
+| Valid post logout redirect URIs | `+` |
+| Web origins | `+` |
+| PKCE method | `S256` |
 
-For production delivery, also verify SPF, DKIM and DMARC for the From domain and
-inspect the relay's delivery/bounce log. A Keycloak send success only proves that the
-relay accepted the message.
+For a project with a backend, prefer **Client authentication: On**, copy the client
+secret into a server-only environment variable, and still use standard flow with
+PKCE `S256`. Never expose that secret through a `PUBLIC_`, `VITE_`, or
+`NUXT_PUBLIC_` variable.
 
-## 4. Prepare users
+Add the local callback as a second redirect while developing, for example
+`http://localhost:5173/auth/callback`. Redirect matching is exact, including scheme,
+port, path and trailing slash.
 
-For each colleague, open **Users**, select the account, and verify:
+### A3. Configure the project
 
-- **Enabled** is on;
-- **Email** is present and unique within the realm;
-- the address is the mailbox they can currently access;
-- required actions will not unexpectedly interrupt the callback;
-- roles and access-plan assignments are correct independently of authentication.
+For a server-backed application:
 
-The authenticators never create a missing account. An unknown address intentionally
-continues to a neutral-looking code screen but sends no message, preventing account
-enumeration. Seeing the code screen is therefore not proof that SMTP sent anything.
+```env
+AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+AUTH_CLIENT_ID=my-project
+AUTH_CLIENT_SECRET=<server-only secret; omit for a public client>
+AUTH_REDIRECT_URI=https://my-project.caselawexplorer.tech/auth/callback
+AUTH_SESSION_SECRET=<unique long random value>
+```
 
-## 5. Enable the optional flow
+Implement `/auth/login`, `/auth/callback`, and `/auth/logout` using
+[SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md). The login route redirects to Keycloak;
+the callback exchanges the OIDC code and creates the project's own session.
 
-### Recommended: explicit operator command
+For a static SPA:
 
-Deploy the provider image first, then run from this repository with Node 18 or newer:
+```env
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+PUBLIC_AUTH_CLIENT_ID=my-project
+PUBLIC_AUTH_REDIRECT_URI=https://my-project.caselawexplorer.tech/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=my-project:auth
+```
+
+Install `caselaw-auth` and implement the callback using
+[CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md). A static SPA has no client secret.
+
+Projects in `caselaw-coolify` may use service-specific names instead of the generic
+ones. For Case Law Explorer itself the equivalent values are:
+
+```env
+FRONTEND_AUTH_PROVIDER=oidc
+REQUIRE_FRONTEND_AUTH=true
+FRONTEND_PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
+FRONTEND_PUBLIC_AUTH_CLIENT_ID=caselaw-frontend
+FRONTEND_PUBLIC_AUTH_REDIRECT_URI=https://app.caselawexplorer.tech/auth/callback
+AUTH_SESSION_SECRET=<unique long random value>
+```
+
+### A4. Test
+
+Open the project's login route in a signed-out/private browser. Enter the email of an
+existing enabled `caselaw` user, complete the OTP, and confirm the browser returns to
+the project's exact callback and creates a session.
+
+You do **not** configure SMTP, copy users, or run the passwordless installer for this
+path. Those are realm-wide production settings already owned by the `caselaw` realm.
+
+## Path B: project using a different realm
+
+Use this path when the project needs an isolated user directory, separate sessions,
+different roles, or an independent authentication policy.
+
+The examples use:
+
+```text
+Keycloak URL: https://auth.caselawexplorer.tech
+target realm: my-project
+issuer:       https://auth.caselawexplorer.tech/realms/my-project
+client ID:    my-project-web
+callback:     https://my-project.example.org/auth/callback
+```
+
+Replace all five consistently. An account in `caselaw` does not exist in
+`my-project`, even when both realms are on the same Keycloak server.
+
+### B1. Confirm the server has the provider
+
+If the realm is on the Case Law Keycloak deployment, the provider and theme are
+already installed at server level. Continue to B2.
+
+For another Keycloak deployment, build and deploy this repository's Docker image.
+Its image installs the pinned Phase Two provider and the `caselaw` theme before
+Keycloak starts:
+
+```bash
+docker compose up -d --build
+```
+
+Do not bind a flow containing `ext-email-otp` or `ext-magic-form` on a vanilla
+Keycloak image; those provider IDs do not exist there. Deploy the image first.
+
+### B2. Create or select the target realm
+
+In Keycloak Admin Console, create `my-project` or select the existing realm. Leave
+**Authentication → Bindings → Browser flow** set to the built-in `browser` flow for
+now. This keeps username/email-and-password login available while setup is tested.
+
+If you want the Case Law look and six visual OTP slots, set **Realm settings →
+Themes → Login theme** to `caselaw`. Authentication works without this selection,
+but it will use Keycloak's default UI.
+
+### B3. Configure SMTP in this realm
+
+Select **my-project**, not `master` and not `caselaw`, then open **Realm settings →
+Email**.
+
+1. Enter the From address and optional display name/reply-to address.
+2. Enter the relay host and port.
+3. Select the relay's transport, normally STARTTLS on 587 or TLS/SSL on 465.
+4. Enable authentication and enter the relay username/password when required.
+5. Save and use **Test connection**.
+6. Confirm the message arrives in the mailbox and check the relay delivery event.
+
+SMTP is realm-scoped. Settings in `master` or `caselaw` do not apply to
+`my-project`. Keycloak also masks stored SMTP passwords; copying a realm's visible
+`smtpServer` object through the Admin API does not copy the secret. Enter the actual
+password in every target realm.
+
+For production, validate SPF, DKIM and DMARC for the From domain and make relay
+delivery/bounce telemetry available to operators.
+
+### B4. Create a test user in this realm
+
+Under **Users → Add user**:
+
+- use the colleague's email as username when email-first login is desired;
+- set **Email** to the real reachable and unique address;
+- enable the user;
+- set a password credential so the built-in password flow and rollback can be
+  tested;
+- assign project roles separately from authentication.
+
+The OTP provider does not create users. An unknown address intentionally reaches a
+neutral code screen but receives no message, so seeing that screen does not prove the
+user or SMTP configuration is valid.
+
+### B5. Create the project's OIDC client
+
+Still inside realm **my-project**, create client `my-project-web` using the table in
+[A2](#a2-create-the-project-client-in-keycloak), substituting this project's callback
+and origin. The client and user must be in the same realm named by the issuer.
+
+Before enabling OTP, run the project and complete one password login. This proves
+the client ID, callback, PKCE transaction and application session independently of
+email delivery.
+
+### B6. Configure the project's issuer
+
+For a server-backed project:
+
+```env
+AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/my-project
+AUTH_CLIENT_ID=my-project-web
+AUTH_CLIENT_SECRET=<server-only secret; omit for a public client>
+AUTH_REDIRECT_URI=https://my-project.example.org/auth/callback
+AUTH_SESSION_SECRET=<unique long random value>
+```
+
+For a static SPA:
+
+```env
+PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/my-project
+PUBLIC_AUTH_CLIENT_ID=my-project-web
+PUBLIC_AUTH_REDIRECT_URI=https://my-project.example.org/auth/callback
+PUBLIC_AUTH_STORAGE_KEY=my-project:auth
+```
+
+Changing only `KEYCLOAK_REALM` on the auth server is not enough. The deployed
+project's issuer must end in `/realms/my-project`, and its client must exist there.
+
+### B7. Install and bind the OTP flow
+
+From a checkout of this repository, run with Node 18 or newer:
 
 ```bash
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
-KEYCLOAK_REALM=caselaw \
+KEYCLOAK_REALM=my-project \
 KEYCLOAK_ADMIN_REALM=master \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
+CASELAW_PASSWORDLESS_ESTATE_MODE=false \
 node scripts/apply-passwordless-flow.mjs
 ```
 
-The command is idempotent. It verifies the provider IDs, creates or validates the
-nested flow, creates or validates the public `citations-api` client, sets the login
-action lifetime to ten minutes, and binds `caselaw-browser-passwordless`. It refuses
-to overwrite drift rather than guessing.
+`KEYCLOAK_REALM` is the realm being changed. `KEYCLOAK_ADMIN_REALM` is where the
+administrator authenticates—normally `master`. The administrator must have
+permission to manage the target realm.
 
-### Dedicated deployment: automatic apply
+`CASELAW_PASSWORDLESS_ESTATE_MODE=false` is important for an independent realm. It
+installs and binds only the generic OTP/magic-link flow; it does not create or
+validate `caselaw-frontend`, `citations-api`, or other Case Law estate clients.
 
-Set this only after the SMTP and user checks above:
+For the production `caselaw` realm, estate mode defaults to `true`. It can also be
+set explicitly:
+
+```env
+CASELAW_PASSWORDLESS_ESTATE_MODE=true
+```
+
+The installer:
+
+1. verifies `ext-email-otp` and `ext-magic-form` are installed;
+2. creates or validates `caselaw-browser-passwordless`;
+3. configures six-digit OTP and ten-minute, single-use magic links;
+4. prevents either method from creating unknown users;
+5. sets the login-action lifetime to ten minutes;
+6. binds the optional flow as the realm's browser flow.
+
+It refuses to overwrite a flow that has drifted. Running this command is the moment
+the realm changes from password login to OTP/magic-link login for all interactive
+clients in that realm.
+
+### B8. Complete the end-to-end test
+
+Restart the login in a private browser so an existing SSO cookie cannot skip the
+challenge. Verify all of the following:
+
+- the authorization request uses issuer `/realms/my-project` and client
+  `my-project-web`;
+- the known enabled user receives a six-digit code;
+- typing, deletion, whole-code paste and mobile one-time-code autofill work;
+- the code completes the project's registered callback;
+- the resulting token has issuer `/realms/my-project` and the expected user `sub`;
+- resend produces a new email and only the most recent code is used;
+- a wrong or expired code fails without revealing whether an account exists;
+- an unknown email creates no user and sends no message;
+- roles still allow and deny the intended project areas;
+- logging out clears both the project session and the Keycloak SSO session.
+
+## Optional automatic apply
+
+Automatic apply is intended for a dedicated deployment whose target realm should
+always use passwordless authentication after a restart. It is off by default.
+
+For the shared estate:
 
 ```env
 CASELAW_PASSWORDLESS_AUTO_APPLY=true
-CASELAW_PASSWORDLESS_APPLY_TIMEOUT_SECONDS=180
+CASELAW_PASSWORDLESS_ESTATE_MODE=true
 KEYCLOAK_REALM=caselaw
 KEYCLOAK_ADMIN_REALM=master
 ```
 
-Redeploy Keycloak. On each start, the static configurator validates and binds the
-flow. A configurator failure is logged but does not stop Keycloak; the previous
-browser-flow binding remains active.
-
-### Admin Console
-
-If the flow already exists, it can be selected manually under
-**Authentication → Bindings → Browser flow**. Choose
-`caselaw-browser-passwordless` and save. Do not try to recreate the nested execution
-tree by hand unless following [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md);
-requirements on the nested subflows are significant.
-
-## 6. What applications must configure
-
-Nothing OTP-specific. Every interactive product continues to use OIDC authorization
-code flow with PKCE against the same realm issuer. It redirects to Keycloak and
-receives the same tokens after either sign-in mode.
-
-Check only the ordinary OIDC contract:
-
-- the application uses its own public client ID;
-- standard flow is enabled and direct access grants are disabled;
-- PKCE method is `S256`;
-- the callback URI matches exactly;
-- server-backed applications keep sessions in secure httpOnly cookies;
-- machine client `caselaw-api` remains confidential and never enters this browser
-  flow.
-
-The OTP page's six visible cells are a presentation layer over one real input named
-`otp`. That preserves Keycloak/provider submission, full-code paste, mobile
-`autocomplete="one-time-code"`, numeric keyboards, screen-reader labeling, and a
-no-JavaScript fallback. Do not replace it with six independently submitted fields.
-
-## 7. Commissioning test
-
-Use a normal, non-admin account first. Complete this checklist before inviting users:
-
-- [ ] Password sign-in works before changing the binding.
-- [ ] The target realm's **Test connection** email arrives.
-- [ ] A known enabled user receives a six-digit code.
-- [ ] Typing, deleting, pasting all six digits, and mobile autofill work.
-- [ ] A valid code completes the OIDC callback into Case Law Explorer.
-- [ ] Resend delivers a new message; use only the most recent code.
-- [ ] A wrong code is rejected without exposing account information.
-- [ ] An unknown address creates no user and sends no message.
-- [ ] OTP expires with the ten-minute login action.
-- [ ] Magic link completes once and cannot be reused.
-- [ ] Existing roles still allow/deny the same product areas.
-- [ ] SSO carries the session into another Case Law service.
-- [ ] API-key and service-account access remain unchanged.
-- [ ] SMTP delivery, bounce and complaint telemetry is visible to operators.
-- [ ] No code, action token, access token or refresh token appears in logs.
-- [ ] Password rollback is tested with an account that has a password credential.
-
-## 8. Rollback
-
-In **Authentication → Bindings**, set **Browser flow** back to `browser` and save.
-This restores username/email-and-password login. Do not delete the unbound
-passwordless flow or its provider configuration during an incident; an unbound flow
-is harmless and preserving it makes investigation easier.
-
-Then set:
+For an independent realm:
 
 ```env
-CASELAW_PASSWORDLESS_AUTO_APPLY=false
+CASELAW_PASSWORDLESS_AUTO_APPLY=true
+CASELAW_PASSWORDLESS_ESTATE_MODE=false
+KEYCLOAK_REALM=my-project
+KEYCLOAK_ADMIN_REALM=master
 ```
 
-Redeploy if automatic apply had been enabled, otherwise the next restart would bind
-passwordless again. Existing SSO sessions may remain valid until logout or expiry.
-Only revoke realm sessions when the incident requires signing everyone out.
+The container configurator uses the same behavior as the Node installer. A failure
+is logged but does not stop Keycloak; the previous browser-flow binding remains
+active. On a shared Keycloak deployment serving multiple realms, prefer the explicit
+operator command because one container-level `KEYCLOAK_REALM` can target only one
+realm.
 
-The repository's realm JSON must continue to use `"browserFlow": "browser"` as its
-portable default. Keep the production opt-in in deployment configuration rather
-than committing a passwordless live-realm export over that baseline.
+## What “optional” means
 
-Users created without a password cannot use the default password flow. Assign a
-temporary password/required action through the approved account-recovery process
-before rollback, or keep a tested administrator break-glass account.
+Optional means the repository and new realms default to password login, and each
+realm administrator chooses whether to bind the passwordless flow.
 
-## 9. Troubleshooting
+The supplied flow offers **Email OTP** and **Magic link** as alternatives to each
+other. It does not currently offer password as a third choice on the same page and
+it is not enabled per client or per user. If one realm needs password login while
+another needs OTP, use separate realms and bind a different browser flow in each.
+
+## Roll back to password login
+
+1. In the target realm, open **Authentication → Bindings**.
+2. Set **Browser flow** to the built-in `browser` flow and save.
+3. Set `CASELAW_PASSWORDLESS_AUTO_APPLY=false` if automatic apply was enabled.
+4. Redeploy/restart if deployment configuration changed.
+5. Test with a user that has a password credential.
+
+Do not delete the unbound passwordless flow during an incident. Leaving it present
+is harmless and makes investigation or later re-enablement easier. Existing SSO
+sessions may remain valid until logout or expiry.
+
+The checked-in `realm/caselaw-realm.json` must keep
+`"browserFlow": "browser"` as its portable default. Record production opt-in in
+deployment configuration instead of committing a live passwordless binding over the
+default realm baseline.
+
+## Troubleshooting by symptom
 
 ### The OTP page appears, but no email arrives
 
-1. Confirm the address belongs to an existing enabled user in this realm.
-2. Run **Realm settings → Email → Test connection** in this same realm.
+1. Verify the address belongs to an enabled user in the target realm.
+2. Run **Realm settings → Email → Test connection** in that same realm.
 3. Re-enter the SMTP password; a copied masked value is not a usable secret.
 4. Inspect relay accepted, delivered, deferred and bounced events.
-5. Check spam, quarantine, From-domain authorization, SPF, DKIM and DMARC.
+5. Check spam/quarantine and SPF, DKIM and DMARC.
 6. Request one new code and use only the newest message.
 
 ### The password form still appears
 
-Check **Authentication → Bindings → Browser flow**. Deploying the image alone is
-non-disruptive and intentionally leaves the default `browser` binding in place.
-Apply the optional flow explicitly or set the opt-in environment flag.
+Check the target realm's **Authentication → Bindings → Browser flow**. Deploying the
+provider image alone intentionally does not change the binding. Also verify that the
+application issuer names the realm you changed rather than another realm.
+
+### The installer complains that Case Law clients are missing
+
+The command is running in estate mode against an independent realm. Set:
+
+```env
+CASELAW_PASSWORDLESS_ESTATE_MODE=false
+```
+
+Then rerun it. This skips only estate-specific client reconciliation; it does not
+skip provider, flow, timeout or binding checks.
 
 ### Keycloak reports an unknown authenticator
 
-The flow was bound before the provider image was deployed. Restore `browser`, deploy
-the image, verify `ext-email-otp` and `ext-magic-form` appear in startup/provider
-information, then apply again.
+The server does not have the Phase Two provider, or the flow was bound before the
+provider image started. Restore `browser`, deploy this repository's image, and run
+the installer again.
 
-### OTP succeeds but the product rejects the callback
+### OTP succeeds, but the project rejects the callback
 
-Authentication worked; inspect the application's exact redirect URI, state/PKCE
-transaction cookie, and OIDC client ID. Product authorization failures are separate:
-check roles and `caselaw-access` policy rather than weakening authentication.
+SMTP and OTP worked. Check that the authorization request, Keycloak client and
+project environment use the same realm and client ID. Then compare the exact
+callback URI, scheme, host, port, path and trailing slash. Also verify the state and
+PKCE transaction cookie survived the redirect.
+
+### The callback works, but the user is forbidden
+
+Authentication and authorization are separate. Check realm/client roles and the
+project's access policy. Do not change OTP settings or create a duplicate user to
+fix a missing role.
 
 ### A magic link is expired before the user opens it
 
 Mail-security scanners can consume single-use links. Check gateway logs and use OTP
 while adjusting scanner policy.
 
-For the estate architecture, threat boundaries and expanded production checks, read
+For the complete Case Law estate architecture and operational controls, see
 [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).

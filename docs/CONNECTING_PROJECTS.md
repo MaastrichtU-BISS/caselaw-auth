@@ -19,6 +19,8 @@ backend, [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
 
 > **On a realm other than `caselaw`**, everything below is unchanged except the
 > issuer, which becomes `https://<keycloak-host>/realms/<realm-name>`.
+> That realm still needs its own SMTP, users and passwordless-flow binding; use
+> the end-to-end [OTP setup guide](OTP_SETUP.md#path-b-project-using-a-different-realm).
 
 ## Contents
 
