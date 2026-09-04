@@ -266,7 +266,10 @@ KEYCLOAK_ADMIN_PASSWORD='...' \
 node scripts/apply-passwordless-flow.mjs
 ```
 
-Running that command is an explicit opt-in because it binds the passwordless flow.
+**Running this script is required to enable OTP on an existing or independently
+created realm.** SMTP and the provider image are prerequisites, but neither changes
+the browser-flow binding. Running the command is the explicit opt-in because it
+creates/validates and binds the passwordless flow.
 Both the image configurator and the operator script refuse to overwrite drift.
 Do not bind the flow before deploying the provider JAR: its `ext-email-otp` and
 `ext-magic-form` executions will be unknown. The estate-wide rollout and

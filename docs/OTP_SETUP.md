@@ -8,12 +8,24 @@ Username/email plus password is the default. Email OTP and magic link are enable
 only when a realm administrator explicitly changes that realm's browser-flow
 binding.
 
+## Required activation step
+
+> **For a new or different realm, a realm administrator must run
+> `scripts/apply-passwordless-flow.mjs`.** Configuring SMTP, creating a user, and
+> connecting the project do not enable OTP by themselves. The script creates and
+> validates the passwordless flow, then binds it to the target realm. Until it is
+> run, the realm continues to show the default username/password login.
+
+The shared production `caselaw` realm is the exception for project developers: its
+operator has already run the installer. A project joining that realm only needs its
+own OIDC client and application configuration.
+
 ## Start here: which setup are you doing?
 
 | Your project uses | What you need to do |
 |---|---|
 | Existing `caselaw` realm | Create an OIDC client for the project, configure the project, and test. The realm, SMTP, theme, OTP flow and users already exist. |
-| A different realm on the Case Law Keycloak server | Configure SMTP and users in that realm, create the project client, configure the project, then install and bind the generic OTP flow with `CASELAW_PASSWORDLESS_ESTATE_MODE=false`. |
+| A different realm on the Case Law Keycloak server | Configure SMTP and users, create the client, configure the project, and **run the installer script** with `CASELAW_PASSWORDLESS_ESTATE_MODE=false`. |
 | A different Keycloak server | Deploy this repository's Keycloak image first, then follow the different-realm path. The OTP provider and the Case Law and DigiMach themes are installed at server level by the image. |
 
 If you only remember one rule, remember this one: the issuer, SMTP configuration,
@@ -142,7 +154,8 @@ existing enabled `caselaw` user, complete the OTP, and confirm the browser retur
 the project's exact callback and creates a session.
 
 You do **not** configure SMTP, copy users, or run the passwordless installer for this
-path. Those are realm-wide production settings already owned by the `caselaw` realm.
+path. The realm operator has already run it and owns those realm-wide production
+settings.
 
 ## Path B: project using a different realm
 
@@ -260,7 +273,10 @@ PUBLIC_AUTH_STORAGE_KEY=my-project:auth
 Changing only `KEYCLOAK_REALM` on the auth server is not enough. The deployed
 project's issuer must end in `/realms/my-project`, and its client must exist there.
 
-### B7. Install and bind the OTP flow
+### B7. Required: run the installer to enable OTP
+
+This step is mandatory. The earlier steps prepare email delivery and OIDC, but the
+realm still uses passwords until this command completes successfully.
 
 From a checkout of this repository, run with Node 18 or newer:
 
@@ -301,6 +317,9 @@ The installer:
 It refuses to overwrite a flow that has drifted. Running this command is the moment
 the realm changes from password login to OTP/magic-link login for all interactive
 clients in that realm.
+
+Verify the command reports that it bound `caselaw-browser-passwordless` to the target
+realm before testing the project.
 
 ### B8. Complete the end-to-end test
 
@@ -389,8 +408,10 @@ default realm baseline.
 ### The password form still appears
 
 Check the target realm's **Authentication → Bindings → Browser flow**. Deploying the
-provider image alone intentionally does not change the binding. Also verify that the
-application issuer names the realm you changed rather than another realm.
+provider image, configuring SMTP, or connecting the application does not change the
+binding. Run `scripts/apply-passwordless-flow.mjs`, then verify the binding is
+`caselaw-browser-passwordless`. Also verify that the application issuer names the
+realm you changed rather than another realm.
 
 ### The installer complains that Case Law clients are missing
 

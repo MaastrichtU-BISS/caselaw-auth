@@ -7,7 +7,7 @@ its theme, and the `caselaw-auth` npm package.
 
 | Document | Audience | Covers |
 |---|---|---|
-| [OTP_SETUP.md](OTP_SETUP.md) | Project developers and realm administrators | End-to-end project setup for the shared realm, a different realm, or a different Keycloak server |
+| [OTP_SETUP.md](OTP_SETUP.md) | Project developers and realm administrators | End-to-end project setup, including the required installer script, for the shared realm or a different realm/server |
 | [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md) | Operators and product engineers | Email OTP and magic links, estate-wide service matrix, production rollout and rollback |
 | [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) | Engineers integrating a product that has a backend | `caselaw-auth/server`, session cookies, token verification, DiscourseConnect |
 | [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) | Engineers integrating a static SPA | `caselaw-auth/client`, Vue and Svelte adapters, Keycloak client setup |

@@ -282,6 +282,11 @@ older containers do not know the provider IDs.
 
 ### 7.3 Apply an existing realm
 
+This is the required activation step. Deploying the provider, configuring SMTP, and
+configuring applications do not enable OTP. An operator must either run
+`scripts/apply-passwordless-flow.mjs` or explicitly enable automatic apply; the
+realm keeps its current password flow until one of those actions succeeds.
+
 `--import-realm` creates a missing realm and skips an existing one. The supplied
 realm contains the custom flow but keeps Keycloak's built-in `browser` password
 flow bound. Existing realms also remain unchanged unless an operator opts in.
