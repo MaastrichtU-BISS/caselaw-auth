@@ -29,6 +29,7 @@ services:
       # SMTP and passwordless sign-in have been commissioned for this realm.
       # A failed apply is logged but never takes the identity service down.
       CASELAW_PASSWORDLESS_AUTO_APPLY: ${CASELAW_PASSWORDLESS_AUTO_APPLY:-false}
+      CASELAW_PASSWORDLESS_ESTATE_MODE: ${CASELAW_PASSWORDLESS_ESTATE_MODE:-}
       CASELAW_PASSWORDLESS_APPLY_TIMEOUT_SECONDS: ${CASELAW_PASSWORDLESS_APPLY_TIMEOUT_SECONDS:-180}
       KC_DB: postgres
       KC_DB_URL_HOST: keycloak-db

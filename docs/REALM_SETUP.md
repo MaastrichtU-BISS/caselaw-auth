@@ -257,6 +257,13 @@ rollback procedure is in
 [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md); the concise setup procedure is
 in [OTP_SETUP.md](OTP_SETUP.md).
 
+For a project-specific realm that does not contain the Case Law estate clients, add
+`CASELAW_PASSWORDLESS_ESTATE_MODE=false` to the command. That applies only the
+generic realm flow and avoids creating or validating `caselaw-frontend`,
+`citations-api`, and the other estate clients. The full different-realm sequence,
+including the project's issuer and callback settings, is in
+[OTP_SETUP.md](OTP_SETUP.md#path-b-project-using-a-different-realm).
+
 Operational checks:
 
 1. Confirm username/email-and-password login before changing the binding.

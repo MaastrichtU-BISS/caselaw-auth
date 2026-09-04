@@ -72,6 +72,7 @@ type installer struct {
 	client          *http.Client
 	createdFlowID   string
 	createdClientID string
+	estateMode      bool
 }
 
 type expectedExecution struct {
@@ -97,7 +98,7 @@ func main() {
 	}
 
 	fmt.Printf("Bound %s to %s on %s.\n", browserFlow, i.realm, i.baseURL)
-	fmt.Println("The realm now applies email OTP and magic-link sign-in to every interactive Case Law client.")
+	fmt.Printf("The realm now applies email OTP and magic-link sign-in to every interactive client in %s.\n", i.realm)
 }
 
 func newInstaller() (*installer, error) {
@@ -116,6 +117,7 @@ func newInstaller() (*installer, error) {
 		adminRealm:    adminRealm,
 		adminUser:     adminUser,
 		adminPassword: adminPassword,
+		estateMode:    envBool("CASELAW_PASSWORDLESS_ESTATE_MODE", realm == "caselaw"),
 		adminPath:     "/admin/realms/" + url.PathEscape(realm),
 		client:        &http.Client{Timeout: 30 * time.Second},
 	}, nil
@@ -197,11 +199,15 @@ func (i *installer) run() error {
 		}
 	}
 
-	if err := i.ensureCitationsAPIClient(); err != nil {
-		return err
-	}
-	if err := i.validateEstateClients(); err != nil {
-		return err
+	if i.estateMode {
+		if err := i.ensureCitationsAPIClient(); err != nil {
+			return err
+		}
+		if err := i.validateEstateClients(); err != nil {
+			return err
+		}
+	} else {
+		fmt.Printf("Skipped Case Law estate client reconciliation for realm %s.\n", i.realm)
 	}
 
 	if err := i.api(http.MethodPut, i.adminPath, map[string]any{
@@ -620,6 +626,14 @@ func envInt(name string, fallback int) int {
 		return fallback
 	}
 	return value
+}
+
+func envBool(name string, fallback bool) bool {
+	raw := strings.ToLower(strings.TrimSpace(os.Getenv(name)))
+	if raw == "" {
+		return fallback
+	}
+	return raw == "true" || raw == "1" || raw == "yes"
 }
 
 func findByString(items []map[string]any, key, value string) map[string]any {

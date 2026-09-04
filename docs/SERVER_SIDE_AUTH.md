@@ -23,7 +23,8 @@ for the product, and either `caselaw-auth` v0.2.1 or later (Node) or
 > route still redirects to the realm and the callback still exchanges an
 > authorization code; Keycloak owns the email challenge. The estate-wide
 > client matrix and rollout are in
-> [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).
+> [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md). For a project using a
+> different realm, follow [OTP_SETUP.md](OTP_SETUP.md) first.
 
 ## Contents
 

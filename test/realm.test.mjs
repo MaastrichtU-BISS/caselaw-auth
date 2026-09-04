@@ -6,6 +6,8 @@ const realm = JSON.parse(await readFile(new URL('../realm/caselaw-realm.json', i
 const dockerfile = await readFile(new URL('../Dockerfile', import.meta.url), 'utf8')
 const compose = await readFile(new URL('../docker-compose.yml', import.meta.url), 'utf8')
 const entrypoint = await readFile(new URL('../scripts/keycloak-entrypoint.sh', import.meta.url), 'utf8')
+const nodeConfigurator = await readFile(new URL('../scripts/apply-passwordless-flow.mjs', import.meta.url), 'utf8')
+const goConfigurator = await readFile(new URL('../scripts/passwordless-configurator/main.go', import.meta.url), 'utf8')
 
 function flow(alias) {
   const found = realm.authenticationFlows.find((item) => item.alias === alias)
@@ -88,4 +90,12 @@ test('the production image keeps passwordless reconciliation opt-in and non-fata
   assert.match(compose, /CASELAW_PASSWORDLESS_AUTO_APPLY: \$\{CASELAW_PASSWORDLESS_AUTO_APPLY:-false\}/)
   assert.match(entrypoint, /CASELAW_PASSWORDLESS_AUTO_APPLY:-false/)
   assert.match(entrypoint, /Keycloak will remain available on its previous browser flow/)
+})
+
+test('the installer can apply the generic flow without Case Law estate clients', () => {
+  assert.match(compose, /CASELAW_PASSWORDLESS_ESTATE_MODE: \$\{CASELAW_PASSWORDLESS_ESTATE_MODE:-\}/)
+  assert.match(nodeConfigurator, /envBoolean\('CASELAW_PASSWORDLESS_ESTATE_MODE', realm === 'caselaw'\)/)
+  assert.match(nodeConfigurator, /if \(estateMode\) \{[\s\S]*?ensureCitationsApiClient\(\)[\s\S]*?validateEstateClients\(\)/)
+  assert.match(goConfigurator, /envBool\("CASELAW_PASSWORDLESS_ESTATE_MODE", realm == "caselaw"\)/)
+  assert.match(goConfigurator, /if i\.estateMode \{[\s\S]*?i\.ensureCitationsAPIClient\(\)[\s\S]*?i\.validateEstateClients\(\)/)
 })

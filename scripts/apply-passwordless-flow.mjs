@@ -8,8 +8,9 @@
  *
  * The script is deliberately conservative. It creates the named flow when it
  * is absent, validates it when it already exists, and refuses to overwrite a
- * flow that has drifted. It also creates the public citations-api UI client
- * that cannot safely reuse the confidential caselaw-api machine client.
+ * flow that has drifted. For the caselaw realm it also reconciles the
+ * estate-specific clients by default. Set CASELAW_PASSWORDLESS_ESTATE_MODE=false
+ * when applying only the generic flow to an independent realm.
  */
 
 const baseUrl = (process.env.KEYCLOAK_URL || 'http://localhost:8080').replace(/\/$/, '')
@@ -17,6 +18,7 @@ const realm = process.env.KEYCLOAK_REALM || 'caselaw'
 const adminRealm = process.env.KEYCLOAK_ADMIN_REALM || 'master'
 const adminUser = process.env.KEYCLOAK_ADMIN || ''
 const adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || ''
+const estateMode = envBoolean('CASELAW_PASSWORDLESS_ESTATE_MODE', realm === 'caselaw')
 
 const browserFlow = 'caselaw-browser-passwordless'
 const formsFlow = 'Case Law passwordless forms'
@@ -127,8 +129,12 @@ try {
     console.log(`Created and validated ${browserFlow}.`)
   }
 
-  await ensureCitationsApiClient()
-  await validateEstateClients()
+  if (estateMode) {
+    await ensureCitationsApiClient()
+    await validateEstateClients()
+  } else {
+    console.log(`Skipped Case Law estate client reconciliation for realm ${realm}.`)
+  }
   // The provider keeps the OTP in the authentication session, so the realm's
   // login-action timeout is its lifetime. Keep it aligned with magic links.
   await api('PUT', adminPath, { browserFlow, accessCodeLifespanLogin: 600 })
@@ -142,7 +148,7 @@ try {
   }
 
   console.log(`Bound ${browserFlow} to ${realm} on ${baseUrl}.`)
-  console.log('The realm now applies email OTP and magic-link sign-in to every interactive Case Law client.')
+  console.log(`The realm now applies email OTP and magic-link sign-in to every interactive client in ${realm}.`)
 } catch (error) {
   if (createdFlowId) {
     await api('DELETE', `${adminPath}/authentication/flows/${encodeURIComponent(createdFlowId)}`)
@@ -353,6 +359,12 @@ async function findClient(clientId) {
 function redirectMatches(registered, callback) {
   const escaped = registered.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replaceAll('*', '.*')
   return new RegExp(`^${escaped}$`).test(callback)
+}
+
+function envBoolean(name, fallback) {
+  const raw = process.env[name]
+  if (raw === undefined || raw === '') return fallback
+  return ['true', '1', 'yes'].includes(raw.toLowerCase())
 }
 
 function fail(message) {
