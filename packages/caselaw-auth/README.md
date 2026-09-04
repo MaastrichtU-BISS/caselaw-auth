@@ -35,7 +35,7 @@ export KEYCLOAK_ADMIN_PASSWORD='<set securely>'
 export CASELAW_PASSWORDLESS_ESTATE_MODE=false
 ```
 
-4. Run `npx --yes caselaw-auth@0.6.1 apply-passwordless-flow`.
+4. Run `npx --yes caselaw-auth@0.6.2 apply-passwordless-flow`.
 5. Confirm it reports `Bound caselaw-browser-passwordless-email-first`, verify that binding in
    the Admin Console, and complete an OTP login with the new address in a private
    browser. Confirm Keycloak created one email-verified user with no name or password

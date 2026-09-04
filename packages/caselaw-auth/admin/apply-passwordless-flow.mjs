@@ -24,6 +24,8 @@ const browserFlow = 'caselaw-browser-passwordless-email-first'
 // install the new top-level flow before switching its binding.
 const formsFlow = 'Case Law email-first forms'
 const methodsFlow = 'Case Law email-first methods'
+const otpConfigAlias = 'caselaw-email-first-otp'
+const magicLinkConfigAlias = 'caselaw-email-first-magic-link'
 
 const otpConfig = {
   'ext-magic-create-nonexistent-user': 'false',
@@ -123,10 +125,10 @@ try {
       'Alternative passwordless methods available after the user supplies an email address.')
 
     const otp = await addExecution(methodsFlow, 'ext-email-otp', 'ALTERNATIVE')
-    await addExecutionConfig(otp.id, 'caselaw-email-otp', otpConfig)
+    await addExecutionConfig(otp.id, otpConfigAlias, otpConfig)
 
     const magicLink = await addExecution(methodsFlow, 'ext-magic-form', 'ALTERNATIVE')
-    await addExecutionConfig(magicLink.id, 'caselaw-magic-link', magicLinkConfig)
+    await addExecutionConfig(magicLink.id, magicLinkConfigAlias, magicLinkConfig)
 
     await validateExistingFlow()
     console.log(`Created and validated ${browserFlow}.`)
@@ -323,8 +325,8 @@ async function validateExistingFlow() {
     { providerId: 'ext-email-otp', requirement: 'ALTERNATIVE' },
     { providerId: 'ext-magic-form', requirement: 'ALTERNATIVE' },
   ])
-  await expectConfig(methods[0], 'caselaw-email-otp', otpConfig)
-  await expectConfig(methods[1], 'caselaw-magic-link', magicLinkConfig)
+  await expectConfig(methods[0], otpConfigAlias, otpConfig)
+  await expectConfig(methods[1], magicLinkConfigAlias, magicLinkConfig)
 }
 
 async function expectFlow(alias, expected) {

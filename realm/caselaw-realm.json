@@ -88,7 +88,7 @@
       "builtIn": false,
       "authenticationExecutions": [
         {
-          "authenticatorConfig": "caselaw-email-otp",
+          "authenticatorConfig": "caselaw-email-first-otp",
           "authenticator": "ext-email-otp",
           "authenticatorFlow": false,
           "requirement": "ALTERNATIVE",
@@ -96,7 +96,7 @@
           "userSetupAllowed": false
         },
         {
-          "authenticatorConfig": "caselaw-magic-link",
+          "authenticatorConfig": "caselaw-email-first-magic-link",
           "authenticator": "ext-magic-form",
           "authenticatorFlow": false,
           "requirement": "ALTERNATIVE",
@@ -108,13 +108,13 @@
   ],
   "authenticatorConfig": [
     {
-      "alias": "caselaw-email-otp",
+      "alias": "caselaw-email-first-otp",
       "config": {
         "ext-magic-create-nonexistent-user": "false"
       }
     },
     {
-      "alias": "caselaw-magic-link",
+      "alias": "caselaw-email-first-magic-link",
       "config": {
         "ext-magic-create-nonexistent-user": "false",
         "ext-magic-update-profile-action": "false",

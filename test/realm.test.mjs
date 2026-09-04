@@ -49,10 +49,10 @@ test('the realm defaults to password login and includes an opt-in passwordless f
 test('email identity creates passwordless users and email methods verify them', () => {
   assert.equal(realm.registrationAllowed, false)
   const byAlias = Object.fromEntries(realm.authenticatorConfig.map((item) => [item.alias, item.config]))
-  assert.deepEqual(byAlias['caselaw-email-otp'], {
+  assert.deepEqual(byAlias['caselaw-email-first-otp'], {
     'ext-magic-create-nonexistent-user': 'false',
   })
-  assert.deepEqual(byAlias['caselaw-magic-link'], {
+  assert.deepEqual(byAlias['caselaw-email-first-magic-link'], {
     'ext-magic-create-nonexistent-user': 'false',
     'ext-magic-update-profile-action': 'false',
     'ext-magic-update-password-action': 'false',
@@ -116,6 +116,8 @@ test('new nested aliases do not collide with the previously deployed passwordles
     assert.doesNotMatch(configurator, /Case Law passwordless forms/)
     assert.match(configurator, /Case Law email-first forms/)
     assert.match(configurator, /Case Law email-first methods/)
+    assert.match(configurator, /caselaw-email-first-otp/)
+    assert.match(configurator, /caselaw-email-first-magic-link/)
   }
 })
 

@@ -21,6 +21,8 @@ const (
 	browserFlow = "caselaw-browser-passwordless-email-first"
 	formsFlow   = "Case Law email-first forms"
 	methodsFlow = "Case Law email-first methods"
+	otpAlias    = "caselaw-email-first-otp"
+	magicAlias  = "caselaw-email-first-magic-link"
 )
 
 var otpConfig = map[string]string{
@@ -282,14 +284,14 @@ func (i *installer) createFlow() error {
 	if err != nil {
 		return err
 	}
-	if err := i.addExecutionConfig(stringField(otp, "id"), "caselaw-email-otp", otpConfig); err != nil {
+	if err := i.addExecutionConfig(stringField(otp, "id"), otpAlias, otpConfig); err != nil {
 		return err
 	}
 	magic, err := i.addExecution(methodsFlow, "ext-magic-form", "ALTERNATIVE")
 	if err != nil {
 		return err
 	}
-	if err := i.addExecutionConfig(stringField(magic, "id"), "caselaw-magic-link", magicLinkConfig); err != nil {
+	if err := i.addExecutionConfig(stringField(magic, "id"), magicAlias, magicLinkConfig); err != nil {
 		return err
 	}
 
@@ -477,10 +479,10 @@ func (i *installer) validateExistingFlow() error {
 	if err != nil {
 		return err
 	}
-	if err := i.expectConfig(methods[0], "caselaw-email-otp", otpConfig); err != nil {
+	if err := i.expectConfig(methods[0], otpAlias, otpConfig); err != nil {
 		return err
 	}
-	return i.expectConfig(methods[1], "caselaw-magic-link", magicLinkConfig)
+	return i.expectConfig(methods[1], magicAlias, magicLinkConfig)
 }
 
 func (i *installer) expectFlow(alias string, expected []expectedExecution) ([]map[string]any, error) {
