@@ -42,6 +42,50 @@ test('the login theme uses a versioned stylesheet entry point', async () => {
   assert.match(styles, /\.cle-otp-control:focus-within \.cle-otp-slot\.is-active/)
 })
 
+test('the Digimach login theme inherits every Case Law state before branding it', async () => {
+  const properties = await read('themes/digimach/login/theme.properties')
+  const styles = await read('themes/digimach/login/resources/css/digimach-login-v1.css')
+  const mark = await read('themes/digimach/login/resources/img/digimach-mark.svg')
+
+  assert.match(properties, /^parent=caselaw$/m)
+  assert.match(properties, /^styles=css\/caselaw-login-v8\.css css\/digimach-login-v1\.css$/m)
+  assert.match(properties, /^scripts=js\/otp-input-v1\.js$/m)
+  assert.match(properties, /footerBissUrl=.*https:\/\/digimach\.eu\//)
+  assert.match(styles, /--digimach-brand: #33a58e;/)
+  assert.match(styles, /--digimach-brand-strong: #2a8472;/)
+  assert.match(styles, /--digimach-brand-weak: #edf4f3;/)
+  assert.match(styles, /content: "DigiMach";/)
+  assert.match(styles, /digimach-mark\.svg/)
+  assert.match(styles, /#kc-form \.form-group > label,[\s\S]*?display: block;[\s\S]*?width: 100%;/)
+  assert.match(styles, /#kc-form input\[type="email"\][\s\S]*?width: 100%;/)
+  assert.match(styles, /\.cle-otp-control\.is-complete \.cle-otp-slot/)
+  assert.match(styles, /prefers-reduced-motion|caselaw-login-v8/)
+  assert.match(mark, /viewBox="0 0 32 32"/)
+  assert.doesNotMatch(styles, /CASE LAW EXPLORER/)
+})
+
+test('the Digimach account theme inherits PatternFly coverage and overrides its brand', async () => {
+  const properties = await read('themes/digimach/account/theme.properties')
+  const styles = await read('themes/digimach/account/resources/css/digimach-account-v1.css')
+
+  assert.match(properties, /^parent=caselaw$/m)
+  assert.match(properties, /^styles=css\/caselaw-account\.css css\/digimach-account-v1\.css$/m)
+  assert.match(styles, /--cle-primary: var\(--digimach-brand-strong\);/)
+  assert.match(styles, /\.pf-v5-c-masthead__brand::after/)
+  assert.match(styles, /content: "DigiMach";/)
+  assert.match(styles, /\.pf-v5-c-nav__link\[aria-current="page"\]/)
+})
+
+test('the theme guide distinguishes realm-wide themes from project overrides', async () => {
+  const guide = await read('docs/THEMES.md')
+
+  assert.match(guide, /KEYCLOAK_REALM=digimach/)
+  assert.match(guide, /KEYCLOAK_THEME=digimach/)
+  assert.match(guide, /every project in a realm/)
+  assert.match(guide, /client-level Account theme\s+override/)
+  assert.match(guide, /Clients → _project client_ → Settings/)
+})
+
 test('the OTP presentation keeps one sanitized field in sync with six visual slots', async () => {
   const script = await read('themes/caselaw/login/resources/js/otp-input-v1.js')
   const classes = () => {

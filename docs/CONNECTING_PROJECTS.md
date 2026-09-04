@@ -75,6 +75,11 @@ Nearly every product here is public.
 **3. Your callback URL.** Conventionally `https://<your-domain>/auth/callback`.
 It must be a real route in your app that renders something, not a placeholder.
 
+**4. Your theme scope.** Leave the client's Login theme unset when the project
+should inherit its realm's look. A client-level Login theme is only for one
+project that deliberately differs from the rest of its realm. Account-console
+styling is realm-wide. See [THEMES.md](THEMES.md) before overriding anything.
+
 ---
 
 ## 3. Keycloak client configuration
@@ -95,6 +100,7 @@ In the admin console at `https://auth.caselawexplorer.tech/admin`, realm
 | Valid post logout redirect URIs | `+` |
 | Web origins | `+` |
 | PKCE method (Advanced tab) | `S256` |
+| Login theme | Leave unset to inherit the realm default |
 
 Four of those are the ones people get wrong:
 
@@ -116,6 +122,12 @@ PKCE challenge; setting this makes Keycloak *require* it.
 
 Add the localhost URI now. It costs nothing and you will otherwise add it in a
 hurry, later, while trying to debug something else.
+
+If this client alone needs a different brand, select its theme under
+**Clients → _client_ → Settings → Login settings → Login theme**. This affects
+login, OTP, registration, and recovery for that client only. To give every
+project in a realm the same login and account-console identity, configure the
+realm instead; [THEMES.md](THEMES.md) covers both paths.
 
 ### Confidential client
 

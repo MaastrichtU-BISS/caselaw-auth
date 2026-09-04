@@ -1,0 +1,79 @@
+/* DigiMach brand layer for the inherited Case Law account-console coverage. */
+
+:root {
+  --digimach-brand: #33a58e;
+  --digimach-brand-strong: #2a8472;
+  --digimach-brand-stronger: #0d6251;
+  --digimach-brand-weak: #edf4f3;
+  --digimach-ink: #021728;
+
+  --cle-bg: var(--digimach-brand-weak);
+  --cle-surface-subtle: #f5f9f8;
+  --cle-surface-muted: #e6f0ee;
+  --cle-card: #ffffff;
+  --cle-border: #d5e3e0;
+  --cle-border-subtle: #e5efed;
+  --cle-border-strong: #afcac4;
+  --cle-text: var(--digimach-ink);
+  --cle-text-body: #29474d;
+  --cle-muted: #64767a;
+  --cle-primary: var(--digimach-brand-strong);
+  --cle-primary-hover: var(--digimach-brand-stronger);
+  --cle-danger: #b4232d;
+  --cle-focus: rgba(42, 132, 114, 0.22);
+  --cle-radius-sm: 8px;
+  --cle-radius-md: 10px;
+  --cle-shadow-sm: 0 1px 3px rgba(2, 23, 40, 0.07);
+  --cle-sans:
+    Montserrat, "Avenir Next", Avenir, "Century Gothic", ui-sans-serif,
+    system-ui, sans-serif;
+}
+
+.pf-v5-c-masthead {
+  border-top: 3px solid var(--digimach-brand);
+}
+
+.pf-v5-c-masthead__brand,
+.pf-v5-c-brand {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.6rem;
+}
+
+.pf-v5-c-masthead__brand::before,
+.pf-v5-c-brand::before {
+  background: url("../img/digimach-mark.svg") center / contain no-repeat;
+  content: "";
+  display: block;
+  flex: 0 0 auto;
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+.pf-v5-c-masthead__brand::after,
+.pf-v5-c-brand::after {
+  color: var(--digimach-brand);
+  content: "DigiMach";
+  font-weight: 750;
+  letter-spacing: -0.04em;
+}
+
+.pf-v5-c-nav__link.pf-m-current,
+.pf-v5-c-nav__item.pf-m-current > .pf-v5-c-nav__link,
+.pf-v5-c-nav__link[aria-current="page"] {
+  background-color: var(--digimach-brand-weak);
+  color: var(--digimach-brand-stronger);
+}
+
+.pf-v5-c-card,
+.pf-v5-c-panel {
+  box-shadow: var(--cle-shadow-sm);
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--digimach-brand-strong);
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background-color: var(--digimach-brand-stronger);
+}

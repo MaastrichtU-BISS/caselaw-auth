@@ -12,6 +12,7 @@ its theme, and the `caselaw-auth` npm package.
 | [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) | Engineers integrating a product that has a backend | `caselaw-auth/server`, session cookies, token verification, DiscourseConnect |
 | [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) | Engineers integrating a static SPA | `caselaw-auth/client`, Vue and Svelte adapters, Keycloak client setup |
 | [REALM_SETUP.md](REALM_SETUP.md) | Administrators configuring a realm | Realm settings, roles, clients, identity providers, hardening |
+| [THEMES.md](THEMES.md) | Project developers and realm administrators | Apply Case Law or DigiMach styling to one project or every client in a realm |
 | [AUTH_FRONTEND_PACKAGE.md](AUTH_FRONTEND_PACKAGE.md) | Engineers | Per-framework environment variable plumbing |
 
 ## Choosing an integration path

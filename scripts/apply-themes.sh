@@ -12,6 +12,8 @@
 #
 # Usage:
 #   KEYCLOAK_URL=https://auth.example.tech \
+#   KEYCLOAK_REALM=digimach \
+#   KEYCLOAK_THEME=digimach \
 #   KEYCLOAK_ADMIN=admin \
 #   KEYCLOAK_ADMIN_PASSWORD=... \
 #   ./scripts/apply-themes.sh

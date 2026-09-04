@@ -121,14 +121,15 @@ real user does.
 
 ### Themes
 
-| Setting | Shared realm |
-|---|---|
-| Login theme | `caselaw` |
-| Account theme | `caselaw` |
+| Setting | Case Law realm | DigiMach realm |
+|---|---|---|
+| Login theme | `caselaw` | `digimach` |
+| Account theme | `caselaw` | `digimach` |
 
 A theme only appears in the dropdown if the Keycloak image carries it, which
-is what `themes/caselaw/` in this repository is for. On the hosted instance the
-theme is already there.
+is what `themes/caselaw/` and `themes/digimach/` in this repository are for. On
+the hosted instance the themes are already there. Realm theme settings apply to
+every client inside that realm without affecting clients in another realm.
 
 Because of the import-only rule above, selecting a theme in the JSON does
 nothing to a realm that already exists. Set it in **Realm settings → Themes**,
@@ -141,8 +142,24 @@ KEYCLOAK_ADMIN_PASSWORD=... \
 ./scripts/apply-themes.sh
 ```
 
-One-off either way: once the realm points at `caselaw`, later edits to the
-theme's files ship with the next deployment.
+One-off either way: once the realm points at its chosen theme, later edits to
+the theme's files ship with the next deployment.
+
+For the Digimach realm, pass both selectors explicitly:
+
+```bash
+KEYCLOAK_URL=https://auth.example.tech \
+KEYCLOAK_REALM=digimach \
+KEYCLOAK_THEME=digimach \
+KEYCLOAK_ADMIN=admin \
+KEYCLOAK_ADMIN_PASSWORD=... \
+./scripts/apply-themes.sh
+```
+
+To change only one project inside a shared realm, set the project's client-level
+Login theme instead. That override does not include the account console, whose
+theme is realm-wide. [THEMES.md](THEMES.md) explains both scopes, new realm
+imports, verification, and troubleshooting.
 
 ### Sessions and tokens
 

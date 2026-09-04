@@ -14,7 +14,7 @@ binding.
 |---|---|
 | Existing `caselaw` realm | Create an OIDC client for the project, configure the project, and test. The realm, SMTP, theme, OTP flow and users already exist. |
 | A different realm on the Case Law Keycloak server | Configure SMTP and users in that realm, create the project client, configure the project, then install and bind the generic OTP flow with `CASELAW_PASSWORDLESS_ESTATE_MODE=false`. |
-| A different Keycloak server | Deploy this repository's Keycloak image first, then follow the different-realm path. The OTP provider and Case Law theme are installed at server level by the image. |
+| A different Keycloak server | Deploy this repository's Keycloak image first, then follow the different-realm path. The OTP provider and the Case Law and DigiMach themes are installed at server level by the image. |
 
 If you only remember one rule, remember this one: the issuer, SMTP configuration,
 users, browser-flow binding, and OIDC client must all belong to the **same target
@@ -26,7 +26,7 @@ OTP setup spans three different scopes. They are configured separately:
 
 ```text
 Keycloak server
-  └─ OTP/magic-link provider JAR and Case Law theme
+  └─ OTP/magic-link provider JAR and repository themes
        └─ target realm
             ├─ SMTP, users, OTP flow and browser-flow binding
             └─ project OIDC client
@@ -164,12 +164,12 @@ Replace all five consistently. An account in `caselaw` does not exist in
 
 ### B1. Confirm the server has the provider
 
-If the realm is on the Case Law Keycloak deployment, the provider and theme are
+If the realm is on the Case Law Keycloak deployment, the provider and themes are
 already installed at server level. Continue to B2.
 
 For another Keycloak deployment, build and deploy this repository's Docker image.
-Its image installs the pinned Phase Two provider and the `caselaw` theme before
-Keycloak starts:
+Its image installs the pinned Phase Two provider and both the `caselaw` and
+`digimach` themes before Keycloak starts:
 
 ```bash
 docker compose up -d --build
@@ -184,9 +184,12 @@ In Keycloak Admin Console, create `my-project` or select the existing realm. Lea
 **Authentication → Bindings → Browser flow** set to the built-in `browser` flow for
 now. This keeps username/email-and-password login available while setup is tested.
 
-If you want the Case Law look and six visual OTP slots, set **Realm settings →
-Themes → Login theme** to `caselaw`. Authentication works without this selection,
-but it will use Keycloak's default UI.
+Select the realm's visual identity under **Realm settings → Themes**. Use
+`caselaw` for a Case Law realm or `digimach` for a DigiMach realm, setting both
+**Login theme** and **Account theme**. The choice applies to every project/client
+in that realm. Authentication works without a selection, but uses Keycloak's
+default UI; the repository's six-slot OTP presentation comes from either custom
+theme. See [THEMES.md](THEMES.md) for realm-wide and project-only instructions.
 
 ### B3. Configure SMTP in this realm
 

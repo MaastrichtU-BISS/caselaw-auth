@@ -15,7 +15,8 @@ the same account, and roles decide what each one shows.
 
 ```
 realm/caselaw-realm.json    the realm: clients, roles, login settings
-themes/caselaw/             the Case Law Explorer sign-in theme
+themes/caselaw/             the Case Law Explorer login and account theme
+themes/digimach/            the DigiMach sibling theme, inheriting Case Law coverage
 providers/                  Keycloak OTP and magic-link provider
 packages/caselaw-auth/      the client library, published on npm
 docker-compose.yml          Keycloak and its Postgres
@@ -44,6 +45,7 @@ service itself.
 | Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |
 | Connect a **static SPA** | [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) |
 | Configure a realm | [docs/REALM_SETUP.md](docs/REALM_SETUP.md) |
+| Apply a theme to a project or realm | [docs/THEMES.md](docs/THEMES.md) |
 | Run your own Keycloak | The rest of this page |
 
 Neither integration guide requires deploying anything: both work against the instance
@@ -153,7 +155,14 @@ they may call.
 ## The theme
 
 `themes/caselaw` styles the sign-in, registration and account pages to match the
-products. The realm file selects it, as `loginTheme` and `accountTheme`.
+products. `themes/digimach` inherits that complete implementation and applies
+DigiMach's brand palette and mark. See
+[`themes/digimach/README.md`](themes/digimach/README.md) for the realm-wide
+setup that gives every client in the Digimach realm the new look while leaving
+the separate Case Law realm unchanged.
+The realm file selects `caselaw` as its default `loginTheme` and `accountTheme`.
+The complete instructions for realm-wide defaults and project/client-level
+login overrides are in [docs/THEMES.md](docs/THEMES.md).
 
 The email-code step is a local override of the provider's `otp-form.ftl`. It keeps
 one real six-digit field and the provider's `submit` and `resend` form contract,
@@ -180,8 +189,8 @@ KEYCLOAK_URL=https://auth.example.tech KEYCLOAK_ADMIN=admin KEYCLOAK_ADMIN_PASSW
 ```
 
 Or set it by hand under Realm settings, then Themes. Either way it is a
-one-off: once the realm points at `caselaw`, later edits to the theme's files
-ship with the next deployment.
+one-off: once a realm points at its theme, later edits to the theme's files ship
+with the next deployment.
 
 The two halves work differently, and it matters when editing them. The login
 theme overrides FreeMarker templates, which are ours to change. The account

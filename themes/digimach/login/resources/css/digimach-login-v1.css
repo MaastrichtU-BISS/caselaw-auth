@@ -1,0 +1,266 @@
+/*
+  DigiMach brand layer for the shared Case Law authentication UI.
+
+  caselaw-login-v8.css is loaded before this file from the parent theme. It
+  owns the Keycloak and OTP coverage; this file only changes the visual voice.
+  The palette mirrors digimach.eu: DigiMach green, pale green surfaces, deep
+  blue-black text and the rounded, open character of the public site.
+*/
+
+:root {
+  --digimach-brand: #33a58e;
+  --digimach-brand-strong: #2a8472;
+  --digimach-brand-stronger: #0d6251;
+  --digimach-brand-weak: #edf4f3;
+  --digimach-ink: #021728;
+
+  --cle-bg: var(--digimach-brand-weak);
+  --cle-surface: #ffffff;
+  --cle-surface-soft: #f5f9f8;
+  --cle-border: #d5e3e0;
+  --cle-border-strong: #afcac4;
+  --cle-text: var(--digimach-ink);
+  --cle-muted: #5c6e73;
+  --cle-primary: var(--digimach-brand-strong);
+  --cle-primary-hover: var(--digimach-brand-stronger);
+  --cle-primary-soft: var(--digimach-brand-weak);
+  --cle-danger: #b4232d;
+  --cle-focus: rgba(42, 132, 114, 0.22);
+  --cle-shadow: 0 24px 70px rgba(2, 23, 40, 0.14);
+}
+
+html.login-pf,
+html.login-pf body {
+  background: var(--digimach-brand-weak) !important;
+}
+
+.login-pf body {
+  font-family:
+    Montserrat,
+    "Avenir Next",
+    Avenir,
+    "Century Gothic",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: -0.012em;
+}
+
+/* A restrained technical grid nods to DigiMach's industrial subject matter,
+   while the diagonal green field carries the public site's brand surfaces. */
+.login-pf body::before {
+  background-image:
+    linear-gradient(135deg, transparent 0 58%, rgba(51, 165, 142, 0.08) 58% 72%, transparent 72%),
+    linear-gradient(rgba(42, 132, 114, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 132, 114, 0.08) 1px, transparent 1px);
+  background-position: center, center, center;
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+.login-pf-page .card-pf {
+  border: 1px solid rgba(175, 202, 196, 0.88);
+  border-top: 4px solid var(--digimach-brand);
+  border-radius: 12px;
+  box-shadow: var(--cle-shadow);
+}
+
+/* The compact DM mark is the same geometry and green as the site favicon. */
+.login-pf-page .card-pf::before {
+  align-items: center;
+  background: url("../img/digimach-mark.svg") left center / 30px 30px no-repeat;
+  border: 0;
+  color: var(--digimach-brand);
+  content: "DigiMach";
+  display: flex;
+  font-size: 21px;
+  font-weight: 700;
+  height: 32px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin-bottom: 32px;
+  padding-left: 42px;
+  text-transform: none;
+}
+
+#kc-page-title,
+.login-pf-page .card-pf h1 {
+  color: var(--digimach-ink);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+#kc-username,
+.cle-identity {
+  background: var(--cle-surface-soft);
+  border-color: var(--cle-border);
+}
+
+#kc-attempted-username {
+  color: #244047;
+}
+
+.pf-c-form__label,
+.control-label,
+label {
+  color: #29474d;
+}
+
+/* Keycloak versions differ in whether a field is emitted directly or inside
+   Bootstrap/PatternFly column wrappers. Make the intended vertical rhythm
+   explicit so none of those variants can put a label beside its control. */
+#kc-form .form-group,
+#kc-form .pf-c-form__group {
+  display: block;
+}
+
+#kc-form .form-group > [class*="col-"],
+#kc-form .pf-c-form__group-label,
+#kc-form .pf-c-form__group-control {
+  float: none;
+  padding-left: 0;
+  padding-right: 0;
+  width: 100%;
+}
+
+#kc-form .form-group > label,
+#kc-form .form-group > .control-label,
+#kc-form .pf-c-form__group-label label,
+#kc-form .pf-c-form__group-label .pf-c-form__label {
+  display: block;
+  width: 100%;
+}
+
+.form-control,
+.pf-c-form-control,
+.pf-v5-c-form-control,
+.pf-v5-c-text-input-group,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  border-color: var(--cle-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(2, 23, 40, 0.04);
+}
+
+#kc-form .form-control,
+#kc-form .pf-c-form-control,
+#kc-form .pf-v5-c-form-control,
+#kc-form .pf-v5-c-text-input-group,
+#kc-form input[type="text"],
+#kc-form input[type="password"],
+#kc-form input[type="email"] {
+  display: block;
+  width: 100%;
+}
+
+#kc-form .pf-c-input-group,
+#kc-form .pf-v5-c-input-group,
+#kc-form .pf-v5-c-text-input-group {
+  width: 100%;
+}
+
+#kc-form .pf-c-input-group .form-control,
+#kc-form .pf-c-input-group .pf-c-form-control,
+#kc-form .pf-v5-c-input-group .pf-v5-c-form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.form-control:hover,
+.pf-c-form-control:hover,
+input[type="text"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover,
+.cle-otp-control:hover .cle-otp-slot {
+  border-color: #7faea4;
+}
+
+.cle-otp-slot {
+  border-color: var(--cle-border-strong);
+  border-radius: 8px;
+}
+
+.cle-otp-control:focus-within .cle-otp-slot {
+  border-color: #91bfb5;
+}
+
+.cle-otp-control.is-complete .cle-otp-slot {
+  background: var(--digimach-brand-weak);
+  border-color: #91bfb5;
+}
+
+.cle-field-meta {
+  color: #718287;
+}
+
+.pf-c-button,
+.btn {
+  border-radius: 8px;
+}
+
+.pf-c-button.pf-m-primary,
+.btn-primary,
+#kc-login,
+#kc-submit,
+#kc-form-buttons input[type="submit"]:not(#kc-resend) {
+  background: var(--digimach-brand-strong);
+  border-color: var(--digimach-brand-strong);
+}
+
+.pf-c-button.pf-m-primary:hover,
+.btn-primary:hover,
+#kc-login:hover,
+#kc-submit:hover,
+#kc-form-buttons input[type="submit"]:not(#kc-resend):hover {
+  background: var(--digimach-brand-stronger);
+  border-color: var(--digimach-brand-stronger);
+}
+
+.cle-resend-row,
+#kc-select-try-another-way-form {
+  border-color: #dce9e6;
+}
+
+#try-another-way {
+  color: #496168;
+}
+
+#try-another-way:hover {
+  color: var(--digimach-ink);
+}
+
+#try-another-way::after {
+  color: var(--digimach-brand-strong);
+}
+
+#kc-social-providers .pf-c-button:hover,
+#kc-social-providers .btn:hover,
+#kc-authenticator-selection-form .pf-c-button:hover,
+#kc-authenticator-selection-form .btn:hover {
+  background: var(--digimach-brand-weak);
+  border-color: var(--cle-border-strong);
+}
+
+.login-pf .cle-login-footer p,
+.login-pf .cle-login-footer a {
+  color: #65777b;
+}
+
+.login-pf .cle-login-footer a:hover {
+  color: var(--digimach-brand-stronger);
+}
+
+.login-pf .cle-login-footer a + a {
+  border-color: #bfd3ce;
+}
+
+@media (max-width: 520px) {
+  .login-pf-page .card-pf {
+    border-radius: 10px;
+  }
+
+  .login-pf-page .card-pf::before {
+    margin-bottom: 27px;
+  }
+}
