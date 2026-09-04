@@ -1,68 +1,99 @@
-# Add optional email OTP to a project
+# Configure optional email OTP
 
-This guide starts with a project that needs sign-in and ends with a working
-six-digit email OTP flow. It covers both the shared `caselaw` realm and a project
-using a different realm.
+This guide covers two cases: connecting a project to the already configured shared
+`caselaw` realm, and enabling OTP in another realm. Username/email plus password is
+the default for a new realm. OTP is an explicit realm-wide opt-in.
 
-Username/email plus password is the default. Email OTP and magic link are enabled
-only when a realm administrator explicitly changes that realm's browser-flow
-binding.
+## Choose your path
 
-## Required activation step
-
-> **For a new or different realm, a realm administrator must run the published
-> `caselaw-auth` installer, or a deployment operator must enable automatic
-> apply.** Configuring SMTP, creating a user, and connecting the project do not
-> enable OTP by themselves. The installer creates and validates the passwordless
-> flow, then binds it to the target realm. Until it runs, the realm continues to
-> show the default username/password login.
-
-The administrator does **not** need to clone this repository or log in to the
-Keycloak host. The installer is part of the published npm package and calls the
-remote Keycloak Admin API over HTTPS. It can run from any temporary Node 18+
-environment that can reach Keycloak. The Keycloak Admin Console itself cannot run
-the script.
-
-The shared production `caselaw` realm is the exception for project developers: its
-operator has already run the installer. A project joining that realm only needs its
-own OIDC client and application configuration.
-
-## Start here: which setup are you doing?
-
-| Your project uses | What you need to do |
+| Situation | Follow |
 |---|---|
-| Existing `caselaw` realm | Create an OIDC client for the project, configure the project, and test. The realm, SMTP, theme, OTP flow and users already exist. |
-| A different realm on the Case Law Keycloak server | Configure SMTP and users, create the client, configure the project, and **run the published installer** with `CASELAW_PASSWORDLESS_ESTATE_MODE=false`. No repository checkout is needed. |
-| A different Keycloak server | Deploy this repository's Keycloak image first, then follow the different-realm path. The OTP provider and the Case Law and DigiMach themes are installed at server level by the image. |
+| Your project will use the production `caselaw` realm | [Path A](#path-a-project-using-the-shared-caselaw-realm). OTP is already enabled; do not run an installer. |
+| Your project has another realm on the deployed Case Law Keycloak server | Follow the [administrator checklist](#administrator-checklist-deployed-keycloak-new-realm), then [Path B](#path-b-project-using-a-different-realm) for the detailed settings. |
+| You operate another Keycloak server | First deploy this repository's Keycloak image, then follow the same administrator checklist and Path B. |
 
-If you only remember one rule, remember this one: the issuer, SMTP configuration,
-users, browser-flow binding, and OIDC client must all belong to the **same target
-realm**.
+Keep every realm-scoped item together: SMTP, users, the authentication-flow binding,
+and the project's OIDC client must be in the realm named by the project's issuer.
 
-## The three pieces
+## Two installations are involved
 
-OTP setup spans three different scopes. They are configured separately:
+These are separate operations with different permissions:
 
-```text
-Keycloak server
-  └─ OTP/magic-link provider JAR and repository themes
-       └─ target realm
-            ├─ SMTP, users, OTP flow and browser-flow binding
-            └─ project OIDC client
-                 └─ project
-                      ├─ issuer and client ID
-                      ├─ login/callback/logout routes
-                      └─ local session
-```
+1. **Install the provider on the Keycloak server — once per server.** A deployment
+   operator deploys this repository's Keycloak image. A realm administrator cannot
+   do this from the Admin Console. It is already done on the Case Law Keycloak
+   server.
+2. **Enable the flow in a realm — once per realm.** After SMTP and the client are
+   ready, a realm administrator runs the published `caselaw-auth` CLI from their own
+   computer. The CLI calls the deployed Keycloak Admin API over HTTPS. No repository
+   clone or Keycloak-host shell is needed.
 
-| Scope | Configured once per | Owns |
-|---|---|---|
-| Keycloak server | Keycloak installation | Provider code and theme files |
-| Realm | Realm | Users, SMTP, authentication flow, sessions and roles |
-| Project/client | Application | Redirect URIs, PKCE/client secret, callback and application session |
+The Admin Console configures SMTP, users, themes, and clients, but it does not run
+the CLI. Configuring those items alone leaves the built-in password flow active.
 
-The application never sends an OTP or validates a code. It starts an ordinary OIDC
-authorization-code flow; Keycloak performs the email challenge and returns the same
+## Administrator checklist: deployed Keycloak, new realm
+
+Use this checklist if you have Keycloak administrator access but have not cloned
+this repository.
+
+Requirements:
+
+- Keycloak administrator credentials with permission to manage the target realm;
+- Node.js 18 or newer on your computer;
+- the target Keycloak URL and realm name;
+- confirmation from the deployment operator that `ext-email-otp` and
+  `ext-magic-form` are installed on the server.
+
+Then complete these steps in order:
+
+1. In the Admin Console, create or select the target realm. Leave
+   **Authentication → Bindings → Browser flow** set to `browser` for now.
+2. In that realm, configure **Realm settings → Email**, save it, and click
+   **Test connection**. Do not continue until the test email arrives.
+3. In that realm, create an enabled test user with a real, reachable email address
+   and a password. The provider does not create users.
+4. In that realm, create the project's OIDC client with its exact callback URL.
+5. Configure the project to use this realm's issuer and client ID. Complete one
+   password login first to prove the OIDC client and callback work.
+6. On your own computer, open a terminal and set the values below. Obtain the admin
+   password from your secret manager; do not paste a real password into a command
+   that will be saved in shell history.
+
+   ```bash
+   export KEYCLOAK_URL=https://auth.caselawexplorer.tech
+   export KEYCLOAK_REALM=my-project
+   export KEYCLOAK_ADMIN_REALM=master
+   export KEYCLOAK_ADMIN=admin
+   export KEYCLOAK_ADMIN_PASSWORD='<set securely>'
+   export CASELAW_PASSWORDLESS_ESTATE_MODE=false
+   ```
+
+7. Still in that terminal, run the published installer:
+
+   ```bash
+   npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+   ```
+
+   It downloads the pinned package, gets a short-lived admin token, creates or
+   validates the flow in `KEYCLOAK_REALM`, binds it, and exits. It installs nothing
+   globally on your computer and changes nothing on the Keycloak host filesystem.
+8. Confirm the command ends with `Bound caselaw-browser-passwordless`. In the Admin
+   Console, refresh **Authentication → Bindings** and confirm **Browser flow** is
+   `caselaw-browser-passwordless`. Then test OTP in a private browser.
+9. Remove the password from the terminal environment:
+
+   ```bash
+   unset KEYCLOAK_ADMIN_PASSWORD
+   ```
+
+If step 7 reports that a provider is missing, stop and ask the Keycloak deployment
+operator to deploy the repository image. Re-running the command cannot install a
+server provider.
+
+## What the project does
+
+The application never sends an OTP or validates a code. It starts a normal OIDC
+authorization-code flow. Keycloak emails and checks the code, then returns the same
 OIDC authorization code that password login would return.
 
 ## Path A: project using the shared `caselaw` realm

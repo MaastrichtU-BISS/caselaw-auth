@@ -16,23 +16,32 @@ npm install caselaw-auth
 
 The package also ships the opt-in Keycloak OTP/magic-link flow installer. A realm
 administrator can run it from any Node 18+ machine that can reach Keycloak; cloning
-the repository or obtaining shell access to the Keycloak host is not required:
+the repository or obtaining shell access to the Keycloak host is not required.
+
+1. Ask the deployment operator to confirm the email provider is installed on the
+   Keycloak server.
+2. In the target realm, configure SMTP, create an enabled test user and OIDC client,
+   and prove password login works.
+3. Export the target URL, target realm and administrator credentials:
 
 ```bash
-KEYCLOAK_URL=https://auth.example.org \
-KEYCLOAK_REALM=my-realm \
-KEYCLOAK_ADMIN_REALM=master \
-KEYCLOAK_ADMIN=admin \
-KEYCLOAK_ADMIN_PASSWORD='...' \
-CASELAW_PASSWORDLESS_ESTATE_MODE=false \
-npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+export KEYCLOAK_URL=https://auth.example.org
+export KEYCLOAK_REALM=my-realm
+export KEYCLOAK_ADMIN_REALM=master
+export KEYCLOAK_ADMIN=admin
+export KEYCLOAK_ADMIN_PASSWORD='<set securely>'
+export CASELAW_PASSWORDLESS_ESTATE_MODE=false
 ```
+
+4. Run `npx --yes caselaw-auth@0.5.0 apply-passwordless-flow`.
+5. Confirm it reports `Bound caselaw-browser-passwordless`, verify that binding in
+   the Admin Console, and complete an OTP login in a private browser.
+6. Run `unset KEYCLOAK_ADMIN_PASSWORD`.
 
 The command obtains a short-lived admin token, verifies the required email provider
 is installed, creates or validates the flow, and binds it to the target realm. Use a
-secret manager or temporary environment variable for the password rather than
-leaving the value in shell history. Full prerequisites and rollback instructions are
-in the repository's
+secret manager to set the password rather than leaving the value in shell history.
+Full prerequisites and rollback instructions are in the repository's
 [OTP setup guide](https://github.com/MaastrichtU-BISS/caselaw-auth/blob/main/docs/OTP_SETUP.md).
 
 ## Which half
