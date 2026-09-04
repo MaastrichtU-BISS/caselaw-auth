@@ -5,7 +5,7 @@ set -u
 keycloak=/opt/keycloak/bin/kc.sh
 configurator=/opt/keycloak/bin/caselaw-passwordless-configurator
 
-case "${CASELAW_PASSWORDLESS_AUTO_APPLY:-true}" in
+case "${CASELAW_PASSWORDLESS_AUTO_APPLY:-false}" in
   true|TRUE|1|yes|YES) auto_apply=true ;;
   *) auto_apply=false ;;
 esac

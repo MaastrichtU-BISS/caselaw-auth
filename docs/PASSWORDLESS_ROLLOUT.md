@@ -1,12 +1,15 @@
 # Passwordless sign-in across Case Law Explorer
 
-Email OTP and magic-link sign-in are implemented once, in the shared Keycloak
-browser flow. Every interactive Case Law product redirects to that flow, so the
-products do not implement email delivery, generate codes, or validate links.
-They continue to speak ordinary OpenID Connect (OIDC) authorization code flow
-with PKCE and receive the same tokens and user subjects as before.
+Email OTP and magic-link sign-in are available as an optional shared Keycloak
+browser flow. Username/email and password is the repository default. When an
+operator opts a realm into passwordless mode, every interactive Case Law product
+redirects to that flow, so products do not implement email delivery, generate
+codes, or validate links. They continue to speak ordinary OpenID Connect (OIDC)
+authorization code flow with PKCE and receive the same tokens and user subjects.
 
-This guide is the production contract for the whole Case Law estate. It covers
+For the shortest colleague-facing setup procedure, start with
+[OTP_SETUP.md](OTP_SETUP.md). This guide is the production contract for the whole
+Case Law estate. It covers
 the realm, the Explorer platform, the access console, the database workbench,
 the Citations API UI, non-interactive services, rollout, verification and
 rollback.
@@ -59,7 +62,8 @@ Keycloak decides which screen and email challenge appears.
 
 ## 2. Authentication flow
 
-The realm binds `caselaw-browser-passwordless` as its browser flow:
+When passwordless mode is enabled, the realm binds
+`caselaw-browser-passwordless` as its browser flow:
 
 ```text
 caselaw-browser-passwordless                          ALTERNATIVE set
@@ -94,7 +98,8 @@ Unknown addresses receive the same browser continuation as known addresses,
 but no message is sent and no user is created. Product pages must not add their
 own “account exists” checks around this flow.
 
-Email OTP is the default method. After entering an email, the code form exposes
+Within the optional passwordless flow, email OTP is the default method. After
+entering an email, the code form exposes
 **Try Another Way**, which opens a chooser containing **Email OTP** and
 **Magic link**. The OTP authenticator sends its message when the code form is
 first rendered, so someone who then switches to magic link receives both
@@ -277,27 +282,34 @@ older containers do not know the provider IDs.
 
 ### 7.3 Apply an existing realm
 
-`--import-realm` creates a missing realm and skips an existing one. The
-production image closes that gap automatically: after Keycloak starts, its
-static configurator authenticates to the loopback Admin API with the existing
-`KEYCLOAK_ADMIN` credentials, creates or validates the flow and client, and
-binds the flow. It runs on every container start and is idempotent.
+`--import-realm` creates a missing realm and skips an existing one. The supplied
+realm contains the custom flow but keeps Keycloak's built-in `browser` password
+flow bound. Existing realms also remain unchanged unless an operator opts in.
+
+For a dedicated passwordless deployment, the image can close that gap on startup:
+its static configurator authenticates to the loopback Admin API with the existing
+`KEYCLOAK_ADMIN` credentials, creates or validates the flow and client, and binds
+the flow. It runs only when explicitly enabled and is idempotent.
 
 The compose defaults are:
 
 ```env
-CASELAW_PASSWORDLESS_AUTO_APPLY=true
+CASELAW_PASSWORDLESS_AUTO_APPLY=false
 CASELAW_PASSWORDLESS_APPLY_TIMEOUT_SECONDS=180
 KEYCLOAK_REALM=caselaw
 KEYCLOAK_ADMIN_REALM=master
 ```
 
+Leave `CASELAW_PASSWORDLESS_AUTO_APPLY=false` for the default password mode. Set
+it to `true` only after completing the SMTP, user and rollback preconditions in
+[OTP_SETUP.md](OTP_SETUP.md).
+
 Configuration failure never stops Keycloak. The container logs a warning and
 keeps the previous browser flow available, so a stale or rotated administrator
 credential cannot turn a configuration problem into an identity outage.
 
-For manual recovery or an installation that disables automatic apply, run the
-same conservative installer from a Node 18+ operator environment:
+To opt in manually, run the conservative installer from a Node 18+ operator
+environment:
 
 ```bash
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
@@ -315,8 +327,8 @@ Both installers perform these operations:
 - binds the flow at realm level so every interactive client receives it;
 - refuses to overwrite an existing flow or client that has drifted.
 
-For a new environment, `realm/caselaw-realm.json` already contains the same
-flow, binding, timeouts and clients.
+For a new environment, `realm/caselaw-realm.json` already contains the same flow,
+timeouts and clients, but deliberately binds `browser` until an operator opts in.
 
 ### 7.4 Align product configuration
 
@@ -335,8 +347,13 @@ flow.
 ### 7.5 Export the live realm
 
 After the rollout succeeds, partial-export the realm with clients, groups and
-roles and compare it with `realm/caselaw-realm.json`. Commit intentional drift
-so disaster recovery creates the same authentication system.
+roles and compare it with `realm/caselaw-realm.json`. The checked-in realm is a
+safe reusable baseline and must keep `"browserFlow": "browser"`; do not replace
+that default merely because one production realm opted in. Preserve the raw live
+export as an access-controlled operational artifact, and commit reusable flow,
+client or policy changes only after normalizing the binding back to `browser`.
+Record `CASELAW_PASSWORDLESS_AUTO_APPLY=true` in that environment's deployment
+configuration so disaster recovery reapplies the intentional production binding.
 
 ---
 

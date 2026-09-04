@@ -6,8 +6,9 @@ One shared account across every Case Law Explorer product. A Keycloak realm, the
 it wears, and the client library applications sign in with — in the browser or on
 their own server.
 
-Users sign in once with a code or single-use link sent to their email. The Citations
-API, the research workspace, the access console and the database workbench all accept
+Username/email and password is the safe default. Operators can opt a realm into
+six-digit email OTP and single-use magic links after commissioning SMTP. The
+Citations API, research workspace, access console and database workbench all accept
 the same account, and roles decide what each one shows.
 
 ## What is in here
@@ -38,6 +39,7 @@ service itself.
 
 | Task | Guide |
 |---|---|
+| Enable optional email OTP and magic links | [docs/OTP_SETUP.md](docs/OTP_SETUP.md) |
 | Roll out email OTP and magic links across Case Law | [docs/PASSWORDLESS_ROLLOUT.md](docs/PASSWORDLESS_ROLLOUT.md) |
 | Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |
 | Connect a **static SPA** | [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) |
@@ -79,11 +81,17 @@ docker compose up -d
 The realm imports on first start. Keycloak is then reachable at `KC_HOSTNAME`, with
 the admin console at `/admin` and the realm at `/realms/caselaw`.
 
-Configure SMTP before letting anyone in. Email OTP, magic links, **Verify email** and
-**Forgot password** all need it, but the realm deliberately ships without mail-server
-credentials. Brute force detection and a password policy are already enabled.
+Configure SMTP before enabling email OTP, magic links, **Verify email**, or
+**Forgot password**. Basic password sign-in does not require SMTP, and the realm
+deliberately ships without mail-server credentials. Brute force detection and a
+password policy are already enabled.
 [docs/REALM_SETUP.md](docs/REALM_SETUP.md) walks the whole realm configuration,
 including a realm of your own rather than this one.
+
+The imported realm and Compose deployment both keep Keycloak's built-in password
+browser flow by default. Setting `CASELAW_PASSWORDLESS_AUTO_APPLY=true` is an explicit
+opt-in that creates/validates and binds the email flow. See
+[docs/OTP_SETUP.md](docs/OTP_SETUP.md) before enabling it.
 
 ### Behind a reverse proxy
 
@@ -148,9 +156,10 @@ they may call.
 products. The realm file selects it, as `loginTheme` and `accountTheme`.
 
 The email-code step is a local override of the provider's `otp-form.ftl`. It keeps
-the provider's `submit` and `resend` form contract, while adding a six-digit input,
-mobile one-time-code autofill, accessible hint/error relationships, and a clearer
-action hierarchy. User-facing OTP copy lives in `login/messages/messages_en.properties`
+one real six-digit field and the provider's `submit` and `resend` form contract,
+while presenting six visual digit slots. This preserves whole-code paste, mobile
+one-time-code autofill, keyboard behavior, accessible hint/error relationships, and
+a clear action hierarchy. User-facing OTP copy lives in `login/messages/messages_en.properties`
 and `messages_nl.properties`; the shared visual system lives in
 `login/resources/css/caselaw-login-v2.css`.
 

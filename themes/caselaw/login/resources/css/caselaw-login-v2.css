@@ -270,6 +270,74 @@ input[type="email"] {
   width: 100%;
 }
 
+.cle-otp-control {
+  position: relative;
+}
+
+.cle-otp-slots {
+  display: none;
+}
+
+.cle-otp-control.is-enhanced .cle-otp-native-input {
+  caret-color: transparent;
+  color: transparent;
+  font-size: 16px;
+  inset: 0;
+  min-height: 64px;
+  opacity: 0.02;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+  z-index: 2;
+}
+
+.cle-otp-control.is-enhanced .cle-otp-slots {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  position: relative;
+  z-index: 1;
+}
+
+.cle-otp-slot {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--cle-border-strong);
+  border-radius: 11px;
+  color: var(--cle-text);
+  display: flex;
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 720;
+  height: 64px;
+  justify-content: center;
+  line-height: 1;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.cle-otp-control:hover .cle-otp-slot {
+  border-color: #aab6c8;
+}
+
+.cle-otp-control:focus-within .cle-otp-slot {
+  border-color: #b9c7e8;
+}
+
+.cle-otp-control:focus-within .cle-otp-slot.is-active {
+  border-color: var(--cle-primary);
+  box-shadow: 0 0 0 4px var(--cle-focus);
+}
+
+.cle-otp-control.is-complete .cle-otp-slot {
+  background: var(--cle-primary-soft);
+  border-color: #b9c8ef;
+}
+
+.cle-otp-control:has(.cle-otp-native-input[aria-invalid="true"]) .cle-otp-slot {
+  background: #fffafa;
+  border-color: var(--cle-danger);
+}
+
 .cle-field-meta {
   align-items: center;
   color: #8791a2;
@@ -667,6 +735,20 @@ a:hover,
     letter-spacing: 0.28em;
   }
 
+  .cle-otp-control.is-enhanced .cle-otp-slots {
+    gap: 7px;
+  }
+
+  .cle-otp-slot {
+    border-radius: 9px;
+    font-size: 21px;
+    height: 56px;
+  }
+
+  .cle-otp-control.is-enhanced .cle-otp-native-input {
+    min-height: 56px;
+  }
+
   #kc-form-options,
   #kc-registration {
     align-items: flex-start;
@@ -695,6 +777,10 @@ a:hover,
   .pf-c-form-control,
   .pf-c-button,
   .btn {
+    transition: none;
+  }
+
+  .cle-otp-slot {
     transition: none;
   }
 }

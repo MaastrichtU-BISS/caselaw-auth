@@ -208,8 +208,9 @@ against a known username.
 
 ## 4. Passwordless sign-in
 
-The image includes the pinned Phase Two `keycloak-magic-link` provider. The
-shared realm binds `caselaw-browser-passwordless` as its browser flow:
+The image includes the pinned Phase Two `keycloak-magic-link` provider. New realms
+default to Keycloak's built-in `browser` flow (username/email plus password). The
+optional flow is present but unbound; when an operator enables it, its structure is:
 
 ```text
 existing SSO cookie ─┐
@@ -231,11 +232,12 @@ a successful email OTP marks the user's address verified. The browser and
 server libraries need no changes: both still start the same standard OIDC
 authorization-code flow with PKCE.
 
-The realm JSON configures this during a fresh import. For an existing
-deployment, the production image starts Keycloak and then applies the same
-configuration through the loopback Admin API. This is enabled by default with
-`CASELAW_PASSWORDLESS_AUTO_APPLY=true`; it is idempotent, refuses drift, and
-logs a warning without stopping Keycloak if reconciliation fails.
+The realm JSON includes this during a fresh import but leaves `browser` bound. For
+an existing deployment, the production image can start Keycloak and apply the same
+configuration through the loopback Admin API. It is opt-in with
+`CASELAW_PASSWORDLESS_AUTO_APPLY=true`; the default is `false`. The operation is
+idempotent, refuses drift, and logs a warning without stopping Keycloak if
+reconciliation fails.
 
 For manual recovery, or when automatic apply is disabled, deploy the image
 first so the provider is present and then run:
@@ -247,19 +249,23 @@ KEYCLOAK_ADMIN_PASSWORD='...' \
 node scripts/apply-passwordless-flow.mjs
 ```
 
+Running that command is an explicit opt-in because it binds the passwordless flow.
 Both the image configurator and the operator script refuse to overwrite drift.
 Do not bind the flow before deploying the provider JAR: its `ext-email-otp` and
 `ext-magic-form` executions will be unknown. The estate-wide rollout and
 rollback procedure is in
-[PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).
+[PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md); the concise setup procedure is
+in [OTP_SETUP.md](OTP_SETUP.md).
 
 Operational checks:
 
-1. Send a test message under **Realm settings → Email**.
-2. Sign in with an existing account using the six-digit code.
-3. Sign out fully, request a magic link, and open it in a second browser.
-4. Confirm reusing that link fails and a link older than 10 minutes fails.
-5. Try an unknown address and confirm no account is created.
+1. Confirm username/email-and-password login before changing the binding.
+2. Send a test message under **Realm settings → Email** in the target realm.
+3. Sign in with an existing account using the six-digit code.
+4. Sign out fully, request a magic link, and open it in a second browser.
+5. Confirm reusing that link fails and a link older than 10 minutes fails.
+6. Try an unknown address and confirm no account is created.
+7. Restore the built-in `browser` binding and verify password rollback.
 
 ---
 
@@ -377,9 +383,9 @@ safe to check in.
 ## 10. Commissioning checklist
 
 - [ ] Issuer resolves: `curl https://<host>/realms/<realm>/.well-known/openid-configuration`
-- [ ] SMTP configured (required for passwordless sign-in)
-- [ ] Test email actually sends
-- [ ] Email OTP and magic-link sign-in both complete for an existing user
+- [ ] SMTP configured if using passwordless, verify-email or password-reset email
+- [ ] Test email actually arrives if an email feature is enabled
+- [ ] Email OTP and magic-link sign-in both complete if passwordless is enabled
 - [ ] The Citations API UI uses `citations-api`, not the machine client `caselaw-api`
 - [ ] Magic links expire after 10 minutes and cannot be reused
 - [ ] Brute force detection on, if reachable from the internet

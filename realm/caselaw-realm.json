@@ -124,7 +124,7 @@
       }
     }
   ],
-  "browserFlow": "caselaw-browser-passwordless",
+  "browserFlow": "browser",
   "clients": [
     {
       "clientId": "caselaw-frontend",

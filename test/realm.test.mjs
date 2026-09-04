@@ -26,8 +26,8 @@ function client(clientId) {
   return found
 }
 
-test('the realm binds the nested passwordless browser flow', () => {
-  assert.equal(realm.browserFlow, 'caselaw-browser-passwordless')
+test('the realm defaults to password login and includes an opt-in passwordless flow', () => {
+  assert.equal(realm.browserFlow, 'browser')
   assert.equal(realm.accessCodeLifespanLogin, 600)
 
   const browser = flow('caselaw-browser-passwordless')
@@ -82,9 +82,10 @@ test('the browser-facing API UI is separate from the machine API client', () => 
   assert.deepEqual(machineApi.redirectUris ?? [], [])
 })
 
-test('the production image reconciles an existing realm without making availability depend on it', () => {
+test('the production image keeps passwordless reconciliation opt-in and non-fatal', () => {
   assert.match(dockerfile, /caselaw-passwordless-configurator/)
   assert.match(dockerfile, /keycloak-entrypoint\.sh/)
-  assert.match(compose, /CASELAW_PASSWORDLESS_AUTO_APPLY: \$\{CASELAW_PASSWORDLESS_AUTO_APPLY:-true\}/)
+  assert.match(compose, /CASELAW_PASSWORDLESS_AUTO_APPLY: \$\{CASELAW_PASSWORDLESS_AUTO_APPLY:-false\}/)
+  assert.match(entrypoint, /CASELAW_PASSWORDLESS_AUTO_APPLY:-false/)
   assert.match(entrypoint, /Keycloak will remain available on its previous browser flow/)
 })

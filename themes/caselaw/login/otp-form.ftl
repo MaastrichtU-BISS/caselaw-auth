@@ -15,19 +15,29 @@
         </div>
 
         <div class="${properties.kcInputWrapperClass!}">
-          <input
-            id="otp"
-            name="otp"
-            autocomplete="one-time-code"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="6"
-            type="text"
-            class="${properties.kcInputClass!}"
-            autofocus
-            aria-describedby="otp-field-hint<#if messagesPerField.existsError('totp')> input-error-otp-code</#if>"
-            aria-invalid="<#if messagesPerField.existsError('totp')>true<#else>false</#if>"
-          />
+          <div class="cle-otp-control" data-otp-control>
+            <input
+              id="otp"
+              name="otp"
+              autocomplete="one-time-code"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              type="text"
+              class="${properties.kcInputClass!} cle-otp-native-input"
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-form-type="other"
+              autofocus
+              aria-describedby="otp-field-hint<#if messagesPerField.existsError('totp')> input-error-otp-code</#if>"
+              aria-invalid="<#if messagesPerField.existsError('totp')>true<#else>false</#if>"
+            />
+            <div class="cle-otp-slots" aria-hidden="true">
+              <#list 1..6 as index>
+                <span class="cle-otp-slot" data-otp-slot="${index - 1}"></span>
+              </#list>
+            </div>
+          </div>
           <div id="otp-field-hint" class="cle-field-meta">
             <span>${msg("otpHint")}</span>
             <span>${msg("otpLength")}</span>
