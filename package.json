@@ -8,6 +8,7 @@
     "build": "npm run build --workspaces",
     "test": "node --test test/*.test.mjs && npm test --workspaces --if-present",
     "test:passwordless-e2e": "node test/e2e/passwordless-registration.mjs",
+    "test:passwordless-legacy-upgrade": "node test/e2e/legacy-alias-upgrade.mjs",
     "typecheck": "npm run typecheck --workspaces"
   }
 }

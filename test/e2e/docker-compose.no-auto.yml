@@ -1,0 +1,5 @@
+services:
+  keycloak:
+    environment:
+      CASELAW_PASSWORDLESS_AUTO_APPLY: "false"
+      CASELAW_PASSWORDLESS_ESTATE_MODE: "false"

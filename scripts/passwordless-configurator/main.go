@@ -19,8 +19,8 @@ import (
 
 const (
 	browserFlow = "caselaw-browser-passwordless-email-first"
-	formsFlow   = "Case Law passwordless forms"
-	methodsFlow = "Case Law email methods"
+	formsFlow   = "Case Law email-first forms"
+	methodsFlow = "Case Law email-first methods"
 )
 
 var otpConfig = map[string]string{

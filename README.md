@@ -95,7 +95,7 @@ including a realm of your own rather than this one.
 
 The imported realm and Compose deployment both keep Keycloak's built-in password
 browser flow by default. To enable OTP, an administrator can run
-`npx --yes caselaw-auth@0.6.0 apply-passwordless-flow` against the target realm from
+`npx --yes caselaw-auth@0.6.1 apply-passwordless-flow` against the target realm from
 any Node 18+ machine—no repository checkout or server shell is needed. Alternatively,
 a deployment operator can explicitly set `CASELAW_PASSWORDLESS_AUTO_APPLY=true`.
 Either path creates/validates and binds the email flow; SMTP or application

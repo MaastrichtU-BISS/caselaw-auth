@@ -19,8 +19,11 @@ const adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || ''
 const estateMode = envBoolean('CASELAW_PASSWORDLESS_ESTATE_MODE', realm === 'caselaw')
 
 const browserFlow = 'caselaw-browser-passwordless-email-first'
-const formsFlow = 'Case Law passwordless forms'
-const methodsFlow = 'Case Law email methods'
+// Flow aliases are global within a realm, including nested flows. These names
+// must remain distinct from the pre-0.6 email flows so an existing realm can
+// install the new top-level flow before switching its binding.
+const formsFlow = 'Case Law email-first forms'
+const methodsFlow = 'Case Law email-first methods'
 
 const otpConfig = {
   'ext-magic-create-nonexistent-user': 'false',
