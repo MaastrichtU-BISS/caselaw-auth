@@ -1,8 +1,11 @@
 # Configure optional email OTP
 
 This guide covers two cases: connecting a project to the already configured shared
-`caselaw` realm, and enabling OTP in another realm. Username/email plus password is
-the default for a new realm. OTP is an explicit realm-wide opt-in.
+`caselaw` realm, and enabling OTP in another realm. Before OTP is enabled, a new
+realm uses Keycloak's password flow. After OTP is enabled, a person enters only an
+email address and the emailed code. Submitting a new address creates a pending,
+unverified email-only user; completing the code verifies and signs in that user. No
+name or password form is shown.
 
 ## Choose your path
 
@@ -28,8 +31,8 @@ These are separate operations with different permissions:
    computer. The CLI calls the deployed Keycloak Admin API over HTTPS. No repository
    clone or Keycloak-host shell is needed.
 
-The Admin Console configures SMTP, users, themes, and clients, but it does not run
-the CLI. Configuring those items alone leaves the built-in password flow active.
+The Admin Console configures SMTP, themes, and clients, but it does not run the CLI.
+Configuring those items alone leaves the built-in password flow active.
 
 ## Administrator checklist: deployed Keycloak, new realm
 
@@ -41,8 +44,8 @@ Requirements:
 - Keycloak administrator credentials with permission to manage the target realm;
 - Node.js 18 or newer on your computer;
 - the target Keycloak URL and realm name;
-- confirmation from the deployment operator that `ext-email-otp` and
-  `ext-magic-form` are installed on the server.
+- confirmation from the deployment operator that `caselaw-email-identity`,
+  `ext-email-otp`, and `ext-magic-form` are installed on the server.
 
 Then complete these steps in order:
 
@@ -50,11 +53,10 @@ Then complete these steps in order:
    **Authentication → Bindings → Browser flow** set to `browser` for now.
 2. In that realm, configure **Realm settings → Email**, save it, and click
    **Test connection**. Do not continue until the test email arrives.
-3. In that realm, create an enabled test user with a real, reachable email address
-   and a password. The provider does not create users.
-4. In that realm, create the project's OIDC client with its exact callback URL.
-5. Configure the project to use this realm's issuer and client ID. Complete one
-   password login first to prove the OIDC client and callback work.
+3. In that realm, create the project's OIDC client with its exact callback URL.
+4. Configure the project to use this realm's issuer and client ID.
+5. Choose a real mailbox that is not already a user in the realm. This will test
+   account creation as well as sign-in; do not create the user manually.
 6. On your own computer, open a terminal and set the values below. Obtain the admin
    password from your secret manager; do not paste a real password into a command
    that will be saved in shell history.
@@ -71,15 +73,20 @@ Then complete these steps in order:
 7. Still in that terminal, run the published installer:
 
    ```bash
-   npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+   npx --yes caselaw-auth@0.6.0 apply-passwordless-flow
    ```
 
    It downloads the pinned package, gets a short-lived admin token, creates or
-   validates the flow in `KEYCLOAK_REALM`, binds it, and exits. It installs nothing
-   globally on your computer and changes nothing on the Keycloak host filesystem.
-8. Confirm the command ends with `Bound caselaw-browser-passwordless`. In the Admin
+   validates the flow in `KEYCLOAK_REALM`, makes the realm's built-in `firstName`
+   and `lastName` profile attributes optional, binds the flow, and exits. It
+   installs nothing globally on your computer and changes nothing on the Keycloak
+   host filesystem.
+8. Confirm the command ends with `Bound caselaw-browser-passwordless-email-first`. In the Admin
    Console, refresh **Authentication → Bindings** and confirm **Browser flow** is
-   `caselaw-browser-passwordless`. Then test OTP in a private browser.
+   `caselaw-browser-passwordless-email-first`. Confirm **Realm settings → Login → User
+   registration** is off. Under **Realm settings → User profile**, confirm first
+   name and last name are not required. The separate registration form and required
+   profile fields would otherwise ask for names or a password.
 9. Remove the password from the terminal environment:
 
    ```bash
@@ -89,6 +96,12 @@ Then complete these steps in order:
 If step 7 reports that a provider is missing, stop and ask the Keycloak deployment
 operator to deploy the repository image. Re-running the command cannot install a
 server provider.
+
+Now test the chosen new mailbox in a private browser: enter the email, enter the
+six-digit code, and confirm the application callback succeeds. Under **Users**, the
+new account must have the email as both username and email, **Email verified** on,
+no first or last name, and no password credential. A later login uses the same email
+and another code. Roles and product access remain a separate administrator decision.
 
 ## What the project does
 
@@ -187,9 +200,12 @@ AUTH_SESSION_SECRET=<unique long random value>
 
 ### A4. Test
 
-Open the project's login route in a signed-out/private browser. Enter the email of an
-existing enabled `caselaw` user, complete the OTP, and confirm the browser returns to
-the project's exact callback and creates a session.
+Open the project's login route in a signed-out/private browser. Enter an email,
+complete the OTP, and confirm the browser returns to the project's exact callback
+and creates a session. If the email is new, the shared realm creates the account only
+through the email challenge: submitting the address creates a pending email-only
+user, and completing it verifies and signs in that user. No name or password form is
+shown.
 
 You do **not** configure SMTP, copy users, or run the passwordless installer for this
 path. The realm operator has already run it and owns those realm-wide production
@@ -219,15 +235,17 @@ If the realm is on the Case Law Keycloak deployment, the provider and themes are
 already installed at server level. Continue to B2.
 
 For another Keycloak deployment, build and deploy this repository's Docker image.
-Its image installs the pinned Phase Two provider and both the `caselaw` and
-`digimach` themes before Keycloak starts:
+Its image builds the Case Law email-identity authenticator, installs the pinned Phase
+Two OTP/magic-link provider, and installs both the `caselaw` and `digimach` themes
+before Keycloak starts:
 
 ```bash
 docker compose up -d --build
 ```
 
-Do not bind a flow containing `ext-email-otp` or `ext-magic-form` on a vanilla
-Keycloak image; those provider IDs do not exist there. Deploy the image first.
+Do not bind a flow containing `caselaw-email-identity`, `ext-email-otp`, or
+`ext-magic-form` on a vanilla Keycloak image; those provider IDs do not exist there.
+Deploy the repository image first.
 
 ### B2. Create or select the target realm
 
@@ -262,30 +280,29 @@ password in every target realm.
 For production, validate SPF, DKIM and DMARC for the From domain and make relay
 delivery/bounce telemetry available to operators.
 
-### B4. Create a test user in this realm
+### B4. Choose a new-user test mailbox
 
-Under **Users → Add user**:
+Choose a real, reachable email address that does not already exist under **Users** in
+this realm. Do not create it manually and do not assign a password. After the
+installer is applied, submitting the email creates an enabled but unverified
+user. Successful verification then marks that user email-verified and signs them in.
+The completed account has:
 
-- use the colleague's email as username when email-first login is desired;
-- set **Email** to the real reachable and unique address;
-- enable the user;
-- set a password credential so the built-in password flow and rollback can be
-  tested;
-- assign project roles separately from authentication.
+- the email address as both username and email;
+- **Email verified** enabled;
+- no first name or last name;
+- no password credential.
 
-The OTP provider does not create users. An unknown address intentionally reaches a
-neutral code screen but receives no message, so seeing that screen does not prove the
-user or SMTP configuration is valid.
+Authentication does not grant product permissions. Assign any required realm or
+client roles after the account exists, or automate that as a separate access-policy
+workflow.
 
 ### B5. Create the project's OIDC client
 
 Still inside realm **my-project**, create client `my-project-web` using the table in
 [A2](#a2-create-the-project-client-in-keycloak), substituting this project's callback
-and origin. The client and user must be in the same realm named by the issuer.
-
-Before enabling OTP, run the project and complete one password login. This proves
-the client ID, callback, PKCE transaction and application session independently of
-email delivery.
+and origin. The client and newly created user will be in the same realm named by the
+issuer.
 
 ### B6. Configure the project's issuer
 
@@ -326,7 +343,7 @@ KEYCLOAK_ADMIN_REALM=master \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
 CASELAW_PASSWORDLESS_ESTATE_MODE=false \
-npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.0 apply-passwordless-flow
 ```
 
 Supply the password through a secret manager or a temporary environment variable;
@@ -356,20 +373,29 @@ set explicitly:
 CASELAW_PASSWORDLESS_ESTATE_MODE=true
 ```
 
-The installer:
+The installer changes only the realm named by `KEYCLOAK_REALM`. It:
 
-1. verifies `ext-email-otp` and `ext-magic-form` are installed;
-2. creates or validates `caselaw-browser-passwordless`;
+1. verifies `caselaw-email-identity`, `ext-email-otp`, and `ext-magic-form` are installed;
+2. creates or validates `caselaw-browser-passwordless-email-first`;
 3. configures six-digit OTP and ten-minute, single-use magic links;
-4. prevents either method from creating unknown users;
-5. sets the login-action lifetime to ten minutes;
-6. binds the optional flow as the realm's browser flow.
+4. uses the Case Law email-identity step to resolve or create a pending email-only
+   user; only a successful OTP or magic-link challenge verifies and signs in that
+   user;
+5. disables Keycloak's separate registration form, so a password is not requested;
+6. removes Keycloak's default `user` requirement from the built-in `firstName` and
+   `lastName` user-profile attributes, while leaving those attributes available as
+   optional metadata;
+7. sets the login-action lifetime to ten minutes;
+8. binds the optional flow as the realm's browser flow.
 
-It refuses to overwrite a flow that has drifted. Running this command is the moment
+It refuses to overwrite a flow, estate client, or custom name-field requirement that
+has drifted. If your realm deliberately requires names for selected roles or scopes,
+decide whether to remove that policy under **Realm settings → User profile** before
+rerunning; the CLI will not silently weaken it. Running this command is the moment
 the realm changes from password login to OTP/magic-link login for all interactive
 clients in that realm.
 
-Verify the command reports that it bound `caselaw-browser-passwordless` to the target
+Verify the command reports that it bound `caselaw-browser-passwordless-email-first` to the target
 realm before testing the project.
 
 ### B8. Complete the end-to-end test
@@ -379,13 +405,15 @@ challenge. Verify all of the following:
 
 - the authorization request uses issuer `/realms/my-project` and client
   `my-project-web`;
-- the known enabled user receives a six-digit code;
+- a previously unknown email receives a six-digit code;
 - typing, deletion, whole-code paste and mobile one-time-code autofill work;
 - the code completes the project's registered callback;
 - the resulting token has issuer `/realms/my-project` and the expected user `sub`;
 - resend produces a new email and only the most recent code is used;
 - a wrong or expired code fails without revealing whether an account exists;
-- an unknown email creates no user and sends no message;
+- successful OTP verification leaves exactly one enabled, email-verified user with
+  no names and no password credential;
+- the same email signs in again without creating a duplicate user;
 - roles still allow and deny the intended project areas;
 - logging out clears both the project session and the Keycloak SSO session.
 
@@ -421,7 +449,13 @@ realm.
 ## What “optional” means
 
 Optional means the repository and new realms default to password login, and each
-realm administrator chooses whether to bind the passwordless flow.
+realm administrator chooses whether to apply the passwordless flow. Applying it
+also enables first-use email account creation and disables the separate Keycloak
+registration form for that realm. It also makes first and last name optional in the
+realm user profile so Keycloak's post-login **Verify Profile** action cannot reinsert
+a name form after a successful OTP. A send request can leave an enabled but
+unverified user when the person abandons the challenge or delivery fails. Monitor
+and, where required by policy, periodically remove stale unverified accounts.
 
 The supplied flow offers **Email OTP** and **Magic link** as alternatives to each
 other. It does not currently offer password as a third choice on the same page and
@@ -434,7 +468,16 @@ another needs OTP, use separate realms and bind a different browser flow in each
 2. Set **Browser flow** to the built-in `browser` flow and save.
 3. Set `CASELAW_PASSWORDLESS_AUTO_APPLY=false` if automatic apply was enabled.
 4. Redeploy/restart if deployment configuration changed.
-5. Test with a user that has a password credential.
+5. Test with an older user that already has a password credential.
+
+The browser-flow rollback does not make first and last name required again. They are
+harmless optional attributes in password mode. If the previous realm policy required
+them, restore the recorded requirements under **Realm settings → User profile** only
+after confirming that doing so will not strand existing email-only accounts.
+
+Users created by the email-only flow have no password and cannot sign in through the
+rolled-back password flow. During rollback, keep existing SSO sessions available and
+provide an administrator-assisted recovery path for those users.
 
 Do not delete the unbound passwordless flow during an incident. Leaving it present
 is harmless and makes investigation or later re-enablement easier. Existing SSO
@@ -449,20 +492,29 @@ default realm baseline.
 
 ### The OTP page appears, but no email arrives
 
-1. Verify the address belongs to an enabled user in the target realm.
-2. Run **Realm settings → Email → Test connection** in that same realm.
-3. Re-enter the SMTP password; a copied masked value is not a usable secret.
-4. Inspect relay accepted, delivered, deferred and bounced events.
-5. Check spam/quarantine and SPF, DKIM and DMARC.
-6. Request one new code and use only the newest message.
+1. Run **Realm settings → Email → Test connection** in the target realm.
+2. Re-enter the SMTP password; a copied masked value is not a usable secret.
+3. Inspect relay accepted, delivered, deferred and bounced events.
+4. Check spam/quarantine and SPF, DKIM and DMARC.
+5. Request one new code and use only the newest message.
+
+### The old Register link or name/password form appears
+
+The installer disables **Realm settings → Login → User registration** because new
+accounts are created through the email challenge instead. It also makes the built-in
+first and last name profile attributes optional so **Verify Profile** does not ask for
+them after OTP. Run version `0.6.0` of the installer, then refresh the login in a
+private browser. Also confirm the application points to the realm you changed. If
+the CLI reports a custom name-field requirement, review and remove that realm policy
+manually; the installer deliberately refuses to overwrite it.
 
 ### The password form still appears
 
 Check the target realm's **Authentication → Bindings → Browser flow**. Deploying the
 provider image, configuring SMTP, or connecting the application does not change the
-binding. Run `npx --yes caselaw-auth@0.5.0 apply-passwordless-flow` with the
+binding. Run `npx --yes caselaw-auth@0.6.0 apply-passwordless-flow` with the
 environment variables from B7, then verify the binding is
-`caselaw-browser-passwordless`. Also verify that the application issuer names the
+`caselaw-browser-passwordless-email-first`. Also verify that the application issuer names the
 realm you changed rather than another realm.
 
 ### The installer complains that Case Law clients are missing
@@ -478,9 +530,10 @@ skip provider, flow, timeout or binding checks.
 
 ### Keycloak reports an unknown authenticator
 
-The server does not have the Phase Two provider, or the flow was bound before the
-provider image started. Restore `browser`, deploy this repository's image, and run
-the installer again.
+The server does not have this repository's email-identity provider and Phase Two
+email provider, or the flow was bound before the image started. Restore `browser`,
+deploy this repository's image, confirm all three provider IDs, and run the installer
+again.
 
 ### OTP succeeds, but the project rejects the callback
 

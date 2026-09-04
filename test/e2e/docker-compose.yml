@@ -1,0 +1,18 @@
+services:
+  keycloak:
+    depends_on:
+      - mailpit
+    ports:
+      - "127.0.0.1:18080:8080"
+    environment:
+      KEYCLOAK_HOSTNAME: http://localhost:18080
+      KEYCLOAK_HOSTNAME_STRICT: "false"
+      CASELAW_PASSWORDLESS_AUTO_APPLY: "true"
+      CASELAW_PASSWORDLESS_ESTATE_MODE: "true"
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:18025:8025"
+    expose:
+      - "1025"

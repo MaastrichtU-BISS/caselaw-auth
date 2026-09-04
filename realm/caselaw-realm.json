@@ -28,7 +28,7 @@
   },
   "authenticationFlows": [
     {
-      "alias": "caselaw-browser-passwordless",
+      "alias": "caselaw-browser-passwordless-email-first",
       "description": "Browser SSO with email OTP and single-use magic-link sign-in.",
       "providerId": "basic-flow",
       "topLevel": true,
@@ -65,7 +65,7 @@
       "builtIn": false,
       "authenticationExecutions": [
         {
-          "authenticator": "auth-username-form",
+          "authenticator": "caselaw-email-identity",
           "authenticatorFlow": false,
           "requirement": "REQUIRED",
           "priority": 10,

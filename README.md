@@ -9,7 +9,10 @@ their own server.
 Username/email and password is the safe default. Operators can opt a realm into
 six-digit email OTP and single-use magic links after commissioning SMTP. The
 Citations API, research workspace, access console and database workbench all accept
-the same account, and roles decide what each one shows.
+the same account, and roles decide what each one shows. In an opted-in realm, a new
+person enters only an email address: submitting a new address creates a pending
+email-only user, and completing the challenge verifies and signs in that user. No
+name or password form is used.
 
 ## What is in here
 
@@ -92,11 +95,13 @@ including a realm of your own rather than this one.
 
 The imported realm and Compose deployment both keep Keycloak's built-in password
 browser flow by default. To enable OTP, an administrator can run
-`npx --yes caselaw-auth@0.5.0 apply-passwordless-flow` against the target realm from
+`npx --yes caselaw-auth@0.6.0 apply-passwordless-flow` against the target realm from
 any Node 18+ machine—no repository checkout or server shell is needed. Alternatively,
 a deployment operator can explicitly set `CASELAW_PASSWORDLESS_AUTO_APPLY=true`.
 Either path creates/validates and binds the email flow; SMTP or application
-configuration alone does not. See
+configuration alone does not. It also disables the separate registration page and
+makes the realm's default first/last-name fields optional, allowing a new user to
+complete sign-in using only email and the received code. See
 [docs/OTP_SETUP.md](docs/OTP_SETUP.md) before enabling it.
 
 ### Behind a reverse proxy

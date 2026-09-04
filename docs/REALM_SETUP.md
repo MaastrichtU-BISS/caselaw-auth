@@ -93,7 +93,7 @@ were deliberate.
 
 | Setting | Shared realm | Why |
 |---|---|---|
-| User registration | **Off** | Accounts are provisioned, not self-served. Turning this on means anyone on the internet can create one |
+| User registration | **Off** | Keeps Keycloak's separate name/password form hidden. In optional passwordless mode, first-use OTP or magic-link requests create email-only users instead |
 | Forgot password | **On** | Otherwise every reset is a manual admin action |
 | Remember me | **On** | Survives a browser restart |
 | Email as username | **On** | People remember their email |
@@ -238,10 +238,19 @@ email address ───────┘
      └─ emailed magic link
 ```
 
-Only existing, enabled users can sign in. Both authenticators have automatic
-account creation disabled, matching the realm's disabled self-registration.
-Entering an unknown email shows the same continuation UI as a known one so the
-login page does not reveal which addresses have accounts.
+Existing enabled users can sign in, and a previously unknown email can establish a
+new email-only account. Requesting the first OTP or magic link creates an enabled but
+unverified user whose username and email are that address. Completing the challenge
+marks the email verified and authenticates the user. The separate Keycloak
+registration form stays disabled, so no first name, last name, or password is
+requested.
+
+Keycloak's built-in User Profile normally requires `firstName` and `lastName` for
+the `user` role. Disabling the registration page alone is therefore insufficient:
+the default **Verify Profile** action can ask for both names after OTP. The installer
+makes these two attributes optional while preserving them as usable profile fields.
+It refuses to replace a custom role- or scope-based name requirement; review such a
+realm policy explicitly before enabling email-only accounts.
 
 Magic links and login actions, including OTP sessions, expire after 10 minutes;
 links are single-use. OTP attempts feed Keycloak's brute-force protection, and
@@ -265,7 +274,7 @@ shell is needed:
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.0 apply-passwordless-flow
 ```
 
 Repository operators can instead run the equivalent
@@ -293,13 +302,15 @@ including the project's issuer and callback settings, is in
 
 Operational checks:
 
-1. Confirm username/email-and-password login before changing the binding.
-2. Send a test message under **Realm settings → Email** in the target realm.
-3. Sign in with an existing account using the six-digit code.
-4. Sign out fully, request a magic link, and open it in a second browser.
-5. Confirm reusing that link fails and a link older than 10 minutes fails.
-6. Try an unknown address and confirm no account is created.
-7. Restore the built-in `browser` binding and verify password rollback.
+1. Send a test message under **Realm settings → Email** in the target realm.
+2. Choose a reachable address that is not already a user in this realm.
+3. Request a six-digit code and complete the application callback.
+4. Confirm Keycloak created exactly one enabled, email-verified user with no names or
+   password credential.
+5. Sign out fully, sign in again, and confirm no duplicate user is created.
+6. Request a magic link and confirm it is single-use and expires after 10 minutes.
+7. If rollback is required, restore the built-in `browser` binding; remember that
+   email-only users cannot use it until an administrator gives them a password.
 
 ---
 
@@ -420,6 +431,8 @@ safe to check in.
 - [ ] SMTP configured if using passwordless, verify-email or password-reset email
 - [ ] Test email actually arrives if an email feature is enabled
 - [ ] Email OTP and magic-link sign-in both complete if passwordless is enabled
+- [ ] A brand-new email reaches the callback without a name or password form
+- [ ] First and last name are optional under Realm settings → User profile
 - [ ] The Citations API UI uses `citations-api`, not the machine client `caselaw-api`
 - [ ] Magic links expire after 10 minutes and cannot be reused
 - [ ] Brute force detection on, if reachable from the internet
