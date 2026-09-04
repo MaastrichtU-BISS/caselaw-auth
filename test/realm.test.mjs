@@ -35,13 +35,13 @@ test('the realm defaults to password login and includes an opt-in passwordless f
   const browser = flow('caselaw-browser-passwordless-email-first')
   assert.equal(execution(browser, 'auth-cookie').requirement, 'ALTERNATIVE')
   assert.equal(execution(browser, 'identity-provider-redirector').requirement, 'ALTERNATIVE')
-  assert.equal(execution(browser, 'Case Law passwordless forms').requirement, 'ALTERNATIVE')
+  assert.equal(execution(browser, 'Case Law email-first forms').requirement, 'ALTERNATIVE')
 
-  const forms = flow('Case Law passwordless forms')
+  const forms = flow('Case Law email-first forms')
   assert.equal(execution(forms, 'caselaw-email-identity').requirement, 'REQUIRED')
-  assert.equal(execution(forms, 'Case Law email methods').requirement, 'REQUIRED')
+  assert.equal(execution(forms, 'Case Law email-first methods').requirement, 'REQUIRED')
 
-  const methods = flow('Case Law email methods')
+  const methods = flow('Case Law email-first methods')
   assert.equal(execution(methods, 'ext-email-otp').requirement, 'ALTERNATIVE')
   assert.equal(execution(methods, 'ext-magic-form').requirement, 'ALTERNATIVE')
 })
@@ -109,6 +109,14 @@ test('installers require the email-identity provider and disable the password re
   assert.match(goConfigurator, /i\.addExecution\(formsFlow, "caselaw-email-identity", "REQUIRED"\)/)
   assert.match(goConfigurator, /"registrationAllowed":\s+false/)
   assert.match(dockerfile, /caselaw-email-identity\.jar/)
+})
+
+test('new nested aliases do not collide with the previously deployed passwordless flow', () => {
+  for (const configurator of [nodeConfigurator, goConfigurator]) {
+    assert.doesNotMatch(configurator, /Case Law passwordless forms/)
+    assert.match(configurator, /Case Law email-first forms/)
+    assert.match(configurator, /Case Law email-first methods/)
+  }
 })
 
 test('installers make default name fields optional without overwriting custom profile rules', () => {

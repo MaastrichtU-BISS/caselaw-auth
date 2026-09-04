@@ -69,16 +69,16 @@ When passwordless mode is enabled, the realm binds
 caselaw-browser-passwordless-email-first                          ALTERNATIVE set
 ├─ Cookie                                             ALTERNATIVE
 ├─ Identity Provider Redirector                       ALTERNATIVE
-└─ Case Law passwordless forms                        ALTERNATIVE
+└─ Case Law email-first forms                         ALTERNATIVE
    ├─ Case Law email identity                         REQUIRED
-   └─ Case Law email methods                          REQUIRED subflow
+   └─ Case Law email-first methods                    REQUIRED subflow
       ├─ Email OTP                                    ALTERNATIVE
       └─ Magic Link                                   ALTERNATIVE
 ```
 
 The email-identity step deliberately replaces Keycloak's built-in username form: it
 resolves existing users and creates pending email-only users instead of rejecting a
-new address. The separate `Case Law email methods` subflow is also important.
+new address. The separate `Case Law email-first methods` subflow is also important.
 Keycloak considers a required execution sufficient to complete its own flow, so
 putting OTP and magic link directly beside the required identity step would make the
 alternatives functionally disabled.
@@ -330,7 +330,7 @@ from any Node 18+ environment that can reach the Keycloak Admin API:
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-npx --yes caselaw-auth@0.6.0 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.1 apply-passwordless-flow
 ```
 
 The administrator does not need shell access to the Keycloak host. Operators who
@@ -502,7 +502,7 @@ realm binding is old. Realm import does not update an existing realm. Check
 **Authentication → Bindings**, or run the apply script.
 
 **OTP succeeds, then Keycloak asks for first and last name.** The realm's User
-Profile still marks those attributes as required. Run the `0.6.0` installer. If it
+Profile still marks those attributes as required. Run the `0.6.1` installer. If it
 detects a custom role- or scope-based requirement, review that policy under **Realm
 settings → User profile**, make both fields optional, and rerun it.
 
@@ -517,7 +517,7 @@ as existing users; inspect the newly created unverified user and Keycloak events
 delivery still fails.
 
 **The code form appears but no alternative method is available.** Confirm the
-flow has the required nested `Case Law email methods` subflow. OTP and magic
+flow has the required nested `Case Law email-first methods` subflow. OTP and magic
 link must be alternatives inside it, not siblings of the required username
 form.
 

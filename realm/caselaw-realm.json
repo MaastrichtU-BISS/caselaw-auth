@@ -52,13 +52,13 @@
           "authenticatorFlow": true,
           "requirement": "ALTERNATIVE",
           "priority": 30,
-          "flowAlias": "Case Law passwordless forms",
+          "flowAlias": "Case Law email-first forms",
           "userSetupAllowed": false
         }
       ]
     },
     {
-      "alias": "Case Law passwordless forms",
+      "alias": "Case Law email-first forms",
       "description": "Collect an email address, then let the user authenticate with a code or a link.",
       "providerId": "basic-flow",
       "topLevel": false,
@@ -75,13 +75,13 @@
           "authenticatorFlow": true,
           "requirement": "REQUIRED",
           "priority": 20,
-          "flowAlias": "Case Law email methods",
+          "flowAlias": "Case Law email-first methods",
           "userSetupAllowed": false
         }
       ]
     },
     {
-      "alias": "Case Law email methods",
+      "alias": "Case Law email-first methods",
       "description": "Alternative passwordless methods available after the user supplies an email address.",
       "providerId": "basic-flow",
       "topLevel": false,
