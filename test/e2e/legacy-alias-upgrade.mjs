@@ -35,6 +35,29 @@ for (const alias of legacyAliases) {
   })
 }
 
+const legacyOtp = await addExecution(token, legacyAliases[0], 'ext-email-otp')
+await adminApi(token, `/authentication/executions/${encodeURIComponent(legacyOtp.id)}/config`, {
+  method: 'POST',
+  body: {
+    alias: 'caselaw-email-otp',
+    config: { 'ext-magic-create-nonexistent-user': 'false' },
+  },
+})
+const legacyMagic = await addExecution(token, legacyAliases[0], 'ext-magic-form')
+await adminApi(token, `/authentication/executions/${encodeURIComponent(legacyMagic.id)}/config`, {
+  method: 'POST',
+  body: {
+    alias: 'caselaw-magic-link',
+    config: {
+      'ext-magic-create-nonexistent-user': 'false',
+      'ext-magic-update-profile-action': 'false',
+      'ext-magic-update-password-action': 'false',
+      'ext-magic-allow-token-reuse': 'false',
+      'ext-magic-token-life-span': '600',
+    },
+  },
+})
+
 const installed = spawnSync(process.execPath, ['packages/caselaw-auth/admin/apply-passwordless-flow.mjs'], {
   cwd: new URL('../..', import.meta.url),
   encoding: 'utf8',
@@ -58,7 +81,17 @@ for (const alias of legacyAliases) {
 }
 const liveRealm = await adminApi(token, '')
 assert.equal(liveRealm.browserFlow, desiredAlias)
-console.log('PASS legacy flow aliases coexist with the new email-first flow')
+const legacyExecutions = await executions(token, legacyAliases[0])
+const legacyConfigAliases = new Set()
+for (const execution of legacyExecutions.filter((candidate) => candidate.authenticationConfig)) {
+  const config = await adminApi(token,
+    `/authentication/config/${encodeURIComponent(execution.authenticationConfig)}`)
+  legacyConfigAliases.add(config.alias)
+}
+for (const alias of ['caselaw-email-otp', 'caselaw-magic-link']) {
+  assert.ok(legacyConfigAliases.has(alias), `legacy configuration ${alias} disappeared`)
+}
+console.log('PASS legacy flow and authenticator-config aliases coexist with the new email-first flow')
 
 async function getAdminToken() {
   const response = await fetch(`${keycloakUrl}/realms/master/protocol/openid-connect/token`, {
@@ -77,6 +110,21 @@ async function getAdminToken() {
 
 async function flows(token) {
   return adminApi(token, '/authentication/flows')
+}
+
+async function executions(token, flowAlias) {
+  return adminApi(token, `/authentication/flows/${encodeURIComponent(flowAlias)}/executions`)
+}
+
+async function addExecution(token, flowAlias, provider) {
+  await adminApi(token, `/authentication/flows/${encodeURIComponent(flowAlias)}/executions/execution`, {
+    method: 'POST',
+    body: { provider },
+  })
+  const execution = (await executions(token, flowAlias))
+    .find((candidate) => candidate.providerId === provider)
+  assert.ok(execution, `could not create legacy ${provider} execution`)
+  return execution
 }
 
 async function adminApi(token, suffix, options = {}) {

@@ -73,7 +73,7 @@ Then complete these steps in order:
 7. Still in that terminal, run the published installer:
 
    ```bash
-   npx --yes caselaw-auth@0.6.1 apply-passwordless-flow
+   npx --yes caselaw-auth@0.6.2 apply-passwordless-flow
    ```
 
    It downloads the pinned package, gets a short-lived admin token, creates or
@@ -343,7 +343,7 @@ KEYCLOAK_ADMIN_REALM=master \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
 CASELAW_PASSWORDLESS_ESTATE_MODE=false \
-npx --yes caselaw-auth@0.6.1 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.2 apply-passwordless-flow
 ```
 
 Supply the password through a secret manager or a temporary environment variable;
@@ -507,7 +507,7 @@ default realm baseline.
 The installer disables **Realm settings → Login → User registration** because new
 accounts are created through the email challenge instead. It also makes the built-in
 first and last name profile attributes optional so **Verify Profile** does not ask for
-them after OTP. Run version `0.6.1` of the installer, then refresh the login in a
+them after OTP. Run version `0.6.2` of the installer, then refresh the login in a
 private browser. Also confirm the application points to the realm you changed. If
 the CLI reports a custom name-field requirement, review and remove that realm policy
 manually; the installer deliberately refuses to overwrite it.
@@ -516,7 +516,7 @@ manually; the installer deliberately refuses to overwrite it.
 
 Check the target realm's **Authentication → Bindings → Browser flow**. Deploying the
 provider image, configuring SMTP, or connecting the application does not change the
-binding. Run `npx --yes caselaw-auth@0.6.1 apply-passwordless-flow` with the
+binding. Run `npx --yes caselaw-auth@0.6.2 apply-passwordless-flow` with the
 environment variables from B7, then verify the binding is
 `caselaw-browser-passwordless-email-first`. Also verify that the application issuer names the
 realm you changed rather than another realm.

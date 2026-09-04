@@ -330,7 +330,7 @@ from any Node 18+ environment that can reach the Keycloak Admin API:
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-npx --yes caselaw-auth@0.6.1 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.2 apply-passwordless-flow
 ```
 
 The administrator does not need shell access to the Keycloak host. Operators who
@@ -502,7 +502,7 @@ realm binding is old. Realm import does not update an existing realm. Check
 **Authentication → Bindings**, or run the apply script.
 
 **OTP succeeds, then Keycloak asks for first and last name.** The realm's User
-Profile still marks those attributes as required. Run the `0.6.1` installer. If it
+Profile still marks those attributes as required. Run the `0.6.2` installer. If it
 detects a custom role- or scope-based requirement, review that policy under **Realm
 settings → User profile**, make both fields optional, and rerun it.
 
