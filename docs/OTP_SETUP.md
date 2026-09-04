@@ -10,11 +10,18 @@ binding.
 
 ## Required activation step
 
-> **For a new or different realm, a realm administrator must run
-> `scripts/apply-passwordless-flow.mjs`.** Configuring SMTP, creating a user, and
-> connecting the project do not enable OTP by themselves. The script creates and
-> validates the passwordless flow, then binds it to the target realm. Until it is
-> run, the realm continues to show the default username/password login.
+> **For a new or different realm, a realm administrator must run the published
+> `caselaw-auth` installer, or a deployment operator must enable automatic
+> apply.** Configuring SMTP, creating a user, and connecting the project do not
+> enable OTP by themselves. The installer creates and validates the passwordless
+> flow, then binds it to the target realm. Until it runs, the realm continues to
+> show the default username/password login.
+
+The administrator does **not** need to clone this repository or log in to the
+Keycloak host. The installer is part of the published npm package and calls the
+remote Keycloak Admin API over HTTPS. It can run from any temporary Node 18+
+environment that can reach Keycloak. The Keycloak Admin Console itself cannot run
+the script.
 
 The shared production `caselaw` realm is the exception for project developers: its
 operator has already run the installer. A project joining that realm only needs its
@@ -25,7 +32,7 @@ own OIDC client and application configuration.
 | Your project uses | What you need to do |
 |---|---|
 | Existing `caselaw` realm | Create an OIDC client for the project, configure the project, and test. The realm, SMTP, theme, OTP flow and users already exist. |
-| A different realm on the Case Law Keycloak server | Configure SMTP and users, create the client, configure the project, and **run the installer script** with `CASELAW_PASSWORDLESS_ESTATE_MODE=false`. |
+| A different realm on the Case Law Keycloak server | Configure SMTP and users, create the client, configure the project, and **run the published installer** with `CASELAW_PASSWORDLESS_ESTATE_MODE=false`. No repository checkout is needed. |
 | A different Keycloak server | Deploy this repository's Keycloak image first, then follow the different-realm path. The OTP provider and the Case Law and DigiMach themes are installed at server level by the image. |
 
 If you only remember one rule, remember this one: the issuer, SMTP configuration,
@@ -273,12 +280,13 @@ PUBLIC_AUTH_STORAGE_KEY=my-project:auth
 Changing only `KEYCLOAK_REALM` on the auth server is not enough. The deployed
 project's issuer must end in `/realms/my-project`, and its client must exist there.
 
-### B7. Required: run the installer to enable OTP
+### B7. Required: run the published installer to enable OTP
 
 This step is mandatory. The earlier steps prepare email delivery and OIDC, but the
 realm still uses passwords until this command completes successfully.
 
-From a checkout of this repository, run with Node 18 or newer:
+On any machine with Node 18+ and network access to Keycloak, run the pinned npm
+package. No repository checkout or shell access to the Keycloak server is needed:
 
 ```bash
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
@@ -287,6 +295,18 @@ KEYCLOAK_ADMIN_REALM=master \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
 CASELAW_PASSWORDLESS_ESTATE_MODE=false \
+npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+```
+
+Supply the password through a secret manager or a temporary environment variable;
+do not leave a real administrator password in shell history. The command downloads
+the pinned package, obtains an admin token from `KEYCLOAK_URL`, changes
+`KEYCLOAK_REALM` through the Admin API, and exits. It does not install anything on
+the Keycloak host.
+
+Repository operators may use the equivalent checkout command:
+
+```bash
 node scripts/apply-passwordless-flow.mjs
 ```
 
@@ -409,7 +429,8 @@ default realm baseline.
 
 Check the target realm's **Authentication → Bindings → Browser flow**. Deploying the
 provider image, configuring SMTP, or connecting the application does not change the
-binding. Run `scripts/apply-passwordless-flow.mjs`, then verify the binding is
+binding. Run `npx --yes caselaw-auth@0.5.0 apply-passwordless-flow` with the
+environment variables from B7, then verify the binding is
 `caselaw-browser-passwordless`. Also verify that the application issuer names the
 realm you changed rather than another realm.
 

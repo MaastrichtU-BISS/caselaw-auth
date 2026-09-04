@@ -21,8 +21,10 @@ backend, [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
 > issuer, which becomes `https://<keycloak-host>/realms/<realm-name>`.
 > That realm still needs its own SMTP, users and passwordless-flow binding; use
 > the end-to-end [OTP setup guide](OTP_SETUP.md#path-b-project-using-a-different-realm).
-> A realm administrator must run `scripts/apply-passwordless-flow.mjs`;
-> application configuration alone does not enable OTP.
+> A realm administrator must run the published `caselaw-auth` installer from any
+> Node 18+ machine, or a deployment operator must enable automatic apply;
+> application configuration alone does not enable OTP. A repository checkout and
+> access to the Keycloak host are not required.
 
 ## Contents
 
