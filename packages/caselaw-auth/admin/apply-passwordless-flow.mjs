@@ -18,7 +18,7 @@ const adminUser = process.env.KEYCLOAK_ADMIN || ''
 const adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || ''
 const estateMode = envBoolean('CASELAW_PASSWORDLESS_ESTATE_MODE', realm === 'caselaw')
 
-const browserFlow = 'caselaw-browser-passwordless'
+const browserFlow = 'caselaw-browser-passwordless-email-first'
 const formsFlow = 'Case Law passwordless forms'
 const methodsFlow = 'Case Law email methods'
 
@@ -83,8 +83,10 @@ const { access_token: token } = await tokenResponse.json()
 const adminPath = `/admin/realms/${encodeURIComponent(realm)}`
 let createdFlowId = null
 let createdClientId = null
+let originalUserProfile = null
 
 try {
+  await requireProvider('caselaw-email-identity')
   await requireProvider('ext-email-otp')
   await requireProvider('ext-magic-form')
 
@@ -113,7 +115,7 @@ try {
     await addSubflow(browserFlow, formsFlow, 'ALTERNATIVE',
       'Collect an email address, then let the user authenticate with a code or a link.')
 
-    await addExecution(formsFlow, 'auth-username-form', 'REQUIRED')
+    await addExecution(formsFlow, 'caselaw-email-identity', 'REQUIRED')
     await addSubflow(formsFlow, methodsFlow, 'REQUIRED',
       'Alternative passwordless methods available after the user supplies an email address.')
 
@@ -133,9 +135,14 @@ try {
   } else {
     console.log(`Skipped Case Law estate client reconciliation for realm ${realm}.`)
   }
+  await ensureNamesOptional()
   // The provider keeps the OTP in the authentication session, so the realm's
   // login-action timeout is its lifetime. Keep it aligned with magic links.
-  await api('PUT', adminPath, { browserFlow, accessCodeLifespanLogin: 600 })
+  await api('PUT', adminPath, {
+    browserFlow,
+    accessCodeLifespanLogin: 600,
+    registrationAllowed: false,
+  })
 
   const updatedRealm = await api('GET', adminPath)
   if (updatedRealm.browserFlow !== browserFlow) {
@@ -144,9 +151,12 @@ try {
   if (updatedRealm.accessCodeLifespanLogin !== 600) {
     throw new Error(`Login-action timeout is ${updatedRealm.accessCodeLifespanLogin}; expected 600 seconds.`)
   }
+  if (updatedRealm.registrationAllowed !== false) {
+    throw new Error('The separate password registration form is still enabled.')
+  }
 
   console.log(`Bound ${browserFlow} to ${realm} on ${baseUrl}.`)
-  console.log(`The realm now applies email OTP and magic-link sign-in to every interactive client in ${realm}.`)
+  console.log(`The realm now creates and authenticates users through verified email OTP or magic links in ${realm}.`)
 } catch (error) {
   if (createdFlowId) {
     await api('DELETE', `${adminPath}/authentication/flows/${encodeURIComponent(createdFlowId)}`)
@@ -154,6 +164,10 @@ try {
   }
   if (createdClientId) {
     await api('DELETE', `${adminPath}/clients/${encodeURIComponent(createdClientId)}`)
+      .catch(() => undefined)
+  }
+  if (originalUserProfile) {
+    await api('PUT', `${adminPath}/users/profile`, originalUserProfile)
       .catch(() => undefined)
   }
   fail(error instanceof Error ? error.message : String(error))
@@ -184,6 +198,65 @@ async function requireProvider(providerId) {
   if (description.providerId !== providerId) {
     throw new Error(`${providerId} is not installed. Deploy the provider image before applying the flow.`)
   }
+}
+
+async function ensureNamesOptional() {
+  const path = `${adminPath}/users/profile`
+  const profile = await api('GET', path)
+  if (!Array.isArray(profile.attributes)) {
+    throw new Error('The realm user profile has no attributes array. Refusing to overwrite it.')
+  }
+
+  const nameAttributes = ['firstName', 'lastName'].map((name) => {
+    const matches = profile.attributes.filter((attribute) => attribute.name === name)
+    if (matches.length !== 1) {
+      throw new Error(`The realm user profile has ${matches.length} ${name} attributes; expected one. Refusing to overwrite drift.`)
+    }
+    return matches[0]
+  })
+
+  for (const attribute of nameAttributes) {
+    if (!hasActiveRequirement(attribute.required)) continue
+    if (!isDefaultNameRequirement(attribute.required)) {
+      throw new Error(`${attribute.name} has a custom user-profile requirement. Refusing to overwrite drift.`)
+    }
+  }
+
+  if (!nameAttributes.some((attribute) => hasActiveRequirement(attribute.required))) {
+    console.log('Validated that firstName and lastName are optional.')
+    return
+  }
+
+  const updated = structuredClone(profile)
+  for (const attribute of updated.attributes) {
+    if (attribute.name === 'firstName' || attribute.name === 'lastName') delete attribute.required
+  }
+  originalUserProfile = profile
+  await api('PUT', path, updated)
+
+  const verified = await api('GET', path)
+  for (const name of ['firstName', 'lastName']) {
+    const attribute = verified.attributes?.find((candidate) => candidate.name === name)
+    if (!attribute || hasActiveRequirement(attribute.required)) {
+      throw new Error(`${name} is still required after updating the realm user profile.`)
+    }
+  }
+  console.log('Made firstName and lastName optional for email-only accounts.')
+}
+
+function hasActiveRequirement(requirement) {
+  if (!requirement || typeof requirement !== 'object' || Array.isArray(requirement)) return false
+  return ['roles', 'scopes'].some((key) => Array.isArray(requirement[key]) && requirement[key].length > 0)
+}
+
+function isDefaultNameRequirement(requirement) {
+  if (!requirement || typeof requirement !== 'object' || Array.isArray(requirement)) return false
+  const keys = Object.keys(requirement)
+  if (keys.some((key) => key !== 'roles' && key !== 'scopes')) return false
+  const roles = requirement.roles || []
+  const scopes = requirement.scopes || []
+  return Array.isArray(roles) && roles.length === 1 && roles[0] === 'user'
+    && Array.isArray(scopes) && scopes.length === 0
 }
 
 async function executions(flowAlias) {
@@ -240,7 +313,7 @@ async function validateExistingFlow() {
     { displayName: formsFlow, requirement: 'ALTERNATIVE', authenticationFlow: true },
   ])
   await expectFlow(formsFlow, [
-    { providerId: 'auth-username-form', requirement: 'REQUIRED' },
+    { providerId: 'caselaw-email-identity', requirement: 'REQUIRED' },
     { displayName: methodsFlow, requirement: 'REQUIRED', authenticationFlow: true },
   ])
   const methods = await expectFlow(methodsFlow, [
@@ -272,9 +345,10 @@ async function expectConfig(execution, alias, expected) {
   if (!execution.authenticationConfig) {
     throw new Error(`${execution.providerId} has no authenticator configuration.`)
   }
+  const path = `${adminPath}/authentication/config/${encodeURIComponent(execution.authenticationConfig)}`
   const actual = await api(
     'GET',
-    `${adminPath}/authentication/config/${encodeURIComponent(execution.authenticationConfig)}`,
+    path,
   )
   if (actual.alias !== alias || !sameStringMap(actual.config, expected)) {
     throw new Error(`${execution.providerId} configuration has drifted. Refusing to overwrite it.`)

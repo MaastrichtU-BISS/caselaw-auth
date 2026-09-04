@@ -63,28 +63,34 @@ Keycloak decides which screen and email challenge appears.
 ## 2. Authentication flow
 
 When passwordless mode is enabled, the realm binds
-`caselaw-browser-passwordless` as its browser flow:
+`caselaw-browser-passwordless-email-first` as its browser flow:
 
 ```text
-caselaw-browser-passwordless                          ALTERNATIVE set
+caselaw-browser-passwordless-email-first                          ALTERNATIVE set
 ├─ Cookie                                             ALTERNATIVE
 ├─ Identity Provider Redirector                       ALTERNATIVE
 └─ Case Law passwordless forms                        ALTERNATIVE
-   ├─ Username Form                                   REQUIRED
+   ├─ Case Law email identity                         REQUIRED
    └─ Case Law email methods                          REQUIRED subflow
       ├─ Email OTP                                    ALTERNATIVE
       └─ Magic Link                                   ALTERNATIVE
 ```
 
-The separate `Case Law email methods` subflow is important. Keycloak considers
-a required execution sufficient to complete its own flow, so putting OTP and
-magic link directly beside the required username form would make the
+The email-identity step deliberately replaces Keycloak's built-in username form: it
+resolves existing users and creates pending email-only users instead of rejecting a
+new address. The separate `Case Law email methods` subflow is also important.
+Keycloak considers a required execution sufficient to complete its own flow, so
+putting OTP and magic link directly beside the required identity step would make the
 alternatives functionally disabled.
 
 Runtime policy:
 
-- only existing, enabled Keycloak users may sign in;
-- neither method creates an account;
+- existing enabled users may sign in, and either method accepts a new email;
+- submitting a new email creates an enabled but unverified user with the email
+  as both username and email;
+- only successful OTP entry or magic-link redemption marks the email verified and
+  completes authentication;
+- no first name, last name, or password credential is requested;
 - the OTP is six digits and expires with the 10-minute login action;
 - a magic link expires after 10 minutes and can be redeemed once;
 - a successful email OTP marks that address verified;
@@ -94,9 +100,11 @@ Runtime policy:
   sent;
 - identity providers added later remain available through the redirector.
 
-Unknown addresses receive the same browser continuation as known addresses,
-but no message is sent and no user is created. Product pages must not add their
-own “account exists” checks around this flow.
+Unknown addresses receive the same browser continuation and message as known
+addresses. Product pages must not add their own “account exists” checks around this
+flow. A request abandoned before verification can leave an unverified user record;
+this does not grant a session or product access and should be covered by monitoring
+and stale-account retention policy.
 
 Within the optional passwordless flow, email OTP is the default method. After
 entering an email, the code form exposes
@@ -261,8 +269,8 @@ email and password and exchange them for a token.
 
 ### 7.1 Preconditions
 
-1. Confirm every intended user has a unique email, is enabled, and can receive
-   mail at that address.
+1. Confirm existing users have unique valid email addresses, and choose a reachable
+   address that is not already a user for the new-account test.
 2. Configure SMTP under **Realm settings → Email** and send a test message.
 3. Confirm the relay authorizes the configured From domain and that SPF, DKIM
    and DMARC are valid.
@@ -273,9 +281,10 @@ email and password and exchange them for a token.
 
 ### 7.2 Deploy the provider image
 
-Deploy this repository's image before changing the flow. Its build installs the
-pinned Phase Two provider and runs `kc.sh build`. The Keycloak startup log must
-show both `ext-email-otp` and `ext-magic-form` providers.
+Deploy this repository's image before changing the flow. Its build installs the Case
+Law `caselaw-email-identity` authenticator and the pinned Phase Two provider, then
+runs `kc.sh build`. The Keycloak startup log must show
+`caselaw-email-identity`, `ext-email-otp`, and `ext-magic-form`.
 
 Do not bind a flow containing those executions before the new image is live;
 older containers do not know the provider IDs.
@@ -321,7 +330,7 @@ from any Node 18+ environment that can reach the Keycloak Admin API:
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-npx --yes caselaw-auth@0.5.0 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.0 apply-passwordless-flow
 ```
 
 The administrator does not need shell access to the Keycloak host. Operators who
@@ -330,12 +339,18 @@ already have a repository checkout can use the equivalent
 
 Both installers perform these operations:
 
-- verifies both provider IDs are installed;
+- verifies all three authenticator provider IDs are installed;
 - creates or validates the nested passwordless flow;
 - creates or validates the public `citations-api` UI client;
+- uses the shared email-identity step to resolve or create email-only users before
+  either verification method;
+- disables Keycloak's separate name/password registration form;
+- makes the built-in `firstName` and `lastName` user-profile attributes optional,
+  preventing Keycloak's default Verify Profile action from asking for names after OTP;
 - sets the login-action/OTP lifetime to 600 seconds;
 - binds the flow at realm level so every interactive client receives it;
-- refuses to overwrite an existing flow or client that has drifted.
+- refuses to overwrite an existing flow, client, or custom name-field requirement
+  that has drifted.
 
 For a new environment, `realm/caselaw-realm.json` already contains the same flow,
 timeouts and clients, but deliberately binds `browser` until an operator opts in.
@@ -369,7 +384,9 @@ configuration so disaster recovery reapplies the intentional production binding.
 
 ## 8. End-to-end verification
 
-Test with a non-admin researcher first, then an administrator.
+Test first with a reachable email address that is not yet a user, then with an
+existing non-admin user and an administrator. New-user authentication does not
+automatically assign `researcher`, `admin`, or product entitlements.
 
 ### Realm behavior
 
@@ -381,8 +398,13 @@ Test with a non-admin researcher first, then an administrator.
 - [ ] Request another link and open it on a second device.
 - [ ] Confirm a redeemed link cannot be reused.
 - [ ] Confirm a link fails after 10 minutes.
-- [ ] Enter an unknown email: the browser must not disclose whether it exists,
-      no account may be created, and no email should be sent.
+- [ ] Enter a previously unknown email and complete OTP: exactly one enabled,
+      email-verified user must exist with email as username, no names, and no
+      password credential.
+- [ ] Repeat sign-in with the same address and confirm no duplicate is created.
+- [ ] Start with another unknown address but abandon the challenge: no session or
+      product access may be granted; record and review the resulting unverified user
+      according to the retention policy.
 - [ ] Repeated invalid OTPs must produce login-error events and eventually
       trigger the configured brute-force defense.
 
@@ -431,6 +453,11 @@ session created before rollback may continue until it expires or is signed out.
 Use the realm's session revocation only if the incident requires it; that signs
 every product out.
 
+Rebinding the old browser flow intentionally leaves `firstName` and `lastName`
+optional. If the pre-rollout user-profile policy required them, restore the recorded
+requirements separately only after accounting for email-only users, which have no
+names and no password credential.
+
 ---
 
 ## 10. Security and operations
@@ -444,7 +471,9 @@ ongoing monitoring.
 codes; it does not by itself prevent repeated new login sessions from sending
 mail. Rate-limit the public authorization endpoint at the edge and consider the
 provider's Turnstile step before opening self-service sign-in to an untrusted
-audience. Never reveal whether a requested address exists.
+audience. Because a first send can create an unverified record, monitor the rate and
+age of unverified users and clean up stale records according to an explicit
+retention policy. Never reveal whether a requested address already existed.
 
 **Email is the first factor.** Anyone controlling the mailbox can sign in. Use
 step-up policy, a federated institutional identity provider, TOTP or WebAuthn
@@ -472,14 +501,20 @@ upgraded, review upstream release notes, and keep the image build reproducible.
 realm binding is old. Realm import does not update an existing realm. Check
 **Authentication → Bindings**, or run the apply script.
 
+**OTP succeeds, then Keycloak asks for first and last name.** The realm's User
+Profile still marks those attributes as required. Run the `0.6.0` installer. If it
+detects a custom role- or scope-based requirement, review that policy under **Realm
+settings → User profile**, make both fields optional, and rerun it.
+
 **Keycloak says an authenticator is unknown.** The flow was applied before the
 provider image. Roll back the binding, deploy the image, confirm the provider
 IDs in startup logs, then apply again.
 
 **No email arrives.** Use the realm's Send test email first. Then check the
 user is enabled and has a valid email, the relay logs, From-domain policy,
-spam/quarantine and bounce telemetry. Unknown users intentionally receive no
-message.
+spam/quarantine and bounce telemetry. New addresses should receive the same message
+as existing users; inspect the newly created unverified user and Keycloak events if
+delivery still fails.
 
 **The code form appears but no alternative method is available.** Confirm the
 flow has the required nested `Case Law email methods` subflow. OTP and magic

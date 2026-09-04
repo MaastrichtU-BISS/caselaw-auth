@@ -18,10 +18,12 @@ The package also ships the opt-in Keycloak OTP/magic-link flow installer. A real
 administrator can run it from any Node 18+ machine that can reach Keycloak; cloning
 the repository or obtaining shell access to the Keycloak host is not required.
 
-1. Ask the deployment operator to confirm the email provider is installed on the
-   Keycloak server.
-2. In the target realm, configure SMTP, create an enabled test user and OIDC client,
-   and prove password login works.
+1. Ask the deployment operator to confirm this repository's Keycloak image is
+   deployed. It supplies `caselaw-email-identity`, `ext-email-otp`, and
+   `ext-magic-form`.
+2. In the target realm, configure and test SMTP and create the OIDC client. Choose a
+   reachable email address that is not already a user; do not pre-create it or set a
+   password.
 3. Export the target URL, target realm and administrator credentials:
 
 ```bash
@@ -33,14 +35,20 @@ export KEYCLOAK_ADMIN_PASSWORD='<set securely>'
 export CASELAW_PASSWORDLESS_ESTATE_MODE=false
 ```
 
-4. Run `npx --yes caselaw-auth@0.5.0 apply-passwordless-flow`.
-5. Confirm it reports `Bound caselaw-browser-passwordless`, verify that binding in
-   the Admin Console, and complete an OTP login in a private browser.
+4. Run `npx --yes caselaw-auth@0.6.0 apply-passwordless-flow`.
+5. Confirm it reports `Bound caselaw-browser-passwordless-email-first`, verify that binding in
+   the Admin Console, and complete an OTP login with the new address in a private
+   browser. Confirm Keycloak created one email-verified user with no name or password
+   credential.
 6. Run `unset KEYCLOAK_ADMIN_PASSWORD`.
 
-The command obtains a short-lived admin token, verifies the required email provider
-is installed, creates or validates the flow, and binds it to the target realm. Use a
-secret manager to set the password rather than leaving the value in shell history.
+The command obtains a short-lived admin token, verifies the three required
+authenticators are installed, creates or validates the flow, enables first-use email account
+creation, disables Keycloak's separate name/password registration form, makes the
+realm's default first/last-name profile fields optional, and binds the flow to the
+target realm. It refuses to weaken a custom role- or scope-based name requirement.
+Use a secret manager to set the password rather than leaving the value in shell
+history.
 Full prerequisites and rollback instructions are in the repository's
 [OTP setup guide](https://github.com/MaastrichtU-BISS/caselaw-auth/blob/main/docs/OTP_SETUP.md).
 

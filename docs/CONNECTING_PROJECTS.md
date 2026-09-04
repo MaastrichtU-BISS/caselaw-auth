@@ -19,7 +19,7 @@ backend, [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
 
 > **On a realm other than `caselaw`**, everything below is unchanged except the
 > issuer, which becomes `https://<keycloak-host>/realms/<realm-name>`.
-> That realm still needs its own SMTP, users and passwordless-flow binding; use
+> That realm still needs its own SMTP, OIDC client and passwordless-flow binding; use
 > the end-to-end [OTP setup guide](OTP_SETUP.md#path-b-project-using-a-different-realm).
 > A realm administrator must run the published `caselaw-auth` installer from any
 > Node 18+ machine, or a deployment operator must enable automatic apply;
@@ -473,7 +473,9 @@ Do these in order. Each catches a distinct failure.
 - [ ] Sign in from the deployed domain.
 - [ ] Sign in from `localhost`.
 - [ ] Complete both email OTP and magic-link sign-in through the shared realm.
-- [ ] Confirm an unknown email creates no account and reveals no account status.
+- [ ] With a reachable address that is not already a user, complete OTP sign-in and
+      confirm exactly one email-verified user is created with no name or password.
+- [ ] Repeat sign-in with the same address and confirm no duplicate user is created.
 - [ ] **Reload while signed in.** Catches a missing `ready` check and a wrong storage key.
 - [ ] **Sign out, then confirm you are actually signed out** — reload and check you are not silently back in.
 - [ ] **Wait past five minutes and make an API call.** Catches a copied-once token and a broken refresh.

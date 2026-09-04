@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	browserFlow = "caselaw-browser-passwordless"
+	browserFlow = "caselaw-browser-passwordless-email-first"
 	formsFlow   = "Case Law passwordless forms"
 	methodsFlow = "Case Law email methods"
 )
@@ -72,6 +72,7 @@ type installer struct {
 	client          *http.Client
 	createdFlowID   string
 	createdClientID string
+	originalProfile map[string]any
 	estateMode      bool
 }
 
@@ -98,7 +99,7 @@ func main() {
 	}
 
 	fmt.Printf("Bound %s to %s on %s.\n", browserFlow, i.realm, i.baseURL)
-	fmt.Printf("The realm now applies email OTP and magic-link sign-in to every interactive client in %s.\n", i.realm)
+	fmt.Printf("The realm now creates and authenticates users through verified email OTP or magic links in %s.\n", i.realm)
 }
 
 func newInstaller() (*installer, error) {
@@ -176,6 +177,9 @@ func (i *installer) waitForAdminToken() error {
 }
 
 func (i *installer) run() error {
+	if err := i.requireProvider("caselaw-email-identity"); err != nil {
+		return err
+	}
 	if err := i.requireProvider("ext-email-otp"); err != nil {
 		return err
 	}
@@ -209,10 +213,14 @@ func (i *installer) run() error {
 	} else {
 		fmt.Printf("Skipped Case Law estate client reconciliation for realm %s.\n", i.realm)
 	}
+	if err := i.ensureNamesOptional(); err != nil {
+		return err
+	}
 
 	if err := i.api(http.MethodPut, i.adminPath, map[string]any{
 		"browserFlow":             browserFlow,
 		"accessCodeLifespanLogin": 600,
+		"registrationAllowed":     false,
 	}, nil); err != nil {
 		return err
 	}
@@ -226,6 +234,9 @@ func (i *installer) run() error {
 	}
 	if intField(realm, "accessCodeLifespanLogin") != 600 {
 		return fmt.Errorf("login-action timeout is %d; expected 600 seconds", intField(realm, "accessCodeLifespanLogin"))
+	}
+	if boolField(realm, "registrationAllowed") {
+		return errors.New("the separate password registration form is still enabled")
 	}
 	return nil
 }
@@ -260,7 +271,7 @@ func (i *installer) createFlow() error {
 	if err := i.addSubflow(browserFlow, formsFlow, "ALTERNATIVE", "Collect an email address, then let the user authenticate with a code or a link."); err != nil {
 		return err
 	}
-	if _, err := i.addExecution(formsFlow, "auth-username-form", "REQUIRED"); err != nil {
+	if _, err := i.addExecution(formsFlow, "caselaw-email-identity", "REQUIRED"); err != nil {
 		return err
 	}
 	if err := i.addSubflow(formsFlow, methodsFlow, "REQUIRED", "Alternative passwordless methods available after the user supplies an email address."); err != nil {
@@ -298,6 +309,80 @@ func (i *installer) requireProvider(providerID string) error {
 	if stringField(description, "providerId") != providerID {
 		return fmt.Errorf("%s is not installed; deploy the provider image before applying the flow", providerID)
 	}
+	return nil
+}
+
+func (i *installer) ensureNamesOptional() error {
+	path := i.adminPath + "/users/profile"
+	var profile map[string]any
+	if err := i.api(http.MethodGet, path, nil, &profile); err != nil {
+		return err
+	}
+	attributes, ok := profile["attributes"].([]any)
+	if !ok {
+		return errors.New("the realm user profile has no attributes array; refusing to overwrite it")
+	}
+
+	names := map[string]map[string]any{}
+	for _, value := range attributes {
+		attribute, ok := value.(map[string]any)
+		if !ok {
+			return errors.New("the realm user profile contains a malformed attribute; refusing to overwrite it")
+		}
+		name := stringField(attribute, "name")
+		if name != "firstName" && name != "lastName" {
+			continue
+		}
+		if names[name] != nil {
+			return fmt.Errorf("the realm user profile contains more than one %s attribute; refusing to overwrite drift", name)
+		}
+		names[name] = attribute
+	}
+	for _, name := range []string{"firstName", "lastName"} {
+		attribute := names[name]
+		if attribute == nil {
+			return fmt.Errorf("the realm user profile has no %s attribute; refusing to overwrite drift", name)
+		}
+		if !hasActiveRequirement(attribute["required"]) {
+			continue
+		}
+		if !isDefaultNameRequirement(attribute["required"]) {
+			return fmt.Errorf("%s has a custom user-profile requirement; refusing to overwrite drift", name)
+		}
+	}
+
+	if !hasActiveRequirement(names["firstName"]["required"]) && !hasActiveRequirement(names["lastName"]["required"]) {
+		fmt.Println("Validated that firstName and lastName are optional.")
+		return nil
+	}
+
+	updated, err := cloneMap(profile)
+	if err != nil {
+		return fmt.Errorf("clone realm user profile: %w", err)
+	}
+	for _, value := range updated["attributes"].([]any) {
+		attribute := value.(map[string]any)
+		name := stringField(attribute, "name")
+		if name == "firstName" || name == "lastName" {
+			delete(attribute, "required")
+		}
+	}
+	i.originalProfile = profile
+	if err := i.api(http.MethodPut, path, updated, nil); err != nil {
+		return err
+	}
+
+	var verified map[string]any
+	if err := i.api(http.MethodGet, path, nil, &verified); err != nil {
+		return err
+	}
+	for _, name := range []string{"firstName", "lastName"} {
+		attribute := findProfileAttribute(verified, name)
+		if attribute == nil || hasActiveRequirement(attribute["required"]) {
+			return fmt.Errorf("%s is still required after updating the realm user profile", name)
+		}
+	}
+	fmt.Println("Made firstName and lastName optional for email-only accounts.")
 	return nil
 }
 
@@ -380,7 +465,7 @@ func (i *installer) validateExistingFlow() error {
 		return err
 	}
 	if _, err := i.expectFlow(formsFlow, []expectedExecution{
-		{providerID: "auth-username-form", requirement: "REQUIRED"},
+		{providerID: "caselaw-email-identity", requirement: "REQUIRED"},
 		{displayName: methodsFlow, requirement: "REQUIRED", authenticationFlow: true},
 	}); err != nil {
 		return err
@@ -434,7 +519,8 @@ func (i *installer) expectConfig(execution map[string]any, alias string, expecte
 	if err := i.api(http.MethodGet, path, nil, &actual); err != nil {
 		return err
 	}
-	if stringField(actual, "alias") != alias || !sameStringMap(mapStringString(actual["config"]), expected) {
+	config := mapStringString(actual["config"])
+	if stringField(actual, "alias") != alias || !sameStringMap(config, expected) {
 		return fmt.Errorf("%s configuration has drifted; refusing to overwrite it", stringField(execution, "providerId"))
 	}
 	return nil
@@ -560,6 +646,9 @@ func (i *installer) rollback() {
 	}
 	if i.createdClientID != "" {
 		_ = i.api(http.MethodDelete, i.adminPath+"/clients/"+url.PathEscape(i.createdClientID), nil, nil)
+	}
+	if i.originalProfile != nil {
+		_ = i.api(http.MethodPut, i.adminPath+"/users/profile", i.originalProfile, nil)
 	}
 }
 
@@ -708,6 +797,51 @@ func mapStringString(value any) map[string]string {
 		}
 	}
 	return result
+}
+
+func findProfileAttribute(profile map[string]any, wanted string) map[string]any {
+	attributes, _ := profile["attributes"].([]any)
+	for _, value := range attributes {
+		attribute, _ := value.(map[string]any)
+		if stringField(attribute, "name") == wanted {
+			return attribute
+		}
+	}
+	return nil
+}
+
+func hasActiveRequirement(value any) bool {
+	requirement, ok := value.(map[string]any)
+	if !ok {
+		return false
+	}
+	return len(stringSlice(requirement["roles"])) > 0 || len(stringSlice(requirement["scopes"])) > 0
+}
+
+func isDefaultNameRequirement(value any) bool {
+	requirement, ok := value.(map[string]any)
+	if !ok {
+		return false
+	}
+	for key := range requirement {
+		if key != "roles" && key != "scopes" {
+			return false
+		}
+	}
+	roles := stringSlice(requirement["roles"])
+	return len(roles) == 1 && roles[0] == "user" && len(stringSlice(requirement["scopes"])) == 0
+}
+
+func cloneMap(source map[string]any) (map[string]any, error) {
+	encoded, err := json.Marshal(source)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]any
+	if err := json.Unmarshal(encoded, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func sameStringMap(left, right map[string]string) bool {
