@@ -45,6 +45,7 @@ service itself.
 |---|---|
 | Enable optional email OTP | [docs/OTP_SETUP.md](docs/OTP_SETUP.md) |
 | Give a project its own `auth.<domain>` | [docs/PROJECT_AUTH_DOMAINS.md](docs/PROJECT_AUTH_DOMAINS.md) |
+| Complete the prepared DigiMach setup | [docs/DIGIMACH_HANDOFF.md](docs/DIGIMACH_HANDOFF.md) |
 | Monitor and maintain OTP | [docs/OTP_OPERATIONS.md](docs/OTP_OPERATIONS.md) |
 | Roll out email OTP across Case Law | [docs/PASSWORDLESS_ROLLOUT.md](docs/PASSWORDLESS_ROLLOUT.md) |
 | Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |

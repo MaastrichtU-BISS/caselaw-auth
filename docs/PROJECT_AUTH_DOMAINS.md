@@ -12,6 +12,8 @@ Custom domains work with password login and with optional email OTP.
 
 This guide describes the configuration to apply; the examples are not a record
 that DigiMach DNS or its application issuer has already been migrated.
+For the actual prepared configuration and owner-by-owner cutover checklist, use
+[the DigiMach handoff](DIGIMACH_HANDOFF.md).
 
 ## Who does what
 
@@ -174,9 +176,10 @@ Read the [server integration](SERVER_SIDE_AUTH.md) or
 
 ## 5. Verify the domain and the complete journey
 
-Before migrating an existing realm, use the [isolated live canary procedure](CUSTOM_DOMAIN_CANARY.md)
-to test a real HTTPS auth hostname, mailbox and package callback without changing
-the project's active issuer.
+Before migrating an existing realm, verify the prepared route and trusted TLS
+without changing its active issuer. Keep local multi-domain regression coverage
+(`npm run test:e2e`); no persistent public test domain is required. Complete the
+real application journey during the coordinated cutover below.
 
 Inspect discovery without administrator credentials:
 
