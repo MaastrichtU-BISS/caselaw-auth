@@ -2,7 +2,7 @@
 
 OIDC for the Case Law Explorer products, in two halves: a browser client
 (authorization code with PKCE, refresh, role checks, Vue and Svelte adapters) and
-a server one that keeps the session out of the browser entirely.
+a server one that keeps session handling and credentials out of page JavaScript.
 
 Provider-neutral. It is used with the shared
 [Keycloak realm](https://github.com/MaastrichtU-BISS/caselaw-auth) because Keycloak

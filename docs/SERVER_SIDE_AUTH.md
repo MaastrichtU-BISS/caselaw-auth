@@ -454,10 +454,14 @@ in `localStorage`, where any script running on the page can read it. That is
 the standard public-SPA trade and it is a reasonable one, but it is strictly
 weaker than a cookie script cannot touch.
 
-For a server-rendered app there is no reason to take that trade: the session
-never needs to be in the browser at all, only a cookie handle to it. And for
-anything holding a secret the question does not arise, because the browser
-cannot hold one.
+For a server-rendered app, keep session handling out of page JavaScript. This
+package's `sealSession` stores a **signed, not encrypted**, serialized session in
+the cookie; it is not automatically an opaque handle to a server-side database.
+HttpOnly blocks page-script access, while the signature prevents undetected
+tampering. The browser owner can still inspect the payload, so never put the
+confidential client secret or session-signing secret into it. An application
+requiring fully server-resident tokens can instead store them server-side and
+use an opaque session identifier.
 
 If you are weighing this for an existing browser app, the mitigation that
 matters most is not moving to cookies — it is not having an XSS. A
