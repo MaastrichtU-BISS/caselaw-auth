@@ -44,6 +44,7 @@ service itself.
 | Task | Guide |
 |---|---|
 | Enable optional email OTP and magic links | [docs/OTP_SETUP.md](docs/OTP_SETUP.md) |
+| Monitor and maintain OTP | [docs/OTP_OPERATIONS.md](docs/OTP_OPERATIONS.md) |
 | Roll out email OTP and magic links across Case Law | [docs/PASSWORDLESS_ROLLOUT.md](docs/PASSWORDLESS_ROLLOUT.md) |
 | Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |
 | Connect a **static SPA** | [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) |
@@ -95,7 +96,7 @@ including a realm of your own rather than this one.
 
 The imported realm and Compose deployment both keep Keycloak's built-in password
 browser flow by default. To enable OTP, an administrator can run
-`npx --yes caselaw-auth@0.6.2 apply-passwordless-flow` against the target realm from
+`npx --yes caselaw-auth@0.6.3 apply-passwordless-flow` against the target realm from
 any Node 18+ machine—no repository checkout or server shell is needed. Alternatively,
 a deployment operator can explicitly set `CASELAW_PASSWORDLESS_AUTO_APPLY=true`.
 Either path creates/validates and binds the email flow; SMTP or application

@@ -17,14 +17,17 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
 
       # Lockfile lives at the workspace root, so the install happens there.
       - run: npm ci
+
+      - name: Unit and contract tests
+        run: npm test
 
       - name: Typecheck
         run: npm run typecheck
@@ -38,8 +41,24 @@ jobs:
         run: npm pack --dry-run
         working-directory: packages/caselaw-auth
 
+      - name: Reject production dependency advisories
+        run: npm audit --omit=dev
+
+  passwordless-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Test fresh install, legacy upgrade, SMTP delivery and stale-user cleanup
+        run: npm run test:e2e
+
   publish:
-    needs: check
+    needs: [check, passwordless-e2e]
     runs-on: ubuntu-latest
     environment: npm
     permissions:
@@ -48,9 +67,9 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"

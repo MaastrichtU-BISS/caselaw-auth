@@ -18,6 +18,24 @@ name or password form is shown.
 Keep every realm-scoped item together: SMTP, users, the authentication-flow binding,
 and the project's OIDC client must be in the realm named by the project's issuer.
 
+## Five-minute quick start
+
+If the project uses the shared production `caselaw` realm, OTP is already a realm
+property. Create a unique OIDC client, configure the project's issuer/client/callback,
+and test login. Do not configure SMTP or run the installer again; follow
+[Path A](#path-a-project-using-the-shared-caselaw-realm).
+
+If the project uses another realm, the administrator must complete these actions in
+order: test that realm's SMTP, create the OIDC client, deploy the provider image if
+the server does not already have it, run the published installer from any Node 18+
+computer, verify the binding, and test an unknown address. The exact environment
+variables and command are in the
+[administrator checklist](#administrator-checklist-deployed-keycloak-new-realm).
+
+After commissioning, use [OTP_OPERATIONS.md](OTP_OPERATIONS.md) for monitoring,
+cleanup and upgrades. `PASSWORDLESS_ROLLOUT.md` is architecture/reference material,
+not another set of setup steps.
+
 ## Two installations are involved
 
 These are separate operations with different permissions:
@@ -73,7 +91,7 @@ Then complete these steps in order:
 7. Still in that terminal, run the published installer:
 
    ```bash
-   npx --yes caselaw-auth@0.6.2 apply-passwordless-flow
+   npx --yes caselaw-auth@0.6.3 apply-passwordless-flow
    ```
 
    It downloads the pinned package, gets a short-lived admin token, creates or
@@ -187,16 +205,23 @@ Install `caselaw-auth` and implement the callback using
 [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md). A static SPA has no client secret.
 
 Projects in `caselaw-coolify` may use service-specific names instead of the generic
-ones. For Case Law Explorer itself the equivalent values are:
+ones. For the currently deployed Coolify Case Law Explorer environment the
+equivalent values are:
 
 ```env
 FRONTEND_AUTH_PROVIDER=oidc
 REQUIRE_FRONTEND_AUTH=true
 FRONTEND_PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
 FRONTEND_PUBLIC_AUTH_CLIENT_ID=caselaw-frontend
-FRONTEND_PUBLIC_AUTH_REDIRECT_URI=https://app.caselawexplorer.tech/auth/callback
+FRONTEND_PUBLIC_AUTH_REDIRECT_URI=https://demo-app.caselawexplorer.tech/auth/callback
 AUTH_SESSION_SECRET=<unique long random value>
 ```
+
+`app.caselawexplorer.tech` currently remains the legacy Vercel/Supabase deployment.
+It is registered as a future callback, but do not configure a project to use it until
+the public-domain cutover has been completed and `/auth/login` returns a Keycloak
+redirect. The domain registered in Keycloak, the application variable, and the
+domain serving the application must always match exactly.
 
 ### A4. Test
 
@@ -343,7 +368,7 @@ KEYCLOAK_ADMIN_REALM=master \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
 CASELAW_PASSWORDLESS_ESTATE_MODE=false \
-npx --yes caselaw-auth@0.6.2 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.3 apply-passwordless-flow
 ```
 
 Supply the password through a secret manager or a temporary environment variable;
@@ -459,7 +484,8 @@ registration form for that realm. It also makes first and last name optional in 
 realm user profile so Keycloak's post-login **Verify Profile** action cannot reinsert
 a name form after a successful OTP. A send request can leave an enabled but
 unverified user when the person abandons the challenge or delivery fails. Monitor
-and, where required by policy, periodically remove stale unverified accounts.
+and periodically remove stale unverified accounts with the reviewed dry-run command
+in [OTP_OPERATIONS.md](OTP_OPERATIONS.md).
 
 The supplied flow offers **Email OTP** and **Magic link** as alternatives to each
 other. It does not currently offer password as a third choice on the same page and
@@ -507,7 +533,7 @@ default realm baseline.
 The installer disables **Realm settings → Login → User registration** because new
 accounts are created through the email challenge instead. It also makes the built-in
 first and last name profile attributes optional so **Verify Profile** does not ask for
-them after OTP. Run version `0.6.2` of the installer, then refresh the login in a
+them after OTP. Run version `0.6.3` of the installer, then refresh the login in a
 private browser. Also confirm the application points to the realm you changed. If
 the CLI reports a custom name-field requirement, review and remove that realm policy
 manually; the installer deliberately refuses to overwrite it.
@@ -516,7 +542,7 @@ manually; the installer deliberately refuses to overwrite it.
 
 Check the target realm's **Authentication → Bindings → Browser flow**. Deploying the
 provider image, configuring SMTP, or connecting the application does not change the
-binding. Run `npx --yes caselaw-auth@0.6.2 apply-passwordless-flow` with the
+binding. Run `npx --yes caselaw-auth@0.6.3 apply-passwordless-flow` with the
 environment variables from B7, then verify the binding is
 `caselaw-browser-passwordless-email-first`. Also verify that the application issuer names the
 realm you changed rather than another realm.

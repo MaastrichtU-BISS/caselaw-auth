@@ -26,6 +26,12 @@ const formsFlow = 'Case Law email-first forms'
 const methodsFlow = 'Case Law email-first methods'
 const otpConfigAlias = 'caselaw-email-first-otp'
 const magicLinkConfigAlias = 'caselaw-email-first-magic-link'
+const pendingMarkerAttribute = {
+  name: 'caselaw.pending-email-otp',
+  displayName: 'Pending email OTP provenance',
+  permissions: { view: ['admin'], edit: ['admin'] },
+  multivalued: false,
+}
 
 const otpConfig = {
   'ext-magic-create-nonexistent-user': 'false',
@@ -227,8 +233,22 @@ async function ensureNamesOptional() {
     }
   }
 
-  if (!nameAttributes.some((attribute) => hasActiveRequirement(attribute.required))) {
-    console.log('Validated that firstName and lastName are optional.')
+  const markerAttributes = profile.attributes
+    .filter((attribute) => attribute.name === pendingMarkerAttribute.name)
+  if (markerAttributes.length > 1) {
+    throw new Error(`The realm user profile has more than one ${pendingMarkerAttribute.name} attribute. Refusing to overwrite drift.`)
+  }
+  if (markerAttributes.length === 1 && !sameStringMap(
+    markerAttributes[0].permissions,
+    pendingMarkerAttribute.permissions,
+  )) {
+    throw new Error(`${pendingMarkerAttribute.name} has custom permissions. Refusing to overwrite drift.`)
+  }
+
+  const namesAlreadyOptional = !nameAttributes
+    .some((attribute) => hasActiveRequirement(attribute.required))
+  if (namesAlreadyOptional && markerAttributes.length === 1) {
+    console.log('Validated that firstName and lastName are optional and cleanup provenance is admin-only.')
     return
   }
 
@@ -236,6 +256,7 @@ async function ensureNamesOptional() {
   for (const attribute of updated.attributes) {
     if (attribute.name === 'firstName' || attribute.name === 'lastName') delete attribute.required
   }
+  if (markerAttributes.length === 0) updated.attributes.push(pendingMarkerAttribute)
   originalUserProfile = profile
   await api('PUT', path, updated)
 
@@ -246,7 +267,11 @@ async function ensureNamesOptional() {
       throw new Error(`${name} is still required after updating the realm user profile.`)
     }
   }
-  console.log('Made firstName and lastName optional for email-only accounts.')
+  const marker = verified.attributes?.find((candidate) => candidate.name === pendingMarkerAttribute.name)
+  if (!marker || !sameStringMap(marker.permissions, pendingMarkerAttribute.permissions)) {
+    throw new Error(`${pendingMarkerAttribute.name} is missing or not admin-only after updating the realm user profile.`)
+  }
+  console.log('Made firstName and lastName optional and registered admin-only cleanup provenance.')
 }
 
 function hasActiveRequirement(requirement) {

@@ -1,6 +1,6 @@
 {
   "name": "caselaw-auth",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Shared OIDC auth client and Svelte/Vue integrations for Case Law Explorer projects.",
   "repository": {
     "type": "git",
@@ -54,6 +54,7 @@
   "scripts": {
     "build": "vite build && vue-tsc --emitDeclarationOnly",
     "typecheck": "vue-tsc --noEmit",
+    "pretest": "npm run build",
     "test": "node --test test/*.test.mjs"
   },
   "peerDependencies": {

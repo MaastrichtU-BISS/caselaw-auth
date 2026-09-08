@@ -8,6 +8,7 @@ const compose = await readFile(new URL('../docker-compose.yml', import.meta.url)
 const entrypoint = await readFile(new URL('../scripts/keycloak-entrypoint.sh', import.meta.url), 'utf8')
 const nodeConfigurator = await readFile(new URL('../packages/caselaw-auth/admin/apply-passwordless-flow.mjs', import.meta.url), 'utf8')
 const goConfigurator = await readFile(new URL('../scripts/passwordless-configurator/main.go', import.meta.url), 'utf8')
+const emailIdentity = await readFile(new URL('../providers/email-identity/src/main/java/tech/caselaw/auth/EmailIdentityAuthenticator.java', import.meta.url), 'utf8')
 
 function flow(alias) {
   const found = realm.authenticationFlows.find((item) => item.alias === alias)
@@ -59,6 +60,11 @@ test('email identity creates passwordless users and email methods verify them', 
     'ext-magic-allow-token-reuse': 'false',
     'ext-magic-token-life-span': '600',
   })
+})
+
+test('new email-first users carry a server-controlled cleanup marker', () => {
+  assert.match(emailIdentity, /PENDING_EMAIL_OTP_ATTRIBUTE = "caselaw\.pending-email-otp"/)
+  assert.match(emailIdentity, /setSingleAttribute\(PENDING_EMAIL_OTP_ATTRIBUTE, "true"\)/)
 })
 
 test('every interactive estate client uses standard flow with PKCE', () => {

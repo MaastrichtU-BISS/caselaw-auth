@@ -21,6 +21,9 @@ test('the CLI documents the remote passwordless installer', () => {
   assert.match(result.stdout, /KEYCLOAK_URL/)
   assert.match(result.stdout, /KEYCLOAK_REALM/)
   assert.match(result.stdout, /KEYCLOAK_ADMIN_PASSWORD/)
+  assert.match(result.stdout, /caselaw-auth check-passwordless/)
+  assert.match(result.stdout, /caselaw-auth cleanup-unverified-users/)
+  assert.match(result.stdout, /dry run unless --execute/)
 })
 
 test('the CLI rejects unknown commands without contacting Keycloak', () => {
@@ -28,4 +31,13 @@ test('the CLI rejects unknown commands without contacting Keycloak', () => {
 
   assert.equal(result.status, 1)
   assert.match(result.stderr, /Unknown command: unknown/)
+})
+
+test('cleanup validates arguments before contacting Keycloak', () => {
+  const result = spawnSync(process.execPath, [cliPath, 'cleanup-unverified-users', '--max-age-days', '-1'], {
+    encoding: 'utf8',
+  })
+
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /must be a non-negative number/)
 })
