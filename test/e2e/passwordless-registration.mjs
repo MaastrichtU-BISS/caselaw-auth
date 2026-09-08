@@ -58,6 +58,7 @@ const browser = new CookieBrowser()
 const login = await browser.fetch(authorize)
 assert.equal(login.status, 200, `authorization page returned ${login.status}`)
 const loginHtml = await login.text()
+await verifyFavicon(loginHtml)
 assert.doesNotMatch(loginHtml, /\bregister\b/i, 'the separate registration link must not be rendered')
 assert.doesNotMatch(loginHtml, /name=["']password["']/i, 'password must not be requested')
 const loginAction = formAction(loginHtml)
@@ -69,10 +70,32 @@ const otpPage = await browser.fetch(loginAction, {
 })
 assert.equal(otpPage.status, 200, `email submission returned ${otpPage.status}`)
 const otpHtml = await otpPage.text()
+assert.equal(faviconPath(otpHtml), faviconPath(loginHtml), 'OTP must retain the project favicon')
 assert.match(otpHtml, /name=["']otp["']/i, 'email submission did not reach the OTP form')
 assert.doesNotMatch(otpHtml, /id=["']try-another-way["']/i, 'OTP-only flow must not offer a method chooser')
 assert.doesNotMatch(otpHtml, /name=["'](?:firstName|lastName|password)["']/i,
   'OTP form must not request names or a password')
+
+function faviconPath(html) {
+  const icons = [...html.matchAll(/<link\b[^>]*\brel="icon"[^>]*>/g)]
+  assert.equal(icons.length, 1, 'the project must replace, not supplement, the inherited Keycloak icon')
+  return icons[0][0].match(/href="([^"]+)"/)[1]
+}
+
+async function verifyFavicon(html) {
+  const path = faviconPath(html)
+  const theme = process.env.E2E_LOGIN_THEME || 'caselaw'
+  const file = theme === 'digimach' ? 'digimach-mark.svg' : 'caselaw-favicon-v1.svg'
+  assert.ok(path.endsWith(`/login/${theme}/img/${file}`), 'favicon must come from the selected project theme')
+  const iconUrl = new URL(path, keycloakUrl)
+  assert.equal(iconUrl.origin, new URL(keycloakUrl).origin, 'favicon stays on the project auth origin')
+  const response = await fetch(iconUrl)
+  assert.equal(response.status, 200)
+  assert.match(response.headers.get('content-type'), /image\/svg\+xml/)
+  const { readFile } = await import('node:fs/promises')
+  const expected = await readFile(new URL(`../../themes/${theme}/login/resources/img/${file}`, import.meta.url), 'utf8')
+  assert.equal((await response.text()).trim(), expected.trim(), 'served favicon matches the bundled project asset')
+}
 
 const pendingUsers = await usersByEmail(adminToken, testEmail)
 assert.equal(pendingUsers.length, 1, 'submitting a new email must create exactly one pending user')

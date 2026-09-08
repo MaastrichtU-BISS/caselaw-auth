@@ -67,7 +67,7 @@ try {
 
     const journey = await exec(process.execPath, ['test/e2e/passwordless-registration.mjs'], {
       env: { ...process.env, E2E_KEYCLOAK_URL: origin, E2E_ADMIN_URL: backend,
-        KEYCLOAK_REALM: realm, E2E_ESTATE_MODE: 'false', E2E_VERIFY_DOMAIN: 'true' },
+        KEYCLOAK_REALM: realm, E2E_LOGIN_THEME: theme, E2E_ESTATE_MODE: 'false', E2E_VERIFY_DOMAIN: 'true' },
       timeout: 120_000,
     })
     console.log(journey.stdout.trim())
