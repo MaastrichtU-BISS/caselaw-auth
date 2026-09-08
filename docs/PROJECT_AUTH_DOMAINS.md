@@ -78,8 +78,10 @@ KEYCLOAK_HOSTNAME_STRICT=true
 ```
 
 `KEYCLOAK_HOSTNAME` is the server-wide fallback. Do not replace it for each new
-project. `KEYCLOAK_ADMIN_HOSTNAME` defaults to the same value and keeps the Admin
-Console on a shared origin even when the selected realm has a custom Frontend URL.
+project. Explicitly set `KEYCLOAK_ADMIN_HOSTNAME` to keep the Admin Console on a
+shared origin even when the selected realm has a custom Frontend URL. It is blank
+by default for compatibility with existing deployments; leaving it blank lets
+Keycloak use its normal realm-aware admin URL resolution.
 Both must be full URLs. The repository maps these to `KC_HOSTNAME` and
 `KC_HOSTNAME_ADMIN` inside Keycloak; `KEYCLOAK_HOSTNAME_STRICT` maps to
 `KC_HOSTNAME_STRICT`. If these container settings change, redeploy once.
@@ -90,7 +92,7 @@ every variable saved in the panel reaches the container:
 | Coolify setting | Action when adding DigiMach |
 |---|---|
 | `KEYCLOAK_HOSTNAME` | Keep the existing shared full HTTPS origin |
-| `KEYCLOAK_ADMIN_HOSTNAME` | Set to the shared admin origin; defaults to `KEYCLOAK_HOSTNAME` |
+| `KEYCLOAK_ADMIN_HOSTNAME` | Explicitly set to the shared admin origin before enabling project domains |
 | `KEYCLOAK_HOSTNAME_STRICT` | Use `true` with the fixed hostname |
 | `KC_PROXY_HEADERS` | Compose already sets `xforwarded`; verify the ingress overwrites those headers |
 | `KC_HOSTNAME_BACKCHANNEL_DYNAMIC` | Compose fixes this to `false`; do not enable dynamic endpoints for this design |
