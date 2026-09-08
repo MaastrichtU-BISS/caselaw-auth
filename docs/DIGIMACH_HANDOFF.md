@@ -3,6 +3,8 @@
 Deployment handoff, 8 September 2026. This is the actual DigiMach configuration,
 not a template for creating another realm. The application and DNS are owned by
 the DigiMach team; BISS operates the shared Keycloak deployment.
+For the separate pending Access and Coolify app-bundle releases, see
+[Authentication rollout status](AUTH_ROLLOUT_STATUS.md).
 
 ## Already configured by BISS
 

@@ -3,13 +3,18 @@
 Reference and integration guides for Case Law Auth: the shared Keycloak realm,
 its theme, and the `caselaw-auth` npm package.
 
+Start with [Authentication rollout status](AUTH_ROLLOUT_STATUS.md) to distinguish
+deployed features, prepared DigiMach configuration and pending Access/Coolify work.
+For your colleague's DigiMach setup, use [DIGIMACH_HANDOFF.md](DIGIMACH_HANDOFF.md).
+
 ## Guides
 
 | Document | Audience | Covers |
 |---|---|---|
 | [OTP_SETUP.md](OTP_SETUP.md) | Project developers and realm administrators | Start-here decision table and numbered checklist for the shared realm or a different realm/server, including the no-clone `npx` installer |
-| [PROJECT_AUTH_DOMAINS.md](PROJECT_AUTH_DOMAINS.md) | DNS owners, deployment operators, realm administrators and project developers | Configure `auth.<project-domain>` on one shared Keycloak deployment; migrate issuers and verify login, email links and logout |
-| [DIGIMACH_HANDOFF.md](DIGIMACH_HANDOFF.md) | DigiMach developer, DNS/mail administrator and BISS operator | Actual prepared DigiMach configuration, retained localhost callbacks, sender-domain setup and coordinated cutover |
+| [AUTH_ROLLOUT_STATUS.md](AUTH_ROLLOUT_STATUS.md) | All operators and integrators | Dated deployed/pending inventory and acceptance boundaries |
+| [PROJECT_AUTH_DOMAINS.md](PROJECT_AUTH_DOMAINS.md) | DNS owners, deployment operators, realm administrators and project developers | Configure `auth.<project-domain>` on one shared Keycloak deployment; migrate issuers and verify OTP, callback and logout |
+| [DIGIMACH_HANDOFF.md](DIGIMACH_HANDOFF.md) | DigiMach developer, DNS owner and BISS operator | Prepared DigiMach configuration, retained localhost callbacks and existing SMTP, and coordinated cutover |
 | [OTP_OPERATIONS.md](OTP_OPERATIONS.md) | Operators | Health checks, synthetic SMTP monitoring, stale-user cleanup, upgrade gate and incidents |
 | [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md) | Operators and product engineers | Architecture and estate-wide service matrix; use `OTP_SETUP.md` for installation |
 | [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) | Engineers integrating a product that has a backend | `caselaw-auth/server`, session cookies, token verification, DiscourseConnect |

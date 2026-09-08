@@ -11,6 +11,10 @@ Theme names are lowercase and case-sensitive. Deploy an image built from this
 repository before selecting a theme; otherwise it will not appear in Keycloak's
 theme list.
 
+Theme selection changes presentation, not OTP policy or the OIDC issuer. See
+[rollout status](AUTH_ROLLOUT_STATUS.md) for the deployed themes and
+[DigiMach handoff](DIGIMACH_HANDOFF.md) for its prepared domain and active issuer.
+
 ## Choose the correct scope
 
 In Keycloak, an application or project is represented by an OIDC **client**.

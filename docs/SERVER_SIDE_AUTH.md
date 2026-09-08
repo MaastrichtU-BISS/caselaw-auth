@@ -10,6 +10,10 @@ secret.
 for the product, and either `caselaw-auth` v0.2.1 or later (Node) or
 `caselaw-auth-server` (Python).
 
+That is the minimum version for the application API, not the realm installer.
+The current realm-administration instructions pin `caselaw-auth@0.6.4`; see
+[OTP_SETUP.md](OTP_SETUP.md) when enabling or upgrading OTP in a realm.
+
 > **Python backends use `caselaw-auth-server`.** Every step below applies
 > unchanged — the two implementations are interchangeable, and a session sealed
 > by one unseals in the other. Method names are snake_case there; session keys
@@ -22,13 +26,16 @@ for the product, and either `caselaw-auth` v0.2.1 or later (Node) or
 For `auth.<project-domain>`, follow [Project authentication domains](PROJECT_AUTH_DOMAINS.md).
 Set the server's issuer to the canonical project realm URL and update API validators
 at the same time. Existing callback routes and PKCE handling stay the same.
+Check [rollout status](AUTH_ROLLOUT_STATUS.md) before relying on downstream Access
+features or new Coolify environment-variable mappings.
 
 > **Email OTP needs no server-library changes.** The login
 > route still redirects to the realm and the callback still exchanges an
 > authorization code; Keycloak owns the email challenge. The estate-wide
 > client matrix and rollout are in
 > [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md). For a project using a
-> different realm, follow [OTP_SETUP.md](OTP_SETUP.md) first.
+> different realm that should use OTP, follow [OTP_SETUP.md](OTP_SETUP.md) first.
+> OTP is optional; a realm left on password login uses the same OIDC integration.
 
 ## Contents
 
@@ -45,9 +52,11 @@ at the same time. Existing callback routes and PKCE handling stay the same.
 
 ## 1. When to use this path
 
-Reach for `caselaw-auth/client` (or `/vue`, `/svelte`) for a browser app that
-talks to an API with a bearer token. It is the right tool and most products
-here use it.
+Use `caselaw-auth/client` (or `/vue`, `/svelte`) for a **static SPA without a
+backend** that holds its own session and calls an API with an access token.
+If a backend exists, prefer `caselaw-auth/server`: keep the session and any
+confidential client secret server-side. A Vue/Svelte/Nuxt UI alone does not decide
+which path to use; the presence of a backend and who holds the session do.
 
 Reach for `caselaw-auth/server` when any of these is true:
 
@@ -445,10 +454,14 @@ in `localStorage`, where any script running on the page can read it. That is
 the standard public-SPA trade and it is a reasonable one, but it is strictly
 weaker than a cookie script cannot touch.
 
-For a server-rendered app there is no reason to take that trade: the session
-never needs to be in the browser at all, only a cookie handle to it. And for
-anything holding a secret the question does not arise, because the browser
-cannot hold one.
+For a server-rendered app, keep session handling out of page JavaScript. This
+package's `sealSession` stores a **signed, not encrypted**, serialized session in
+the cookie; it is not automatically an opaque handle to a server-side database.
+HttpOnly blocks page-script access, while the signature prevents undetected
+tampering. The browser owner can still inspect the payload, so never put the
+confidential client secret or session-signing secret into it. An application
+requiring fully server-resident tokens can instead store them server-side and
+use an opaque session identifier.
 
 If you are weighing this for an existing browser app, the mitigation that
 matters most is not moving to cookies — it is not having an XSS. A

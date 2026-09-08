@@ -5,6 +5,11 @@ Use this runbook after a realm has been commissioned with
 abandoned-account retention, upgrades, incidents, and rollback. It is not a second
 setup guide.
 
+[Authentication rollout status](AUTH_ROLLOUT_STATUS.md) records which realms and
+downstream features are deployed. Keycloak's **Test connection** sends to the
+signed-in administrator's email address; configure that address before using it.
+A bootstrap admin without an email cannot use that test to establish SMTP delivery.
+
 ## Supported production combination
 
 | Component | Tested version |

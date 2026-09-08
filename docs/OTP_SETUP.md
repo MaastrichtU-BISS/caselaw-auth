@@ -7,6 +7,11 @@ email address and the emailed code. Submitting a new address creates a pending,
 unverified email-only user; completing the code verifies and signs in that user. No
 name or password form is shown.
 
+For current live realms and pending downstream releases, see
+[Authentication rollout status](AUTH_ROLLOUT_STATUS.md). DigiMach already has OTP;
+its domain migration uses [DIGIMACH_HANDOFF.md](DIGIMACH_HANDOFF.md), not a second
+OTP installation.
+
 ## Choose your path
 
 | Situation | Follow |
@@ -75,7 +80,9 @@ Then complete these steps in order:
 1. In the Admin Console, create or select the target realm. Leave
    **Authentication → Bindings → Browser flow** set to `browser` for now.
 2. In that realm, configure **Realm settings → Email**, save it, and click
-   **Test connection**. Do not continue until the test email arrives.
+   **Test connection**. The signed-in administrator must have a real email address
+   in their own account; a missing recipient is not an SMTP-password failure.
+   Do not continue until the test email arrives.
 3. In that realm, create the project's OIDC client with its exact callback URL.
 4. Configure the project to use this realm's issuer and client ID.
 5. Choose a real mailbox that is not already a user in the realm. This will test
@@ -450,15 +457,25 @@ The installer changes only the realm named by `KEYCLOAK_REALM`. It:
 1. verifies `caselaw-email-identity`, `ext-email-otp`, and `ext-magic-form` are installed;
 2. creates or validates `caselaw-browser-passwordless-email-first`;
 3. requires six-digit email OTP and disables magic-link sign-in;
-4. uses the Case Law email-identity step to resolve or create a pending email-only
-   user; only a successful OTP challenge verifies and signs in that
-   user;
+4. configures the Case Law email-identity step; **at sign-in time**, that provider
+   resolves or creates a pending email-only user, and only a successful OTP
+   challenge verifies and signs in that user;
 5. disables Keycloak's separate registration form, so a password is not requested;
 6. removes Keycloak's default `user` requirement from the built-in `firstName` and
    `lastName` user-profile attributes, while leaving those attributes available as
    optional metadata;
-7. sets the login-action lifetime to ten minutes;
-8. binds the optional flow as the realm's browser flow.
+7. registers the admin-only `caselaw.pending-email-otp` user-profile attribute so
+   abandoned self-service accounts can later be identified safely;
+8. when estate mode is enabled, validates/reconciles the known Case Law clients;
+   this is skipped for an independent realm with estate mode `false`;
+9. sets the login-action lifetime to ten minutes;
+10. binds the optional flow as the realm's browser flow and checks the binding,
+    timeout and disabled separate-registration setting.
+
+The installer does **not** send an OTP, create a test user, configure SMTP, change
+DNS/Frontend URL, install server-side providers, edit application environment
+variables, or schedule account cleanup. Those are separate steps. Account creation
+and email sending happen only when someone starts the configured sign-in flow.
 
 It refuses to overwrite a flow, estate client, or custom name-field requirement that
 has drifted. If your realm deliberately requires names for selected roles or scopes,

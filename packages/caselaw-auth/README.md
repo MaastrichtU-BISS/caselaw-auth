@@ -2,7 +2,7 @@
 
 OIDC for the Case Law Explorer products, in two halves: a browser client
 (authorization code with PKCE, refresh, role checks, Vue and Svelte adapters) and
-a server one that keeps the session out of the browser entirely.
+a server one that keeps session handling and credentials out of page JavaScript.
 
 Provider-neutral. It is used with the shared
 [Keycloak realm](https://github.com/MaastrichtU-BISS/caselaw-auth) because Keycloak
@@ -26,6 +26,9 @@ the repository or obtaining shell access to the Keycloak host is not required.
 2. In the target realm, configure and test SMTP and create the OIDC client. Choose a
    reachable email address that is not already a user; do not pre-create it or set a
    password.
+   Keycloak's SMTP test sends to the logged-in administrator, whose account must
+   have an email address. The installer configures the realm; it does not send a
+   test email, create a test user, change domains or install Keycloak providers.
 3. Export the target URL, target realm and administrator credentials:
 
 ```bash

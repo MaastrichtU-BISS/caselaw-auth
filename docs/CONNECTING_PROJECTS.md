@@ -14,6 +14,8 @@ backend, [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
 For `auth.<project-domain>`, follow [Project authentication domains](PROJECT_AUTH_DOMAINS.md).
 Set the browser client's issuer to the canonical project realm URL, rebuild if it is
 embedded at build time, and update API validators at the same time.
+Check [rollout status](AUTH_ROLLOUT_STATUS.md) for pending Access and Coolify work;
+an auth-domain configuration alone does not enable those downstream features.
 
 > **If the product has a backend, use the server path instead.** This guide
 > stores the session — refresh token included — in `localStorage`, where page
@@ -21,13 +23,14 @@ embedded at build time, and update API validators at the same time.
 > Every product in this estate has a backend; see
 > [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md).
 
-> **On a realm other than `caselaw`**, everything below is unchanged except the
-> issuer, which becomes `https://<keycloak-host>/realms/<realm-name>`.
-> That realm still needs its own SMTP, OIDC client and passwordless-flow binding; use
+> **On a realm other than `caselaw`**, the OIDC code is the same, but use that
+> realm's canonical issuer, its own client ID and approved callback/logout URLs.
+> To opt into OTP, that realm also needs its own SMTP and flow binding; use
 > the end-to-end [OTP setup guide](OTP_SETUP.md#path-b-project-using-a-different-realm).
 > A realm administrator must run the published `caselaw-auth` installer from any
 > Node 18+ machine, or a deployment operator must enable automatic apply;
-> application configuration alone does not enable OTP. A repository checkout and
+> application configuration alone does not enable OTP. Leave the password flow
+> in place if OTP is not wanted. A repository checkout and
 > access to the Keycloak host are not required.
 
 ## Contents
