@@ -73,7 +73,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 48px 20px 116px;
+  padding: 48px 20px;
   position: relative;
   z-index: 1;
 }
@@ -661,21 +661,22 @@ a:hover,
 
 .login-pf .cle-login-footer {
   align-items: center;
-  bottom: 24px;
+  border-top: 1px solid var(--cle-border);
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  left: 50%;
+  gap: 10px;
+  inset: auto;
   line-height: 1.4;
-  max-width: min(92vw, 760px);
-  position: fixed;
-  transform: translateX(-50%);
-  width: min(92vw, 760px);
-  z-index: 2;
+  margin-top: 28px;
+  max-width: 100%;
+  padding-top: 20px;
+  position: static;
+  transform: none;
+  width: 100%;
 }
 
 .login-pf .cle-login-footer p {
-  color: #8792a4;
+  color: var(--cle-muted);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0;
@@ -692,7 +693,7 @@ a:hover,
 }
 
 .login-pf .cle-login-footer a {
-  color: #7a8699;
+  color: var(--cle-muted);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0;
@@ -712,7 +713,7 @@ a:hover,
 @media (max-width: 520px) {
   .login-pf-page {
     align-items: stretch;
-    padding: 14px 14px 110px;
+    padding: 14px 14px max(14px, env(safe-area-inset-bottom));
   }
 
   .login-pf-page .card-pf {
@@ -757,9 +758,7 @@ a:hover,
   }
 
   .login-pf .cle-login-footer {
-    bottom: 14px;
-    gap: 5px;
-    width: min(92vw, 380px);
+    gap: 8px;
   }
 
   .login-pf .cle-login-footer nav {

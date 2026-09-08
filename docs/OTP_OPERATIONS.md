@@ -12,7 +12,7 @@ setup guide.
 | Keycloak | `26.7.0` |
 | Phase Two `keycloak-magic-link` provider | `0.75` |
 | Case Law email-identity provider | `1.1.0`, built against Keycloak `26.7.0` |
-| Realm administration CLI | `caselaw-auth@0.6.3` |
+| Realm administration CLI | `caselaw-auth@0.6.4` |
 
 The providers implement Keycloak internal SPIs. Pin both image arguments and treat
 any Keycloak or provider update as an authentication migration. Do not deploy an
@@ -31,7 +31,7 @@ export KEYCLOAK_ADMIN=admin
 export KEYCLOAK_ADMIN_PASSWORD='<read from the secret manager>'
 export CASELAW_PASSWORDLESS_ESTATE_MODE=true
 
-npx --yes caselaw-auth@0.6.3 check-passwordless
+npx --yes caselaw-auth@0.6.4 check-passwordless
 unset KEYCLOAK_ADMIN_PASSWORD
 ```
 
@@ -87,13 +87,13 @@ The cleanup command deliberately selects only users that are all of the followin
 It is a dry run by default:
 
 ```bash
-npx --yes caselaw-auth@0.6.3 cleanup-unverified-users --max-age-days 7
+npx --yes caselaw-auth@0.6.4 cleanup-unverified-users --max-age-days 7
 ```
 
 Review every listed address. Then repeat the identical command with `--execute`:
 
 ```bash
-npx --yes caselaw-auth@0.6.3 cleanup-unverified-users --max-age-days 7 --execute
+npx --yes caselaw-auth@0.6.4 cleanup-unverified-users --max-age-days 7 --execute
 ```
 
 Use the same `KEYCLOAK_*` environment variables as the routine check. Start with a

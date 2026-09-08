@@ -476,7 +476,7 @@ Do these in order. Each catches a distinct failure.
 
 - [ ] Sign in from the deployed domain.
 - [ ] Sign in from `localhost`.
-- [ ] Complete both email OTP and magic-link sign-in through the shared realm.
+- [ ] Complete email OTP sign-in; confirm no magic-link method chooser is offered.
 - [ ] With a reachable address that is not already a user, complete OTP sign-in and
       confirm exactly one email-verified user is created with no name or password.
 - [ ] Repeat sign-in with the same address and confirm no duplicate user is created.
@@ -510,7 +510,7 @@ creates state and PKCE on the server, `/auth/callback` exchanges the code, and
 the session, access token and refresh token remain in separate httpOnly
 cookies. It reads the shared issuer and client `caselaw-frontend`; setting
 `FRONTEND_AUTH_PROVIDER=none` keeps the local/CI escape hatch. The realm renders
-OTP and magic-link screens, so the workspace contains no OIDC email-code API.
+OTP screens, so the workspace contains no OIDC email-code API.
 
 **The access console** uses the Python server path. FastAPI owns `/auth/login`,
 `/auth/callback`, `/auth/logout` and `/auth/session`; its SPA receives the user

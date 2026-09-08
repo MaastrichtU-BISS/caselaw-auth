@@ -43,8 +43,8 @@ test('the realm defaults to password login and includes an opt-in passwordless f
   assert.equal(execution(forms, 'Case Law email-first methods').requirement, 'REQUIRED')
 
   const methods = flow('Case Law email-first methods')
-  assert.equal(execution(methods, 'ext-email-otp').requirement, 'ALTERNATIVE')
-  assert.equal(execution(methods, 'ext-magic-form').requirement, 'ALTERNATIVE')
+  assert.equal(execution(methods, 'ext-email-otp').requirement, 'REQUIRED')
+  assert.equal(execution(methods, 'ext-magic-form').requirement, 'DISABLED')
 })
 
 test('email identity creates passwordless users and email methods verify them', () => {

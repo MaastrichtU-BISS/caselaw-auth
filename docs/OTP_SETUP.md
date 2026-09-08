@@ -96,7 +96,7 @@ Then complete these steps in order:
 7. Still in that terminal, run the published installer:
 
    ```bash
-   npx --yes caselaw-auth@0.6.3 apply-passwordless-flow
+   npx --yes caselaw-auth@0.6.4 apply-passwordless-flow
    ```
 
    It downloads the pinned package, gets a short-lived admin token, creates or
@@ -415,7 +415,7 @@ KEYCLOAK_ADMIN_REALM=master \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
 CASELAW_PASSWORDLESS_ESTATE_MODE=false \
-npx --yes caselaw-auth@0.6.3 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.4 apply-passwordless-flow
 ```
 
 Supply the password through a secret manager or a temporary environment variable;
@@ -435,7 +435,7 @@ administrator authenticates—normally `master`. The administrator must have
 permission to manage the target realm.
 
 `CASELAW_PASSWORDLESS_ESTATE_MODE=false` is important for an independent realm. It
-installs and binds only the generic OTP/magic-link flow; it does not create or
+installs and binds only the generic OTP-only flow; it does not create or
 validate `caselaw-frontend`, `citations-api`, or other Case Law estate clients.
 
 For the production `caselaw` realm, estate mode defaults to `true`. It can also be
@@ -449,9 +449,9 @@ The installer changes only the realm named by `KEYCLOAK_REALM`. It:
 
 1. verifies `caselaw-email-identity`, `ext-email-otp`, and `ext-magic-form` are installed;
 2. creates or validates `caselaw-browser-passwordless-email-first`;
-3. configures six-digit OTP and ten-minute, single-use magic links;
+3. requires six-digit email OTP and disables magic-link sign-in;
 4. uses the Case Law email-identity step to resolve or create a pending email-only
-   user; only a successful OTP or magic-link challenge verifies and signs in that
+   user; only a successful OTP challenge verifies and signs in that
    user;
 5. disables Keycloak's separate registration form, so a password is not requested;
 6. removes Keycloak's default `user` requirement from the built-in `firstName` and
@@ -464,7 +464,7 @@ It refuses to overwrite a flow, estate client, or custom name-field requirement 
 has drifted. If your realm deliberately requires names for selected roles or scopes,
 decide whether to remove that policy under **Realm settings → User profile** before
 rerunning; the CLI will not silently weaken it. Running this command is the moment
-the realm changes from password login to OTP/magic-link login for all interactive
+the realm changes from password login to OTP-only login for all interactive
 clients in that realm.
 
 The installer deliberately uses new `email-first` aliases and leaves an older
@@ -534,8 +534,8 @@ unverified user when the person abandons the challenge or delivery fails. Monito
 and periodically remove stale unverified accounts with the reviewed dry-run command
 in [OTP_OPERATIONS.md](OTP_OPERATIONS.md).
 
-The supplied flow offers **Email OTP** and **Magic link** as alternatives to each
-other. It does not currently offer password as a third choice on the same page and
+The supplied flow offers **Email OTP only**: email entry goes directly to the code
+form, without a method chooser. It does not offer password on the same page and
 it is not enabled per client or per user. If one realm needs password login while
 another needs OTP, use separate realms and bind a different browser flow in each.
 
@@ -580,7 +580,7 @@ default realm baseline.
 The installer disables **Realm settings → Login → User registration** because new
 accounts are created through the email challenge instead. It also makes the built-in
 first and last name profile attributes optional so **Verify Profile** does not ask for
-them after OTP. Run version `0.6.3` of the installer, then refresh the login in a
+them after OTP. Run version `0.6.4` of the installer, then refresh the login in a
 private browser. Also confirm the application points to the realm you changed. If
 the CLI reports a custom name-field requirement, review and remove that realm policy
 manually; the installer deliberately refuses to overwrite it.
@@ -589,7 +589,7 @@ manually; the installer deliberately refuses to overwrite it.
 
 Check the target realm's **Authentication → Bindings → Browser flow**. Deploying the
 provider image, configuring SMTP, or connecting the application does not change the
-binding. Run `npx --yes caselaw-auth@0.6.3 apply-passwordless-flow` with the
+binding. Run `npx --yes caselaw-auth@0.6.4 apply-passwordless-flow` with the
 environment variables from B7, then verify the binding is
 `caselaw-browser-passwordless-email-first`. Also verify that the application issuer names the
 realm you changed rather than another realm.
@@ -625,10 +625,21 @@ Authentication and authorization are separate. Check realm/client roles and the
 project's access policy. Do not change OTP settings or create a duplicate user to
 fix a missing role.
 
-### A magic link is expired before the user opens it
+### Why is magic-link sign-in no longer offered?
 
-Mail-security scanners can consume single-use links. Check gateway logs and use OTP
-while adjusting scanner policy.
+Email security services can inspect URLs before the recipient opens them. This can
+interfere with single-use login links; links opened in another browser can also lose
+the application's login transaction. The supported email flow is therefore OTP-only.
+Do not disable your organization's email-security scanning to make login work.
+
+To upgrade an existing realm, run the `0.6.4` installer with that realm selected.
+It validates the exact previously shipped flow, changes **Email OTP** to
+**REQUIRED** and **Magic Link** to **DISABLED**, and retains existing users, SMTP,
+clients and issuer. Unknown/custom flow drift is refused. The disabled execution
+remains visible to administrators for upgrade compatibility; it is not available
+to users. Upgrade the deployed image's startup configurator too. Existing links
+are not revoked by changing execution requirements; previously issued links have
+their original ten-minute expiry, and users should start a fresh OTP sign-in.
 
 For the complete Case Law estate architecture and operational controls, see
 [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).

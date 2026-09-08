@@ -23,7 +23,7 @@ For `auth.<project-domain>`, follow [Project authentication domains](PROJECT_AUT
 Set the server's issuer to the canonical project realm URL and update API validators
 at the same time. Existing callback routes and PKCE handling stay the same.
 
-> **Email OTP and magic links need no server-library changes.** The login
+> **Email OTP needs no server-library changes.** The login
 > route still redirects to the realm and the callback still exchanges an
 > authorization code; Keycloak owns the email challenge. The estate-wide
 > client matrix and rollout are in

@@ -7,7 +7,7 @@ it wears, and the client library applications sign in with — in the browser or
 their own server.
 
 Username/email and password is the safe default. Operators can opt a realm into
-six-digit email OTP and single-use magic links after commissioning SMTP. The
+six-digit email OTP after commissioning SMTP. The
 Citations API, research workspace, access console and database workbench all accept
 the same account, and roles decide what each one shows. In an opted-in realm, a new
 person enters only an email address: submitting a new address creates a pending
@@ -43,10 +43,10 @@ service itself.
 
 | Task | Guide |
 |---|---|
-| Enable optional email OTP and magic links | [docs/OTP_SETUP.md](docs/OTP_SETUP.md) |
+| Enable optional email OTP | [docs/OTP_SETUP.md](docs/OTP_SETUP.md) |
 | Give a project its own `auth.<domain>` | [docs/PROJECT_AUTH_DOMAINS.md](docs/PROJECT_AUTH_DOMAINS.md) |
 | Monitor and maintain OTP | [docs/OTP_OPERATIONS.md](docs/OTP_OPERATIONS.md) |
-| Roll out email OTP and magic links across Case Law | [docs/PASSWORDLESS_ROLLOUT.md](docs/PASSWORDLESS_ROLLOUT.md) |
+| Roll out email OTP across Case Law | [docs/PASSWORDLESS_ROLLOUT.md](docs/PASSWORDLESS_ROLLOUT.md) |
 | Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |
 | Connect a **static SPA** | [docs/CONNECTING_PROJECTS.md](docs/CONNECTING_PROJECTS.md) |
 | Configure a realm | [docs/REALM_SETUP.md](docs/REALM_SETUP.md) |
@@ -88,7 +88,7 @@ docker compose up -d
 The realm imports on first start. Keycloak is then reachable at `KEYCLOAK_HOSTNAME`, with
 the admin console at `/admin` and the realm at `/realms/caselaw`.
 
-Configure SMTP before enabling email OTP, magic links, **Verify email**, or
+Configure SMTP before enabling email OTP, **Verify email**, or
 **Forgot password**. Basic password sign-in does not require SMTP, and the realm
 deliberately ships without mail-server credentials. Brute force detection and a
 password policy are already enabled.
@@ -97,7 +97,7 @@ including a realm of your own rather than this one.
 
 The imported realm and Compose deployment both keep Keycloak's built-in password
 browser flow by default. To enable OTP, an administrator can run
-`npx --yes caselaw-auth@0.6.3 apply-passwordless-flow` against the target realm from
+`npx --yes caselaw-auth@0.6.4 apply-passwordless-flow` against the target realm from
 any Node 18+ machine—no repository checkout or server shell is needed. Alternatively,
 a deployment operator can explicitly set `CASELAW_PASSWORDLESS_AUTO_APPLY=true`.
 Either path creates/validates and binds the email flow; SMTP or application

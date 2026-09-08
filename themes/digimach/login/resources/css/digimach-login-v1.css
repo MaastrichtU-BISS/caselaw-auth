@@ -1,7 +1,7 @@
 /*
   DigiMach brand layer for the shared Case Law authentication UI.
 
-  caselaw-login-v8.css is loaded before this file from the parent theme. It
+  caselaw-login-v9.css is loaded before this file from the parent theme. It
   owns the Keycloak and OTP coverage; this file only changes the visual voice.
   The palette mirrors digimach.eu: DigiMach green, pale green surfaces, deep
   blue-black text and the rounded, open character of the public site.

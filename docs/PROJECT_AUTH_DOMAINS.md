@@ -1,9 +1,14 @@
 # Project authentication domains on shared Keycloak
 
+For APIs protected by Access, also configure **Access → Project → Settings →
+Project authentication**. The project issuer is separate from the console's
+administrator login. Follow the [Access project setup guide](https://github.com/MaastrichtU-BISS/caselaw-access/blob/main/docs/PROJECT_AUTH.md)
+for API audiences, browser/server flows and identity-migration limitations.
+
 Each BISS project can use `auth.<project-domain>` while sharing the existing
 Keycloak deployment and database. Each project realm has one canonical frontend
 URL and keeps its own users, clients, theme, SMTP and authentication policy.
-Custom domains work with password login and with optional email OTP/magic links.
+Custom domains work with password login and with optional email OTP.
 
 This guide describes the configuration to apply; the examples are not a record
 that DigiMach DNS or its application issuer has already been migrated.
@@ -169,6 +174,10 @@ Read the [server integration](SERVER_SIDE_AUTH.md) or
 
 ## 5. Verify the domain and the complete journey
 
+Before migrating an existing realm, use the [isolated live canary procedure](CUSTOM_DOMAIN_CANARY.md)
+to test a real HTTPS auth hostname, mailbox and package callback without changing
+the project's active issuer.
+
 Inspect discovery without administrator credentials:
 
 ```bash
@@ -208,8 +217,8 @@ Then test through the actual application's login button in a private browser:
 - A new email can complete registration and return to the application callback.
 - The application's normal token verification accepts the new issuer; API access
   and role checks succeed with it. Do not disable issuer validation to make it work.
-- Magic-link emails point to the project auth host and redeem successfully; also
-  test recovery/verification emails for whichever flows the realm enables.
+- Email OTP completes without a magic-link option. Test recovery/verification
+  emails separately for whichever other flows the realm enables.
 - Token refresh succeeds; logout clears the application session and Keycloak SSO.
 - Account Management and a second application in the same realm use the same host.
 - Shared Admin Console access and the Case Law realm still work at their own URLs.
@@ -266,7 +275,7 @@ and diagnose failures. Restoring the realm field alone is not a complete rollbac
 
 The local multi-domain regression uses one Keycloak instance, two temporary realms
 and two loopback proxy origins with a fixed shared administration URL. It checks
-discovery, both themes' resources, OTP login, emailed magic-link host and redemption,
+discovery, both themes' resources, OTP-only login and rejection of magic-link selection,
 token issuer, refresh, logout, account URLs, forwarding-header overwrite, rollback
 and preservation of the existing realm. Public DNS, trusted TLS, real browser cookie
 behavior and the actual project callback still require the commissioning checks above.

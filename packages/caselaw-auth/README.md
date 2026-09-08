@@ -14,7 +14,9 @@ npm install caselaw-auth
 
 ## Realm administration CLI
 
-The package also ships the opt-in Keycloak OTP/magic-link flow installer. A realm
+The package also ships the opt-in Keycloak OTP-only flow installer. Magic-link
+sign-in is disabled. Version 0.6.4 migrates the exact previously shipped two-method
+flow while refusing unknown custom drift; rerunning is safe. A realm
 administrator can run it from any Node 18+ machine that can reach Keycloak; cloning
 the repository or obtaining shell access to the Keycloak host is not required.
 
@@ -35,7 +37,7 @@ export KEYCLOAK_ADMIN_PASSWORD='<set securely>'
 export CASELAW_PASSWORDLESS_ESTATE_MODE=false
 ```
 
-4. Run `npx --yes caselaw-auth@0.6.3 apply-passwordless-flow`.
+4. Run `npx --yes caselaw-auth@0.6.4 apply-passwordless-flow`.
 5. Confirm it reports `Bound caselaw-browser-passwordless-email-first`, verify that binding in
    the Admin Console, and complete an OTP login with the new address in a private
    browser. Confirm Keycloak created one email-verified user with no name or password
@@ -57,10 +59,10 @@ After setup, operators have two additional commands. Both use the same
 
 ```bash
 # Read-only: providers, flow, SMTP settings, profile and optional estate clients
-npx --yes caselaw-auth@0.6.3 check-passwordless
+npx --yes caselaw-auth@0.6.4 check-passwordless
 
 # Dry-run by default; add --execute only after reviewing the candidates
-npx --yes caselaw-auth@0.6.3 cleanup-unverified-users --max-age-days 7
+npx --yes caselaw-auth@0.6.4 cleanup-unverified-users --max-age-days 7
 ```
 
 Selection safeguards, scheduling, synthetic mailbox monitoring and the upgrade gate

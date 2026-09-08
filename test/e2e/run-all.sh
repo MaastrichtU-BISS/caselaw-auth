@@ -32,6 +32,7 @@ cleanup
 # shellcheck disable=SC2086
 docker compose -p "$project" $base up -d --build
 npm run test:passwordless-e2e
+E2E_CONFIGURATOR_CONTAINER=$(docker compose -p "$project" $base ps -q keycloak) node test/e2e/otp-only-upgrade.mjs
 node test/e2e/project-auth-domains.mjs
 
 # shellcheck disable=SC2086
