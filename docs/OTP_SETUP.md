@@ -127,6 +127,46 @@ The application never sends an OTP or validates a code. It starts a normal OIDC
 authorization-code flow. Keycloak emails and checks the code, then returns the same
 OIDC authorization code that password login would return.
 
+## Choose client-side or server-side session handling
+
+OTP does not add a third application integration path. First choose the normal OIDC
+integration that matches where the project can safely keep its session. Enabling OTP
+changes only the screens and identity check inside Keycloak; the application's login,
+callback, token validation, roles and logout responsibilities stay the same.
+
+| Decision | Browser-only client | Server-backed application |
+|---|---|---|
+| Use when | The project is a static SPA with no application backend | The project has a backend or server-rendered routes |
+| Package path | `caselaw-auth/client`, `/vue`, or `/svelte` | `caselaw-auth/server`, or `caselaw-auth-server` for Python |
+| Login starts in | Browser code | A server route such as `GET /auth/login` |
+| Keycloak email/code screens | Hosted by Keycloak; identical for both paths | Hosted by Keycloak; identical for both paths |
+| Callback handled by | Browser callback route calling `handleCallback()` | Server `GET /auth/callback` route exchanging the code |
+| PKCE | Required, `S256` | Required, `S256` |
+| Local session | Tokens in the browser client's `localStorage` | Sealed session and transaction data in httpOnly cookies |
+| Keycloak client secret | Never; the client is public | Optional; use a public client with PKCE or a confidential client with a server-only secret |
+| OTP-specific application code | None | None |
+
+The end-to-end redirects are:
+
+```text
+Browser-only SPA
+browser app -> Keycloak -> email OTP -> browser /auth/callback -> local browser session
+
+Server-backed application
+browser -> app /auth/login -> Keycloak -> email OTP -> app /auth/callback
+        -> server-held session cookie -> browser
+```
+
+`caselaw-auth/server` does **not** imply that the Keycloak client must be
+confidential. Case Law Explorer, for example, uses a public OIDC client with PKCE
+while keeping its application session on the SvelteKit server. Use a confidential
+client only when the server is deliberately configured to authenticate itself to
+Keycloak, and keep that secret exclusively in the server environment.
+
+Use [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) for the browser-only
+implementation or [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) for the server-backed
+implementation. The realm setup in this guide is identical for both.
+
 ## Path A: project using the shared `caselaw` realm
 
 Use this path for another Case Law Explorer service whose users should share the
@@ -167,9 +207,11 @@ For a browser-only SPA:
 | Web origins | `+` |
 | PKCE method | `S256` |
 
-For a project with a backend, prefer **Client authentication: On**, copy the client
-secret into a server-only environment variable, and still use standard flow with
-PKCE `S256`. Never expose that secret through a `PUBLIC_`, `VITE_`, or
+For a project with a backend, use the server-side integration described below. The
+OIDC client may stay public with **Client authentication: Off** and PKCE `S256`, as
+Case Law Explorer does. If the server is deliberately configured as a confidential
+client, turn **Client authentication: On** and copy its secret into a server-only
+environment variable. Never expose that secret through a `PUBLIC_`, `VITE_`, or
 `NUXT_PUBLIC_` variable.
 
 Add the local callback as a second redirect while developing, for example
