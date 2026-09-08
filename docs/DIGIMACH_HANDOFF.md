@@ -1,8 +1,8 @@
 # DigiMach authentication: prepared setup and cutover
 
-Deployment handoff, 8 September 2026. This is the actual DigiMach configuration,
-not a template for creating another realm. The application and DNS are owned by
-the DigiMach team; BISS operates the shared Keycloak deployment.
+Configuration verified: **8 September 2026**. DigiMach uses the existing
+`digimach` realm. The DigiMach team manages the application and DNS; BISS
+operates the shared Keycloak deployment.
 For the separate pending Access and Coolify app-bundle releases, see
 [Authentication rollout status](AUTH_ROLLOUT_STATUS.md).
 
@@ -27,8 +27,8 @@ For the separate pending Access and Coolify app-bundle releases, see
 The future domain route is prepared, **not commissioned**. DNS still points to
 Vercel. A valid certificate and end-to-end login on that hostname cannot be
 confirmed until the DNS owner points it to BISS. No separate auth deployment is
-needed. The app's production callback and logout URLs have not been supplied, so
-they have not been guessed or allowlisted.
+needed. Production callback and logout URLs must be supplied by the DigiMach
+team before BISS can add them to the allowlists.
 
 The shared hostname/admin hostname stay at `https://auth.caselawexplorer.tech`;
 `KEYCLOAK_HOSTNAME_STRICT=true` remains set. These values are mirrored in

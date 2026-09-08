@@ -7,16 +7,13 @@ redirects to that flow, so products do not implement email delivery, generate
 codes, or validate links. They continue to speak ordinary OpenID Connect (OIDC)
 authorization code flow with PKCE and receive the same tokens and user subjects.
 
-For the shortest colleague-facing setup procedure, start with
-[OTP_SETUP.md](OTP_SETUP.md). This guide is the production contract for the whole
-Case Law estate. It covers
-the realm, the Explorer platform, the access console, the database workbench,
-the Citations API UI, non-interactive services, rollout, verification and
-rollback.
+[Configure email OTP](OTP_SETUP.md) contains the realm installation steps.
+The estate-wide requirements cover Keycloak, Explorer, Access, the database
+workbench, the Citations API UI and non-interactive services, including rollout,
+verification and rollback.
 
-This is the integration contract, not a claim that every planned deployment is
-complete. [AUTH_ROLLOUT_STATUS.md](AUTH_ROLLOUT_STATUS.md) records the current live
-state and the separate pending Access/Coolify releases. `demo-app` remains the
+Access and Coolify changes require separate deployment and verification; see
+[Authentication rollout status](AUTH_ROLLOUT_STATUS.md). `demo-app` remains the
 Coolify stabilization frontend; `app` remains on Vercel.
 
 ## Contents

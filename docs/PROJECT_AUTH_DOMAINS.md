@@ -18,10 +18,9 @@ Keycloak deployment and database. Each project realm has one canonical frontend
 URL and keeps its own users, clients, theme, SMTP and authentication policy.
 Custom domains work with password login and with optional email OTP.
 
-This guide describes the configuration to apply; the examples are not a record
-that DigiMach DNS or its application issuer has already been migrated.
-For the actual prepared configuration and owner-by-owner cutover checklist, use
-[the DigiMach handoff](DIGIMACH_HANDOFF.md).
+DigiMach DNS and its application issuer have not yet been migrated. The
+[DigiMach authentication setup](DIGIMACH_HANDOFF.md) lists the existing
+configuration and the cutover steps for each responsible team.
 
 ## Who does what
 

@@ -17,7 +17,7 @@ embedded at build time, and update API validators at the same time.
 Check [rollout status](AUTH_ROLLOUT_STATUS.md) for pending Access and Coolify work;
 an auth-domain configuration alone does not enable those downstream features.
 
-> **If the product has a backend, use the server path instead.** This guide
+> **If the product has a backend, use the server path instead.** The browser client
 > stores the session — refresh token included — in `localStorage`, where page
 > script can read it. With a backend the session belongs in an httpOnly cookie.
 > Every product in this estate has a backend; see
