@@ -11,13 +11,19 @@ Explorer products. It is intentionally provider-neutral: products configure an
 OIDC issuer and client ID, while Keycloak remains an implementation detail of
 the central auth service.
 
+This is the **browser-held session** integration. If the product has a backend,
+prefer [server-side authentication](SERVER_SIDE_AUTH.md); do not move a confidential
+secret into frontend configuration. See [rollout status](AUTH_ROLLOUT_STATUS.md)
+for deployment-specific limitations and pending Coolify mappings.
+
 Use `caselaw-auth`, `caselaw-auth/client`, or `caselaw-auth/svelte` from
 SvelteKit, plain TypeScript, and non-Vue apps. Use `caselaw-auth/vue` from Vue
 3 and Nuxt apps.
 
 ## Package Contract
 
-Every project should depend on the same shape of environment variables:
+For browser-held sessions, wire the following values into the package config.
+These variable names are conventions, not automatically discovered settings:
 
 ```env
 PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw

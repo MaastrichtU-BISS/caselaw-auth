@@ -20,7 +20,7 @@ name or password form is used.
 realm/caselaw-realm.json    the realm: clients, roles, login settings
 themes/caselaw/             the Case Law Explorer login and account theme
 themes/digimach/            the DigiMach sibling theme, inheriting Case Law coverage
-providers/                  Keycloak OTP and magic-link provider
+providers/                  email-identity / OTP providers (magic-link sign-in disabled)
 packages/caselaw-auth/      the client library, published on npm
 docker-compose.yml          Keycloak and its Postgres
 scripts/                    live-realm installers and smoke checks
@@ -41,8 +41,13 @@ Most people arrive here to connect a product, not to run this. The guides are
 indexed in **[docs/](docs/README.md)**; the rest of this README is about operating the
 service itself.
 
+For what is actually deployed versus pending, read
+[Authentication rollout status](docs/AUTH_ROLLOUT_STATUS.md). Documentation for an
+integration does not mean every connected service has deployed that integration.
+
 | Task | Guide |
 |---|---|
+| Check deployed versus pending work | [docs/AUTH_ROLLOUT_STATUS.md](docs/AUTH_ROLLOUT_STATUS.md) |
 | Enable optional email OTP | [docs/OTP_SETUP.md](docs/OTP_SETUP.md) |
 | Give a project its own `auth.<domain>` | [docs/PROJECT_AUTH_DOMAINS.md](docs/PROJECT_AUTH_DOMAINS.md) |
 | Complete the prepared DigiMach setup | [docs/DIGIMACH_HANDOFF.md](docs/DIGIMACH_HANDOFF.md) |

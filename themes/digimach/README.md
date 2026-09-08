@@ -7,6 +7,12 @@ That includes registration, passwords, recovery, errors, identity switching,
 social/authenticator choices, responsive behavior, the six-slot email OTP
 experience, and the account console.
 
+These are theme capabilities, not a list of enabled login methods. The deployed
+DigiMach realm uses email-only OTP, with magic-link sign-in disabled. Its login
+favicon uses the same green DM mark. See the
+[DigiMach handoff](../../docs/DIGIMACH_HANDOFF.md) for current issuer, retained
+localhost callbacks, unchanged sender and pending DNS/application cutover.
+
 The colors and mark are based on [digimach.eu](https://digimach.eu/):
 
 - brand green `#33a58e`

@@ -7,6 +7,10 @@ a separate realm on the same server, or a realm on a Keycloak you run yourself.
 
 **Prerequisites.** Administrator access to the Keycloak console.
 
+For existing production realms and pending infrastructure releases, consult
+[Authentication rollout status](AUTH_ROLLOUT_STATUS.md). For DigiMach, use its
+[current handoff](DIGIMACH_HANDOFF.md) rather than recreating the realm or client.
+
 **Related.** [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) and
 [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) for connecting a product to a
 realm that already exists — neither requires anything on this page.

@@ -14,6 +14,11 @@ the realm, the Explorer platform, the access console, the database workbench,
 the Citations API UI, non-interactive services, rollout, verification and
 rollback.
 
+This is the integration contract, not a claim that every planned deployment is
+complete. [AUTH_ROLLOUT_STATUS.md](AUTH_ROLLOUT_STATUS.md) records the current live
+state and the separate pending Access/Coolify releases. `demo-app` remains the
+Coolify stabilization frontend; `app` remains on Vercel.
+
 ## Contents
 
 1. [Architecture and boundaries](#1-architecture-and-boundaries)

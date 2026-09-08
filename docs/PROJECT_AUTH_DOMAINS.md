@@ -1,9 +1,17 @@
 # Project authentication domains on shared Keycloak
 
-For APIs protected by Access, also configure **Access → Project → Settings →
-Project authentication**. The project issuer is separate from the console's
-administrator login. Follow the [Access project setup guide](https://github.com/MaastrichtU-BISS/caselaw-access/blob/main/docs/PROJECT_AUTH.md)
-for API audiences, browser/server flows and identity-migration limitations.
+**Deployment status:** shared Keycloak custom-domain support is deployed, but
+Access per-project issuer support and the Coolify app-bundle mapping changes are
+separate, pending rollouts. Check [AUTH_ROLLOUT_STATUS.md](AUTH_ROLLOUT_STATUS.md)
+before applying instructions to a live service.
+
+For APIs protected by Access, the forthcoming **Project → Settings → Project
+authentication** configuration selects API trust, not the console's administrator
+login. The [Access implementation-preview guide](https://github.com/MaastrichtU-BISS/caselaw-access/blob/main/docs/PROJECT_AUTH.md)
+explains audiences and identity migration, but its screen/API require the Access
+implementation to be released and deployed first. Basic Keycloak login does not
+require that feature. Never change the Access console's global issuer just to
+accept one project's realm.
 
 Each BISS project can use `auth.<project-domain>` while sharing the existing
 Keycloak deployment and database. Each project realm has one canonical frontend
@@ -59,12 +67,14 @@ identity provider may show its own domain during sign-in.
    a CNAME to an operator-approved hostname. A CNAME does not change the address
    users see. Remove conflicting records, including stale IPv6 routes. Confirm
    the record's existing use before replacing it; leave the main website records alone.
-2. In the **existing Keycloak service's** Coolify domain field, keep its existing
-   domain and add the project domain, separated by a comma. Use HTTPS and the
-   service's established port mapping to container port 8080. Depending on the
-   resource's domain-field syntax this may be represented as
-   `https://auth.caselawexplorer.tech:8080,https://auth.digimach.eu:8080`;
-   that port selects the container target, not a public `:8080` URL.
+2. In the **existing Keycloak application's Domains page**, select **Add**,
+   choose service **keycloak**, protocol **https**, domain **auth.digimach.eu**,
+   and internal port **8080**, then save. Keep the shared domain. Remove an
+   automatically added `www.auth.digimach.eu` alias unless it is intentional and
+   has its own DNS. Older Coolify versions may instead use a comma-separated field,
+   e.g. `https://auth.caselawexplorer.tech:8080,https://auth.digimach.eu:8080`.
+   This port selects the container target, not a public `:8080` URL. For DigiMach,
+   this route is already prepared; do not add it twice.
 3. Apply the routing change and wait for a valid trusted TLS certificate for
    `auth.digimach.eu`. Check both certificate issuance and renewal configuration.
 4. Confirm the new domain reaches Keycloak over HTTPS. At this stage its discovery
@@ -86,10 +96,14 @@ KEYCLOAK_HOSTNAME_STRICT=true
 
 `KEYCLOAK_HOSTNAME` is the server-wide fallback. Do not replace it for each new
 project. Explicitly set `KEYCLOAK_ADMIN_HOSTNAME` to keep the Admin Console on a
-shared origin even when the selected realm has a custom Frontend URL. It is blank
-by default for compatibility with existing deployments; leaving it blank lets
-Keycloak use its normal realm-aware admin URL resolution.
-Both must be full URLs. The repository maps these to `KC_HOSTNAME` and
+shared origin even when the selected realm has a custom Frontend URL.
+The checked-in `.env.example` and shared production deployment explicitly set
+both hostnames to the shared HTTPS origin and strict mode to `true`. In contrast,
+Compose's fallback when those inputs are omitted is empty hostnames and
+`KEYCLOAK_HOSTNAME_STRICT=false`, retained for compatibility/local setups. The
+fallback is **not** the recommended project-domain production configuration.
+For local Keycloak, replace both example hostnames with the local origin.
+Both configured hostnames must be full URLs. The repository maps these to `KC_HOSTNAME` and
 `KC_HOSTNAME_ADMIN` inside Keycloak; `KEYCLOAK_HOSTNAME_STRICT` maps to
 `KC_HOSTNAME_STRICT`. If these container settings change, redeploy once.
 
@@ -234,10 +248,9 @@ may intentionally point elsewhere.
 ## Migrating an existing realm
 
 Treat the switch as an issuer migration. Coordinate step 3 with deployment of all
-affected applications/APIs in step 4 in a maintenance window. A canary realm with
-its own test client can validate routing beforehand without changing the active
-realm. Avoid changing the live realm's issuer to a temporary staging domain and
-then moving it a second time.
+affected applications/APIs in step 4 in a maintenance window. Verify prepared
+routing before the switch and use the disposable local multi-domain regression
+for repeatable tests. Do not change a live realm's issuer merely to test routing.
 
 The new hostname changes the token `iss` claim. Existing tokens carry the old issuer
 and old browser SSO cookies belong to the old host. Plan a fresh login for users,
