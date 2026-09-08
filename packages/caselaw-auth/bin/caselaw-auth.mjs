@@ -51,6 +51,8 @@ Optional environment variables:
   CASELAW_PASSWORDLESS_ESTATE_MODE   default: true only for the caselaw realm
 
 Safety:
+  apply-passwordless-flow enables email OTP only and disables magic links.
+  The exact previously shipped two-method flow is migrated; custom drift is refused.
   check-passwordless is read-only and verifies the flow, SMTP configuration,
   user profile and (in estate mode) clients.
   cleanup-unverified-users is a dry run unless --execute is supplied. It only

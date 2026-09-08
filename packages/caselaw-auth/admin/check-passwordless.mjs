@@ -51,8 +51,8 @@ try {
     [methodsFlow, 'REQUIRED', true],
   ])
   const methods = await expectFlow(client, methodsFlow, [
-    ['ext-email-otp', 'ALTERNATIVE', false],
-    ['ext-magic-form', 'ALTERNATIVE', false],
+    ['ext-email-otp', 'REQUIRED', false],
+    ['ext-magic-form', 'DISABLED', false],
   ])
   await expectConfig(client, methods[0], 'caselaw-email-first-otp', {
     'ext-magic-create-nonexistent-user': 'false',
@@ -64,7 +64,7 @@ try {
     'ext-magic-allow-token-reuse': 'false',
     'ext-magic-token-life-span': '600',
   })
-  checks.push('authentication flow exact')
+  checks.push('OTP-only authentication flow exact; magic links disabled')
 
   if (estateMode) {
     const callbacks = new Map([

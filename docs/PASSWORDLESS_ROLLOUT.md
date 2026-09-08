@@ -1,6 +1,6 @@
 # Passwordless sign-in across Case Law Explorer
 
-Email OTP and magic-link sign-in are available as an optional shared Keycloak
+Email OTP-only sign-in is available as an optional shared Keycloak
 browser flow. Username/email and password is the repository default. When an
 operator opts a realm into passwordless mode, every interactive Case Law product
 redirects to that flow, so products do not implement email delivery, generate
@@ -37,8 +37,7 @@ Case Law Explorer ───────┐
 Access console ──────────┤
 DB workbench ────────────┼─ OIDC + PKCE ─→ shared caselaw realm
 Citations API UI ────────┘                    │
-                                             ├─ email OTP
-                                             └─ single-use magic link
+                                             └─ email OTP only
 
 access token ─→ Citations API / access checks (unchanged)
 service token ─→ backend-to-backend calls    (unchanged)
@@ -72,27 +71,27 @@ caselaw-browser-passwordless-email-first                          ALTERNATIVE se
 └─ Case Law email-first forms                         ALTERNATIVE
    ├─ Case Law email identity                         REQUIRED
    └─ Case Law email-first methods                    REQUIRED subflow
-      ├─ Email OTP                                    ALTERNATIVE
-      └─ Magic Link                                   ALTERNATIVE
+      ├─ Email OTP                                    REQUIRED
+      └─ Magic Link (retained for migration)           DISABLED
 ```
 
 The email-identity step deliberately replaces Keycloak's built-in username form: it
 resolves existing users and creates pending email-only users instead of rejecting a
-new address. The separate `Case Law email-first methods` subflow is also important.
-Keycloak considers a required execution sufficient to complete its own flow, so
-putting OTP and magic link directly beside the required identity step would make the
-alternatives functionally disabled.
+new address. The required methods subflow now requires OTP; the former magic-link
+execution stays disabled for deterministic migration from existing installations.
+The installer accepts only the exact known legacy or current layout, not arbitrary
+custom authentication policies.
 
 Runtime policy:
 
-- existing enabled users may sign in, and either method accepts a new email;
+- existing enabled users may sign in, and OTP accepts a new email;
 - submitting a new email creates an enabled but unverified user with the email
   as both username and email;
-- only successful OTP entry or magic-link redemption marks the email verified and
+- only successful OTP entry marks the email verified and
   completes authentication;
 - no first name, last name, or password credential is requested;
 - the OTP is six digits and expires with the 10-minute login action;
-- a magic link expires after 10 minutes and can be redeemed once;
+- magic-link sign-in and its method chooser are disabled;
 - a successful email OTP marks that address verified;
 - invalid OTP attempts are recorded as login errors and feed realm brute-force
   protection;
@@ -106,15 +105,10 @@ flow. A request abandoned before verification can leave an unverified user recor
 this does not grant a session or product access and should be covered by monitoring
 and stale-account retention policy.
 
-Within the optional passwordless flow, email OTP is the default method. After
-entering an email, the code form exposes
-**Try Another Way**, which opens a chooser containing **Email OTP** and
-**Magic link**. The OTP authenticator sends its message when the code form is
-first rendered, so someone who then switches to magic link receives both
-messages and should ignore the code. Avoiding that extra message would require
-a custom pre-send chooser authenticator rather than the pinned upstream
-provider; it is not application behavior and must not be worked around in each
-product.
+Within the optional passwordless flow, email OTP is the only email method. Email
+entry goes directly to six code slots, with **Verify code**, **Send a new code**,
+and **Change email address**. There is no **Try Another Way** chooser for magic
+links. The OTP authenticator sends its message when the code form first renders.
 
 ---
 
@@ -173,8 +167,8 @@ the Explorer platform; do not copy the access console or workbench secret.
 
 The platform's old Supabase email-code page is a fallback selected only by
 `FRONTEND_AUTH_PROVIDER=supabase`. With `oidc`, the “Sign in to explore” action
-navigates to `/auth/login`, and the shared Keycloak page supplies email OTP and
-magic-link choices. Do not add a second OTP form to the platform's OIDC branch.
+navigates to `/auth/login`, and the shared Keycloak page supplies email OTP.
+Do not add a second OTP form to the platform's OIDC branch.
 
 The API proxy continues to attach the user's current access token or its own
 API credential as already configured. Passwordless sign-in changes the first
@@ -195,8 +189,8 @@ ACCESS_SESSION_SECRET=<unique random value>
 ```
 
 The FastAPI server starts OIDC at `/auth/login`, finishes it at
-`/auth/callback`, and checks `admin` after identity verification. OTP and magic
-links do not weaken that role check. Step-up requests using `max_age` also use
+`/auth/callback`, and checks `admin` after identity verification. Email OTP
+does not weaken that role check. Step-up requests using `max_age` also use
 the passwordless flow and require the user to prove access to email again when
 the SSO authentication is too old.
 
@@ -248,7 +242,7 @@ two trust models and put a confidential client in a browser-facing role.
 
 ## 6. APIs and machine clients
 
-OTP and magic links authenticate people at Keycloak. They do not authenticate
+Email OTP authenticates people at Keycloak. They do not authenticate
 API requests directly.
 
 The Citations API continues to accept the existing credential types:
@@ -332,7 +326,7 @@ from any Node 18+ environment that can reach the Keycloak Admin API:
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-npx --yes caselaw-auth@0.6.3 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.4 apply-passwordless-flow
 ```
 
 The administrator does not need shell access to the Keycloak host. Operators who
@@ -396,10 +390,8 @@ automatically assign `researcher`, `admin`, or product entitlements.
 - [ ] Request a second code and confirm an older code is not accepted in the
       new authentication session.
 - [ ] Confirm a code fails after 10 minutes.
-- [ ] Sign out, request a magic link, and open it on the same device.
-- [ ] Request another link and open it on a second device.
-- [ ] Confirm a redeemed link cannot be reused.
-- [ ] Confirm a link fails after 10 minutes.
+- [ ] Confirm there is no email-method chooser and magic-link sign-in is disabled.
+- [ ] Confirm a crafted selection of the disabled execution does not send a link.
 - [ ] Enter a previously unknown email and complete OTP: exactly one enabled,
       email-verified user must exist with email as username, no names, and no
       password credential.
@@ -483,10 +475,11 @@ step-up policy, a federated institutional identity provider, TOTP or WebAuthn
 for operations whose risk is higher than mailbox possession. The `admin` role
 must still be checked server-side.
 
-**Links are credentials.** Email scanners may open links before a person does.
-Single-use and a short lifetime limit exposure, but test the organization's
-mail-security gateway. OTP remains the fallback when a scanner consumes a
-link.
+**Email sign-in is OTP-only.** Email-security scanners can inspect login links;
+the browser callback also requires the original login transaction. We therefore
+disable magic-link sign-in instead of asking users to weaken mailbox protection.
+Previously issued links retain their original ten-minute expiry; disabling the
+flow execution is not revocation of already issued action tokens.
 
 **Do not log secrets.** Query strings for magic links contain action tokens.
 Exclude or redact the action-token route in proxies, analytics and error
@@ -505,7 +498,7 @@ realm binding is old. Realm import does not update an existing realm. Check
 **Authentication → Bindings**, or run the apply script.
 
 **OTP succeeds, then Keycloak asks for first and last name.** The realm's User
-Profile still marks those attributes as required. Run the `0.6.3` installer. If it
+Profile still marks those attributes as required. Run the `0.6.4` installer. If it
 detects a custom role- or scope-based requirement, review that policy under **Realm
 settings → User profile**, make both fields optional, and rerun it.
 
@@ -519,10 +512,9 @@ spam/quarantine and bounce telemetry. New addresses should receive the same mess
 as existing users; inspect the newly created unverified user and Keycloak events if
 delivery still fails.
 
-**The code form appears but no alternative method is available.** Confirm the
-flow has the required nested `Case Law email-first methods` subflow. OTP and magic
-link must be alternatives inside it, not siblings of the required username
-form.
+**The code form has no alternative method.** This is intentional. Email OTP is
+required and magic-link sign-in is disabled. If a chooser still appears, apply the
+current installer to the correct realm and start a fresh login transaction.
 
 **A callback ends with `invalid_redirect_uri`.** The product sent a callback
 that is not registered exactly on its own client. Check scheme, domain, port,
@@ -536,6 +528,5 @@ serve a browser callback.
 did not. Check realm/client roles and `caselaw-access` policy. Do not “fix” this
 by changing OTP or creating a second user.
 
-**A magic link is already expired on first click.** A mail-security scanner may
-have redeemed it. Check gateway logs and use the email OTP path while adjusting
-scanner policy.
+**An old magic link fails.** Start a fresh email OTP sign-in. Magic links are no
+longer a supported sign-in method; do not adjust scanner policy to restore them.

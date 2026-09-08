@@ -29,7 +29,7 @@
   "authenticationFlows": [
     {
       "alias": "caselaw-browser-passwordless-email-first",
-      "description": "Browser SSO with email OTP and single-use magic-link sign-in.",
+      "description": "Browser SSO with verified email OTP. Magic-link sign-in is disabled.",
       "providerId": "basic-flow",
       "topLevel": true,
       "builtIn": false,
@@ -59,7 +59,7 @@
     },
     {
       "alias": "Case Law email-first forms",
-      "description": "Collect an email address, then let the user authenticate with a code or a link.",
+      "description": "Collect an email address, then verify the emailed code.",
       "providerId": "basic-flow",
       "topLevel": false,
       "builtIn": false,
@@ -82,7 +82,7 @@
     },
     {
       "alias": "Case Law email-first methods",
-      "description": "Alternative passwordless methods available after the user supplies an email address.",
+      "description": "Require email OTP after the user supplies an email address.",
       "providerId": "basic-flow",
       "topLevel": false,
       "builtIn": false,
@@ -91,7 +91,7 @@
           "authenticatorConfig": "caselaw-email-first-otp",
           "authenticator": "ext-email-otp",
           "authenticatorFlow": false,
-          "requirement": "ALTERNATIVE",
+          "requirement": "REQUIRED",
           "priority": 10,
           "userSetupAllowed": false
         },
@@ -99,7 +99,7 @@
           "authenticatorConfig": "caselaw-email-first-magic-link",
           "authenticator": "ext-magic-form",
           "authenticatorFlow": false,
-          "requirement": "ALTERNATIVE",
+          "requirement": "DISABLED",
           "priority": 20,
           "userSetupAllowed": false
         }

@@ -82,7 +82,7 @@ try {
   }
   const current = await (await fetch(`${backend}/realms/caselaw/.well-known/openid-configuration`)).json()
   assert.deepEqual(current, initial, 'custom domains must not change the existing caselaw realm endpoints')
-  console.log('PASS two project origins: discovery, resources, OTP, magic-link email/redemption, token issuer, refresh, logout, account URLs, spoofed forwarding headers and rollback; shared realm preserved')
+  console.log('PASS two project origins: discovery, resources, OTP-only login, disabled magic-link selection, token issuer, refresh, logout, account URLs, spoofed forwarding headers and rollback; shared realm preserved')
 } finally {
   for (const realm of realms) await admin(`/admin/realms/${realm}`, 'DELETE')
   for (const server of servers) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)) }

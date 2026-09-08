@@ -96,7 +96,7 @@ not name the server cookie. The frontend can keep using its existing
 server-side `API_TOKEN` proxy while the API is migrated. That gives us shared
 login first without breaking API-key scoping, rate limits, or admin flows.
 
-Email OTP and magic-link UX belongs to the shared realm. The platform only
+Email OTP UX belongs to the shared realm. The platform only
 navigates to `/auth/login`; it must not copy the old Supabase code-entry form
 into the OIDC path. See [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md).
 

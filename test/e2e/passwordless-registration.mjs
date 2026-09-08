@@ -70,6 +70,7 @@ const otpPage = await browser.fetch(loginAction, {
 assert.equal(otpPage.status, 200, `email submission returned ${otpPage.status}`)
 const otpHtml = await otpPage.text()
 assert.match(otpHtml, /name=["']otp["']/i, 'email submission did not reach the OTP form')
+assert.doesNotMatch(otpHtml, /id=["']try-another-way["']/i, 'OTP-only flow must not offer a method chooser')
 assert.doesNotMatch(otpHtml, /name=["'](?:firstName|lastName|password)["']/i,
   'OTP form must not request names or a password')
 
@@ -134,7 +135,7 @@ if (process.env.E2E_VERIFY_DOMAIN === 'true') {
   assert.equal(loggedOut.status, 302, 'logout must return to the registered application')
   assert.equal(loggedOut.headers.get('location'), redirectUri)
   assert.match(await (await browser.fetch(authorize)).text(), /name=["']username["']/, 'logout must end the Keycloak SSO session')
-  await verifyMagicLink()
+  await verifyMagicLinkDisabled()
 }
 
 const users = await usersByEmail(adminToken, testEmail)
@@ -258,52 +259,30 @@ async function readOtp(email) {
   throw new Error(`no OTP message arrived for ${email}`)
 }
 
-async function verifyMagicLink() {
+async function verifyMagicLinkDisabled() {
   const magicBrowser = new CookieBrowser()
   const first = await magicBrowser.fetch(authorize)
   const emailPage = await magicBrowser.fetch(formAction(await first.text()), {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ username: testEmail }),
   })
-  const chooser = await magicBrowser.fetch(formAction(await emailPage.text()), {
+  const emailHtml = await emailPage.text()
+  const chooser = await magicBrowser.fetch(formAction(emailHtml), {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ tryAnotherWay: 'on' }),
   })
   const chooserHtml = await chooser.text()
-  const button = [...chooserHtml.matchAll(/<button\b[^>]*value="([^"]+)"[^>]*>([\s\S]*?)<\/button>/g)]
-    .find(([, , body]) => /magic link/i.test(body))
-  assert.ok(button, 'method chooser must offer magic link')
-  const sent = await magicBrowser.fetch(formAction(chooserHtml), {
+  assert.doesNotMatch(chooserHtml, />\s*Magic link\s*</i, 'crafted method selection must not offer magic links')
+  const methods = await adminApi(adminToken, '/authentication/flows/Case%20Law%20email-first%20methods/executions')
+  const magic = methods.find(item => item.providerId === 'ext-magic-form')
+  assert.equal(magic.requirement, 'DISABLED')
+  assert.equal(methods.find(item => item.providerId === 'ext-email-otp').requirement, 'REQUIRED')
+  const forced = await magicBrowser.fetch(formAction(emailHtml), {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ authenticationExecution: button[1] }),
+    body: new URLSearchParams({ authenticationExecution: magic.id }),
   })
-  assert.equal(sent.status, 200)
-  let link
-  const deadline = Date.now() + 30_000
-  while (!link && Date.now() < deadline) {
-    const { messages = [] } = await (await fetch(`${mailpitUrl}/api/v1/messages`)).json()
-    for (const message of messages.filter(candidate => candidate.To?.some(to => to.Address === testEmail))) {
-      const detail = await (await fetch(`${mailpitUrl}/api/v1/message/${message.ID}`)).json()
-      link = [...`${detail.Text || ''}\n${detail.HTML || ''}`.matchAll(/https?:\/\/[^\s"'<>]+/g)]
-        .map(match => decodeHtml(match[0])).find(value => value.includes('/login-actions/action-token?'))
-      if (link) break
-    }
-    if (!link) await delay(250)
-  }
-  assert.ok(link, 'magic-link email must arrive')
-  assert.equal(new URL(link).origin, new URL(keycloakUrl).origin, 'email action link must use the project host')
-  const redeemed = await magicBrowser.fetch(link)
-  const returned = await followToCallback(magicBrowser, redeemed)
-  assert.equal(returned.origin + returned.pathname, redirectUri)
-  assert.equal(returned.searchParams.get('state'), state)
-  const exchanged = await fetch(`${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`, {
-    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'authorization_code', client_id: clientId,
-      redirect_uri: redirectUri, code: returned.searchParams.get('code'), code_verifier: verifier }),
-  })
-  assert.equal(exchanged.status, 200, 'magic-link callback must exchange successfully')
-  const result = await exchanged.json()
-  assert.equal(JSON.parse(Buffer.from(result.access_token.split('.')[1], 'base64url')).iss, expectedIssuer)
+  const forcedHtml = await forced.text()
+  assert.doesNotMatch(forcedHtml, /click on the link to log in/i, 'disabled magic execution must not send a link')
 }
 
 async function followToCallback(browser, initialResponse) {

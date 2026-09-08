@@ -110,3 +110,12 @@ override should appear only for that client.
 
 The static DigiMach login preview is at
 [`themes/digimach/preview.html`](../themes/digimach/preview.html).
+
+## Short screens and footer layout
+
+Both login themes use the shared versioned `caselaw-login-v9.css` entry point.
+The related-links footer stays in normal flow beneath the form, inside the card;
+it is not fixed to the viewport. Short windows and mobile keyboards may require
+scrolling, but must never cover code entry, verification or resend controls.
+Check desktop, mobile portrait, landscape and reduced-height viewports after theme
+changes. Keep the white grid and each theme's branding when adjusting layout.

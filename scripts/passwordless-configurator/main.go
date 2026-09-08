@@ -85,6 +85,8 @@ type installer struct {
 	createdFlowID   string
 	createdClientID string
 	originalProfile map[string]any
+	legacyMethods   []map[string]any
+	methodsChanged  bool
 	estateMode      bool
 }
 
@@ -111,7 +113,7 @@ func main() {
 	}
 
 	fmt.Printf("Bound %s to %s on %s.\n", browserFlow, i.realm, i.baseURL)
-	fmt.Printf("The realm now creates and authenticates users through verified email OTP or magic links in %s.\n", i.realm)
+	fmt.Printf("The realm now creates and authenticates users through verified email OTP only in %s; magic links are disabled.\n", i.realm)
 }
 
 func newInstaller() (*installer, error) {
@@ -205,8 +207,14 @@ func (i *installer) run() error {
 	}
 	existing := findByString(flows, "alias", browserFlow)
 	if existing != nil {
-		if err := i.validateExistingFlow(); err != nil {
-			return err
+		if err := i.validateExistingFlow(false); err != nil {
+			if err := i.validateExistingFlow(true); err != nil {
+				return err
+			}
+			i.legacyMethods, err = i.executions(methodsFlow)
+			if err != nil {
+				return err
+			}
 		}
 		fmt.Printf("Validated existing %s flow.\n", browserFlow)
 	} else {
@@ -227,6 +235,23 @@ func (i *installer) run() error {
 	}
 	if err := i.ensureNamesOptional(); err != nil {
 		return err
+	}
+	if i.legacyMethods != nil {
+		i.methodsChanged = true
+		// setRequirement mutates its map, so pass copies and preserve rollback data.
+		for index, requirement := range []string{"REQUIRED", "DISABLED"} {
+			execution := map[string]any{}
+			for key, value := range i.legacyMethods[index] {
+				execution[key] = value
+			}
+			if err := i.setRequirement(methodsFlow, execution, requirement); err != nil {
+				return err
+			}
+		}
+		if err := i.validateExistingFlow(false); err != nil {
+			return err
+		}
+		fmt.Println("Upgraded the known email-first flow to OTP-only; magic-link sign-in is disabled.")
 	}
 
 	if err := i.api(http.MethodPut, i.adminPath, map[string]any{
@@ -256,7 +281,7 @@ func (i *installer) run() error {
 func (i *installer) createFlow() error {
 	if err := i.api(http.MethodPost, i.adminPath+"/authentication/flows", map[string]any{
 		"alias":       browserFlow,
-		"description": "Browser SSO with email OTP and single-use magic-link sign-in.",
+		"description": "Browser SSO with verified email OTP. Magic-link sign-in is disabled.",
 		"providerId":  "basic-flow",
 		"topLevel":    true,
 		"builtIn":     false,
@@ -280,24 +305,24 @@ func (i *installer) createFlow() error {
 	if _, err := i.addExecution(browserFlow, "identity-provider-redirector", "ALTERNATIVE"); err != nil {
 		return err
 	}
-	if err := i.addSubflow(browserFlow, formsFlow, "ALTERNATIVE", "Collect an email address, then let the user authenticate with a code or a link."); err != nil {
+	if err := i.addSubflow(browserFlow, formsFlow, "ALTERNATIVE", "Collect an email address, then verify the emailed code."); err != nil {
 		return err
 	}
 	if _, err := i.addExecution(formsFlow, "caselaw-email-identity", "REQUIRED"); err != nil {
 		return err
 	}
-	if err := i.addSubflow(formsFlow, methodsFlow, "REQUIRED", "Alternative passwordless methods available after the user supplies an email address."); err != nil {
+	if err := i.addSubflow(formsFlow, methodsFlow, "REQUIRED", "Require email OTP after the user supplies an email address."); err != nil {
 		return err
 	}
 
-	otp, err := i.addExecution(methodsFlow, "ext-email-otp", "ALTERNATIVE")
+	otp, err := i.addExecution(methodsFlow, "ext-email-otp", "REQUIRED")
 	if err != nil {
 		return err
 	}
 	if err := i.addExecutionConfig(stringField(otp, "id"), otpAlias, otpConfig); err != nil {
 		return err
 	}
-	magic, err := i.addExecution(methodsFlow, "ext-magic-form", "ALTERNATIVE")
+	magic, err := i.addExecution(methodsFlow, "ext-magic-form", "DISABLED")
 	if err != nil {
 		return err
 	}
@@ -305,7 +330,7 @@ func (i *installer) createFlow() error {
 		return err
 	}
 
-	if err := i.validateExistingFlow(); err != nil {
+	if err := i.validateExistingFlow(false); err != nil {
 		return err
 	}
 	fmt.Printf("Created and validated %s.\n", browserFlow)
@@ -490,7 +515,7 @@ func (i *installer) addExecutionConfig(executionID, alias string, config map[str
 	return i.api(http.MethodPost, path, map[string]any{"alias": alias, "config": config}, nil)
 }
 
-func (i *installer) validateExistingFlow() error {
+func (i *installer) validateExistingFlow(legacy bool) error {
 	if _, err := i.expectFlow(browserFlow, []expectedExecution{
 		{providerID: "auth-cookie", requirement: "ALTERNATIVE"},
 		{providerID: "identity-provider-redirector", requirement: "ALTERNATIVE"},
@@ -504,9 +529,13 @@ func (i *installer) validateExistingFlow() error {
 	}); err != nil {
 		return err
 	}
+	otpRequirement, magicRequirement := "REQUIRED", "DISABLED"
+	if legacy {
+		otpRequirement, magicRequirement = "ALTERNATIVE", "ALTERNATIVE"
+	}
 	methods, err := i.expectFlow(methodsFlow, []expectedExecution{
-		{providerID: "ext-email-otp", requirement: "ALTERNATIVE"},
-		{providerID: "ext-magic-form", requirement: "ALTERNATIVE"},
+		{providerID: "ext-email-otp", requirement: otpRequirement},
+		{providerID: "ext-magic-form", requirement: magicRequirement},
 	})
 	if err != nil {
 		return err
@@ -675,6 +704,11 @@ func (i *installer) findClient(clientID string) (map[string]any, error) {
 }
 
 func (i *installer) rollback() {
+	if i.methodsChanged {
+		for _, execution := range i.legacyMethods {
+			_ = i.setRequirement(methodsFlow, execution, stringField(execution, "requirement"))
+		}
+	}
 	if i.createdFlowID != "" {
 		_ = i.api(http.MethodDelete, i.adminPath+"/authentication/flows/"+url.PathEscape(i.createdFlowID), nil, nil)
 	}

@@ -1,5 +1,5 @@
 /**
- * Install and bind the Case Law email OTP + magic-link browser flow on an
+ * Install and bind the Case Law email OTP-only browser flow on an
  * existing realm. Fresh realms get the same configuration from
  * realm/caselaw-realm.json; this script exists because --import-realm skips a
  * realm that already exists.
@@ -95,6 +95,8 @@ const adminPath = `/admin/realms/${encodeURIComponent(realm)}`
 let createdFlowId = null
 let createdClientId = null
 let originalUserProfile = null
+let legacyMethods = null
+let methodsChanged = false
 
 try {
   await requireProvider('caselaw-email-identity')
@@ -105,12 +107,18 @@ try {
   const existing = flows.find((flow) => flow.alias === browserFlow)
 
   if (existing) {
-    await validateExistingFlow()
+    // Only the exact formerly shipped two-method flow is eligible for upgrade.
+    // All configs and surrounding executions are validated before any mutation.
+    try { await validateExistingFlow() }
+    catch {
+      await validateExistingFlow(true)
+      legacyMethods = await executions(methodsFlow)
+    }
     console.log(`Validated existing ${browserFlow} flow.`)
   } else {
     await api('POST', `${adminPath}/authentication/flows`, {
       alias: browserFlow,
-      description: 'Browser SSO with email OTP and single-use magic-link sign-in.',
+      description: 'Browser SSO with verified email OTP. Magic-link sign-in is disabled.',
       providerId: 'basic-flow',
       topLevel: true,
       builtIn: false,
@@ -124,16 +132,17 @@ try {
     await addExecution(browserFlow, 'auth-cookie', 'ALTERNATIVE')
     await addExecution(browserFlow, 'identity-provider-redirector', 'ALTERNATIVE')
     await addSubflow(browserFlow, formsFlow, 'ALTERNATIVE',
-      'Collect an email address, then let the user authenticate with a code or a link.')
+      'Collect an email address, then verify the emailed code.')
 
     await addExecution(formsFlow, 'caselaw-email-identity', 'REQUIRED')
     await addSubflow(formsFlow, methodsFlow, 'REQUIRED',
-      'Alternative passwordless methods available after the user supplies an email address.')
+      'Require email OTP after the user supplies an email address.')
 
-    const otp = await addExecution(methodsFlow, 'ext-email-otp', 'ALTERNATIVE')
+    const otp = await addExecution(methodsFlow, 'ext-email-otp', 'REQUIRED')
     await addExecutionConfig(otp.id, otpConfigAlias, otpConfig)
 
-    const magicLink = await addExecution(methodsFlow, 'ext-magic-form', 'ALTERNATIVE')
+    // Retain the disabled execution/config so known older installs migrate safely.
+    const magicLink = await addExecution(methodsFlow, 'ext-magic-form', 'DISABLED')
     await addExecutionConfig(magicLink.id, magicLinkConfigAlias, magicLinkConfig)
 
     await validateExistingFlow()
@@ -147,8 +156,15 @@ try {
     console.log(`Skipped Case Law estate client reconciliation for realm ${realm}.`)
   }
   await ensureNamesOptional()
+  if (legacyMethods) {
+    methodsChanged = true
+    await setRequirement(methodsFlow, legacyMethods[0], 'REQUIRED')
+    await setRequirement(methodsFlow, legacyMethods[1], 'DISABLED')
+    await validateExistingFlow()
+    console.log('Upgraded the known email-first flow to OTP-only; magic-link sign-in is disabled.')
+  }
   // The provider keeps the OTP in the authentication session, so the realm's
-  // login-action timeout is its lifetime. Keep it aligned with magic links.
+  // login-action timeout is its lifetime.
   await api('PUT', adminPath, {
     browserFlow,
     accessCodeLifespanLogin: 600,
@@ -167,8 +183,13 @@ try {
   }
 
   console.log(`Bound ${browserFlow} to ${realm} on ${baseUrl}.`)
-  console.log(`The realm now creates and authenticates users through verified email OTP or magic links in ${realm}.`)
+  console.log(`The realm now creates and authenticates users through verified email OTP only in ${realm}; magic links are disabled.`)
 } catch (error) {
+  if (methodsChanged) {
+    for (const execution of legacyMethods) {
+      await setRequirement(methodsFlow, execution, execution.requirement).catch(() => undefined)
+    }
+  }
   if (createdFlowId) {
     await api('DELETE', `${adminPath}/authentication/flows/${encodeURIComponent(createdFlowId)}`)
       .catch(() => undefined)
@@ -336,7 +357,7 @@ async function addExecutionConfig(executionId, alias, config) {
   )
 }
 
-async function validateExistingFlow() {
+async function validateExistingFlow(legacy = false) {
   await expectFlow(browserFlow, [
     { providerId: 'auth-cookie', requirement: 'ALTERNATIVE' },
     { providerId: 'identity-provider-redirector', requirement: 'ALTERNATIVE' },
@@ -347,8 +368,8 @@ async function validateExistingFlow() {
     { displayName: methodsFlow, requirement: 'REQUIRED', authenticationFlow: true },
   ])
   const methods = await expectFlow(methodsFlow, [
-    { providerId: 'ext-email-otp', requirement: 'ALTERNATIVE' },
-    { providerId: 'ext-magic-form', requirement: 'ALTERNATIVE' },
+    { providerId: 'ext-email-otp', requirement: legacy ? 'ALTERNATIVE' : 'REQUIRED' },
+    { providerId: 'ext-magic-form', requirement: legacy ? 'ALTERNATIVE' : 'DISABLED' },
   ])
   await expectConfig(methods[0], otpConfigAlias, otpConfig)
   await expectConfig(methods[1], magicLinkConfigAlias, magicLinkConfig)
