@@ -1,6 +1,6 @@
 # Passwordless sign-in across Case Law Explorer
 
-Email OTP-only sign-in are available as an optional shared Keycloak
+Email OTP-only sign-in is available as an optional shared Keycloak
 browser flow. Username/email and password is the repository default. When an
 operator opts a realm into passwordless mode, every interactive Case Law product
 redirects to that flow, so products do not implement email delivery, generate
