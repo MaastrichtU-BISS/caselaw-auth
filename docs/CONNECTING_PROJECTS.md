@@ -11,6 +11,10 @@ existing administrator) and a domain for the product.
 **Related.** [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) for products that have a
 backend, [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
 
+For `auth.<project-domain>`, follow [Project authentication domains](PROJECT_AUTH_DOMAINS.md).
+Set the browser client's issuer to the canonical project realm URL, rebuild if it is
+embedded at build time, and update API validators at the same time.
+
 > **If the product has a backend, use the server path instead.** This guide
 > stores the session — refresh token included — in `localStorage`, where page
 > script can read it. With a backend the session belongs in an httpOnly cookie.

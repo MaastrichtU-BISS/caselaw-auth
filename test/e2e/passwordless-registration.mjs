@@ -3,6 +3,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 
 const keycloakUrl = (process.env.E2E_KEYCLOAK_URL || 'http://localhost:18080').replace(/\/$/, '')
+const adminUrl = (process.env.E2E_ADMIN_URL || keycloakUrl).replace(/\/$/, '')
 const mailpitUrl = (process.env.E2E_MAILPIT_URL || 'http://localhost:18025').replace(/\/$/, '')
 const adminUser = process.env.KEYCLOAK_ADMIN || 'admin'
 const adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || 'passwordless-e2e-admin'
@@ -107,6 +108,34 @@ const tokenResponse = await fetch(`${keycloakUrl}/realms/${encodeURIComponent(re
 assert.equal(tokenResponse.status, 200, `authorization-code exchange returned ${tokenResponse.status}`)
 const tokens = await tokenResponse.json()
 assert.ok(tokens.access_token)
+const expectedIssuer = `${keycloakUrl}/realms/${encodeURIComponent(realm)}`
+assert.equal(JSON.parse(Buffer.from(tokens.access_token.split('.')[1], 'base64url')).iss, expectedIssuer)
+assert.equal(JSON.parse(Buffer.from(tokens.id_token.split('.')[1], 'base64url')).iss, expectedIssuer)
+
+if (process.env.E2E_VERIFY_DOMAIN === 'true') {
+  for (const html of [loginHtml, otpHtml]) {
+    assert.equal(new URL(formAction(html)).origin, new URL(keycloakUrl).origin)
+    for (const [, source] of html.matchAll(/(?:src|href)=["']([^"']*\/resources\/[^"']+)["']/g)) {
+      const resource = new URL(decodeHtml(source), keycloakUrl)
+      assert.equal(resource.origin, new URL(keycloakUrl).origin)
+      assert.equal((await fetch(resource, { redirect: 'manual' })).status, 200, 'theme resource must load on the project origin without a redirect')
+    }
+  }
+  const refreshed = await fetch(`${expectedIssuer}/protocol/openid-connect/token`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'refresh_token', client_id: clientId, refresh_token: tokens.refresh_token }),
+  })
+  assert.equal(refreshed.status, 200, 'refresh must work through the project origin')
+  const refreshedTokens = await refreshed.json()
+  assert.equal(JSON.parse(Buffer.from(refreshedTokens.access_token.split('.')[1], 'base64url')).iss, expectedIssuer)
+  const logout = new URL(`${expectedIssuer}/protocol/openid-connect/logout`)
+  logout.search = new URLSearchParams({ id_token_hint: tokens.id_token, post_logout_redirect_uri: redirectUri }).toString()
+  const loggedOut = await browser.fetch(logout)
+  assert.equal(loggedOut.status, 302, 'logout must return to the registered application')
+  assert.equal(loggedOut.headers.get('location'), redirectUri)
+  assert.match(await (await browser.fetch(authorize)).text(), /name=["']username["']/, 'logout must end the Keycloak SSO session')
+  await verifyMagicLink()
+}
 
 const users = await usersByEmail(adminToken, testEmail)
 assert.equal(users.length, 1, 'OTP completion must not create a duplicate user')
@@ -132,21 +161,21 @@ const health = spawnSync(process.execPath, [
   encoding: 'utf8',
   env: {
     ...process.env,
-    KEYCLOAK_URL: keycloakUrl,
+    KEYCLOAK_URL: adminUrl,
     KEYCLOAK_REALM: realm,
     KEYCLOAK_ADMIN_REALM: 'master',
     KEYCLOAK_ADMIN: adminUser,
     KEYCLOAK_ADMIN_PASSWORD: adminPassword,
-    CASELAW_PASSWORDLESS_ESTATE_MODE: 'true',
+    CASELAW_PASSWORDLESS_ESTATE_MODE: process.env.E2E_ESTATE_MODE || 'true',
   },
 })
 assert.equal(health.status, 0, `${health.stdout}\n${health.stderr}`)
-assert.match(health.stdout, /PASS caselaw/)
+assert.ok(health.stdout.includes(`PASS ${realm}`))
 
 console.log(`PASS ${testEmail}: unknown email -> OTP -> verified OIDC account without names or password`)
 
 async function getAdminToken() {
-  const response = await fetch(`${keycloakUrl}/realms/master/protocol/openid-connect/token`, {
+  const response = await fetch(`${adminUrl}/realms/master/protocol/openid-connect/token`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -195,7 +224,7 @@ async function usersByEmail(token, email) {
 }
 
 async function adminApi(token, suffix, options = {}) {
-  const response = await fetch(`${keycloakUrl}/admin/realms/${encodeURIComponent(realm)}${suffix}`, {
+  const response = await fetch(`${adminUrl}/admin/realms/${encodeURIComponent(realm)}${suffix}`, {
     method: options.method || 'GET',
     headers: {
       authorization: `Bearer ${token}`,
@@ -229,6 +258,54 @@ async function readOtp(email) {
   throw new Error(`no OTP message arrived for ${email}`)
 }
 
+async function verifyMagicLink() {
+  const magicBrowser = new CookieBrowser()
+  const first = await magicBrowser.fetch(authorize)
+  const emailPage = await magicBrowser.fetch(formAction(await first.text()), {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ username: testEmail }),
+  })
+  const chooser = await magicBrowser.fetch(formAction(await emailPage.text()), {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ tryAnotherWay: 'on' }),
+  })
+  const chooserHtml = await chooser.text()
+  const button = [...chooserHtml.matchAll(/<button\b[^>]*value="([^"]+)"[^>]*>([\s\S]*?)<\/button>/g)]
+    .find(([, , body]) => /magic link/i.test(body))
+  assert.ok(button, 'method chooser must offer magic link')
+  const sent = await magicBrowser.fetch(formAction(chooserHtml), {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ authenticationExecution: button[1] }),
+  })
+  assert.equal(sent.status, 200)
+  let link
+  const deadline = Date.now() + 30_000
+  while (!link && Date.now() < deadline) {
+    const { messages = [] } = await (await fetch(`${mailpitUrl}/api/v1/messages`)).json()
+    for (const message of messages.filter(candidate => candidate.To?.some(to => to.Address === testEmail))) {
+      const detail = await (await fetch(`${mailpitUrl}/api/v1/message/${message.ID}`)).json()
+      link = [...`${detail.Text || ''}\n${detail.HTML || ''}`.matchAll(/https?:\/\/[^\s"'<>]+/g)]
+        .map(match => decodeHtml(match[0])).find(value => value.includes('/login-actions/action-token?'))
+      if (link) break
+    }
+    if (!link) await delay(250)
+  }
+  assert.ok(link, 'magic-link email must arrive')
+  assert.equal(new URL(link).origin, new URL(keycloakUrl).origin, 'email action link must use the project host')
+  const redeemed = await magicBrowser.fetch(link)
+  const returned = await followToCallback(magicBrowser, redeemed)
+  assert.equal(returned.origin + returned.pathname, redirectUri)
+  assert.equal(returned.searchParams.get('state'), state)
+  const exchanged = await fetch(`${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'authorization_code', client_id: clientId,
+      redirect_uri: redirectUri, code: returned.searchParams.get('code'), code_verifier: verifier }),
+  })
+  assert.equal(exchanged.status, 200, 'magic-link callback must exchange successfully')
+  const result = await exchanged.json()
+  assert.equal(JSON.parse(Buffer.from(result.access_token.split('.')[1], 'base64url')).iss, expectedIssuer)
+}
+
 async function followToCallback(browser, initialResponse) {
   let response = initialResponse
   for (let redirects = 0; redirects < 6; redirects += 1) {
@@ -236,6 +313,9 @@ async function followToCallback(browser, initialResponse) {
       `post-OTP navigation returned ${response.status}`)
     const location = new URL(response.headers.get('location'))
     if (location.origin + location.pathname === redirectUri) return location
+    if (process.env.E2E_VERIFY_DOMAIN === 'true') {
+      assert.equal(location.origin, new URL(keycloakUrl).origin, 'intermediate redirects must stay on the project origin')
+    }
     response = await browser.fetch(location)
     if (response.status === 200) {
       const html = await response.text()

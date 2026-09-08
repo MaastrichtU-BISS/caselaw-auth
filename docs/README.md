@@ -8,6 +8,7 @@ its theme, and the `caselaw-auth` npm package.
 | Document | Audience | Covers |
 |---|---|---|
 | [OTP_SETUP.md](OTP_SETUP.md) | Project developers and realm administrators | Start-here decision table and numbered checklist for the shared realm or a different realm/server, including the no-clone `npx` installer |
+| [PROJECT_AUTH_DOMAINS.md](PROJECT_AUTH_DOMAINS.md) | DNS owners, deployment operators, realm administrators and project developers | Configure `auth.<project-domain>` on one shared Keycloak deployment; migrate issuers and verify login, email links and logout |
 | [OTP_OPERATIONS.md](OTP_OPERATIONS.md) | Operators | Health checks, synthetic SMTP monitoring, stale-user cleanup, upgrade gate and incidents |
 | [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md) | Operators and product engineers | Architecture and estate-wide service matrix; use `OTP_SETUP.md` for installation |
 | [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) | Engineers integrating a product that has a backend | `caselaw-auth/server`, session cookies, token verification, DiscourseConnect |

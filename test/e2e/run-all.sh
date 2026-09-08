@@ -14,12 +14,25 @@ cleanup() {
   # shellcheck disable=SC2086
   docker compose -p "$project" $legacy down -v >/dev/null 2>&1 || true
 }
-trap cleanup EXIT INT TERM
+finish() {
+  test_status=$?
+  if [ "$test_status" -ne 0 ]; then
+    # Only disposable test containers; preserve diagnostics before removing them.
+    # shellcheck disable=SC2086
+    docker compose -p "$project" $legacy logs --tail=100 || true
+  fi
+  cleanup
+  exit "$test_status"
+}
+trap finish EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 cleanup
 # shellcheck disable=SC2086
 docker compose -p "$project" $base up -d --build
 npm run test:passwordless-e2e
+node test/e2e/project-auth-domains.mjs
 
 # shellcheck disable=SC2086
 docker compose -p "$project" $base down -v

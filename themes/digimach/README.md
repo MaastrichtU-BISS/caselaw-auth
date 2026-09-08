@@ -16,6 +16,11 @@ The colors and mark are based on [digimach.eu](https://digimach.eu/):
 
 ## Selecting the theme
 
+For an address such as `auth.digimach.eu`, also follow
+[Project authentication domains](../../docs/PROJECT_AUTH_DOMAINS.md). Theme
+selection changes appearance; the realm Frontend URL and application issuer
+configuration determine the authentication domain.
+
 The Docker image already copies the complete `themes/` directory, so a build
 from this repository exposes `digimach` in Keycloak's theme selectors.
 
