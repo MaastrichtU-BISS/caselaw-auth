@@ -44,6 +44,7 @@ service itself.
 | Task | Guide |
 |---|---|
 | Enable optional email OTP and magic links | [docs/OTP_SETUP.md](docs/OTP_SETUP.md) |
+| Give a project its own `auth.<domain>` | [docs/PROJECT_AUTH_DOMAINS.md](docs/PROJECT_AUTH_DOMAINS.md) |
 | Monitor and maintain OTP | [docs/OTP_OPERATIONS.md](docs/OTP_OPERATIONS.md) |
 | Roll out email OTP and magic links across Case Law | [docs/PASSWORDLESS_ROLLOUT.md](docs/PASSWORDLESS_ROLLOUT.md) |
 | Connect a product that **has a backend** | [docs/SERVER_SIDE_AUTH.md](docs/SERVER_SIDE_AUTH.md) |
@@ -76,15 +77,15 @@ Set the admin account and the database:
 ```bash
 KEYCLOAK_ADMIN=admin
 KEYCLOAK_ADMIN_PASSWORD=<a long random string>
-KC_DB_PASSWORD=<a long random string>
-KC_HOSTNAME=https://auth.example.org
+KEYCLOAK_POSTGRES_PASSWORD=<a long random string>
+KEYCLOAK_HOSTNAME=https://auth.example.org
 ```
 
 ```bash
 docker compose up -d
 ```
 
-The realm imports on first start. Keycloak is then reachable at `KC_HOSTNAME`, with
+The realm imports on first start. Keycloak is then reachable at `KEYCLOAK_HOSTNAME`, with
 the admin console at `/admin` and the realm at `/realms/caselaw`.
 
 Configure SMTP before enabling email OTP, magic links, **Verify email**, or
@@ -107,9 +108,16 @@ complete sign-in using only email and the received code. See
 
 ### Behind a reverse proxy
 
-Keycloak builds absolute URLs from the hostname it believes it has. Set `KC_HOSTNAME`
-to the public URL and make sure the proxy forwards `X-Forwarded-Proto`. Getting this
+Keycloak builds absolute URLs from the hostname it believes it has. Set the Compose
+input `KEYCLOAK_HOSTNAME` (mapped to Keycloak's `KC_HOSTNAME`) to the public URL and
+make sure the proxy overwrites `X-Forwarded-*` headers. Getting this
 wrong produces redirects to `http://` on an HTTPS site, or to an internal hostname.
+
+One deployment can serve multiple project domains. Add each HTTPS domain to the
+existing proxy/service and configure its realm's **Frontend URL**. Keep
+`KEYCLOAK_ADMIN_HOSTNAME` on the shared administration origin. Follow
+[Project authentication domains](docs/PROJECT_AUTH_DOMAINS.md) for DNS, TLS,
+realm configuration, application issuer migration and verification.
 
 ## Clients
 

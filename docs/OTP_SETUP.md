@@ -18,6 +18,11 @@ name or password form is shown.
 Keep every realm-scoped item together: SMTP, users, the authentication-flow binding,
 and the project's OIDC client must be in the realm named by the project's issuer.
 
+For a project-specific hostname such as `auth.digimach.eu`, follow
+[Project authentication domains](PROJECT_AUTH_DOMAINS.md). It covers the shared
+Coolify service, realm Frontend URL and issuer settings for both integration paths.
+Domain configuration and enabling OTP are separate operations.
+
 ## Five-minute quick start
 
 If the project uses the shared production `caselaw` realm, OTP is already a realm

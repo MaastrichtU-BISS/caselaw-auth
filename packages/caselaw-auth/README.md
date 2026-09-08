@@ -87,6 +87,11 @@ keep one.
 
 ## The core client
 
+For a project hostname such as `auth.digimach.eu`, configure the realm and proxy
+using the [project domain guide](https://github.com/MaastrichtU-BISS/caselaw-auth/blob/main/docs/PROJECT_AUTH_DOMAINS.md).
+Both the browser and server integrations use its canonical `/realms/<realm>` URL
+as `issuer`; the login and callback code stays the same.
+
 ```ts
 import { createAuthClient } from "caselaw-auth";
 

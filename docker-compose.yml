@@ -39,6 +39,10 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded
       KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-}
+      # Realm frontendUrl overrides brand each project's public endpoints.
+      # Administration keeps one canonical origin, independent of realm branding.
+      KC_HOSTNAME_ADMIN: ${KEYCLOAK_ADMIN_HOSTNAME:-}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
       KC_HOSTNAME_STRICT: ${KEYCLOAK_HOSTNAME_STRICT:-false}
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"

@@ -19,6 +19,10 @@ for the product, and either `caselaw-auth` v0.2.1 or later (Node) or
 **Related.** [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) for static SPAs,
 [REALM_SETUP.md](REALM_SETUP.md) for realm configuration.
 
+For `auth.<project-domain>`, follow [Project authentication domains](PROJECT_AUTH_DOMAINS.md).
+Set the server's issuer to the canonical project realm URL and update API validators
+at the same time. Existing callback routes and PKCE handling stay the same.
+
 > **Email OTP and magic links need no server-library changes.** The login
 > route still redirects to the realm and the callback still exchanges an
 > authorization code; Keycloak owns the email challenge. The estate-wide
