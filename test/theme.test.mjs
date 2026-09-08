@@ -5,6 +5,16 @@ import { runInNewContext } from 'node:vm'
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
+test('each login theme declares its own local project favicon', async () => {
+  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg']]) {
+    const properties = await read(`themes/${theme}/login/theme.properties`)
+    assert.ok(properties.split('\n').includes(`favicons=img/${asset}`))
+    const svg = await read(`themes/${theme}/login/resources/img/${asset}`)
+    assert.match(svg, /<svg\b/)
+    assert.doesNotMatch(svg, /<script\b|\bon\w+=|(?:href|src)=/i)
+  }
+})
+
 test('the OTP page keeps the provider contract and mobile code semantics', async () => {
   const template = await read('themes/caselaw/login/otp-form.ftl')
   const script = await read('themes/caselaw/login/resources/js/otp-input-v1.js')

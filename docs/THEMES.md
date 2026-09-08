@@ -93,6 +93,41 @@ the client inherit the realm default again.
 
 ## Verify and troubleshoot
 
+### Project favicons (browser-tab icons)
+
+The login favicon follows the selected **Login theme**, including client-level
+overrides. `caselaw` uses the Case Law Explorer demo platform's network icon;
+`digimach` uses the same green DM mark as `digimach.eu`. Email entry, OTP,
+registration, recovery and login error pages inherit that choice. No frontend
+or server-side auth SDK change, DNS change, SMTP setting or environment variable
+is needed. The Account console is a separate theme surface.
+
+For a new connected project:
+
+1. Give the auth-service maintainer the project's approved favicon (a trusted,
+   self-contained SVG or PNG). It is not automatically fetched from a client's
+   website or redirect URL.
+2. In that project's login theme, add the file under
+   `themes/<project>/login/resources/img/`, for example `project-favicon-v1.svg`.
+3. Set `favicons=img/project-favicon-v1.svg` in the theme's `login/theme.properties`.
+   A child theme must declare its own favicon; otherwise it inherits its parent's.
+   New themes can use `parent=caselaw` to inherit the shared forms and layout, but
+   should also supply their own branding layer (see the `digimach` example).
+4. Build and deploy the shared Keycloak image, then select the theme under
+   **Realm settings → Themes → Login theme**, or the individual client's
+   **Login theme** setting described above. Selecting an already deployed theme
+   requires no repository clone for the project administrator.
+5. Start sign-in from that project and check both the email and OTP tabs. The
+   favicon request must return 200 from the auth origin, not the application
+   origin or a third-party icon service. For a replacement icon, use a new filename
+   and update `favicons` to avoid browser favicon caching; check a fresh tab too.
+
+This uses the [native Keycloak favicon theme property](https://www.keycloak.org/ui-customization/themes#_theme_properties)
+supported by the pinned Keycloak 26.7 image. Do not copy or fork the base login
+template just to change the favicon.
+
+### Other theme checks
+
 Start a fresh authorization request using the target project's client ID. A
 realm-wide change should appear for every client in that realm; a client-level
 override should appear only for that client.
