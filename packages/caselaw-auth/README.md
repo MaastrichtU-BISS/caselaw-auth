@@ -35,7 +35,7 @@ export KEYCLOAK_ADMIN_PASSWORD='<set securely>'
 export CASELAW_PASSWORDLESS_ESTATE_MODE=false
 ```
 
-4. Run `npx --yes caselaw-auth@0.6.2 apply-passwordless-flow`.
+4. Run `npx --yes caselaw-auth@0.6.3 apply-passwordless-flow`.
 5. Confirm it reports `Bound caselaw-browser-passwordless-email-first`, verify that binding in
    the Admin Console, and complete an OTP login with the new address in a private
    browser. Confirm Keycloak created one email-verified user with no name or password
@@ -51,6 +51,21 @@ Use a secret manager to set the password rather than leaving the value in shell
 history.
 Full prerequisites and rollback instructions are in the repository's
 [OTP setup guide](https://github.com/MaastrichtU-BISS/caselaw-auth/blob/main/docs/OTP_SETUP.md).
+
+After setup, operators have two additional commands. Both use the same
+`KEYCLOAK_*` environment variables:
+
+```bash
+# Read-only: providers, flow, SMTP settings, profile and optional estate clients
+npx --yes caselaw-auth@0.6.3 check-passwordless
+
+# Dry-run by default; add --execute only after reviewing the candidates
+npx --yes caselaw-auth@0.6.3 cleanup-unverified-users --max-age-days 7
+```
+
+Selection safeguards, scheduling, synthetic mailbox monitoring and the upgrade gate
+are documented in the
+[OTP operations runbook](https://github.com/MaastrichtU-BISS/caselaw-auth/blob/main/docs/OTP_OPERATIONS.md).
 
 ## Which half
 

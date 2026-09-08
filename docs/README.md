@@ -8,7 +8,8 @@ its theme, and the `caselaw-auth` npm package.
 | Document | Audience | Covers |
 |---|---|---|
 | [OTP_SETUP.md](OTP_SETUP.md) | Project developers and realm administrators | Start-here decision table and numbered checklist for the shared realm or a different realm/server, including the no-clone `npx` installer |
-| [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md) | Operators and product engineers | Email OTP and magic links, estate-wide service matrix, production rollout and rollback |
+| [OTP_OPERATIONS.md](OTP_OPERATIONS.md) | Operators | Health checks, synthetic SMTP monitoring, stale-user cleanup, upgrade gate and incidents |
+| [PASSWORDLESS_ROLLOUT.md](PASSWORDLESS_ROLLOUT.md) | Operators and product engineers | Architecture and estate-wide service matrix; use `OTP_SETUP.md` for installation |
 | [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) | Engineers integrating a product that has a backend | `caselaw-auth/server`, session cookies, token verification, DiscourseConnect |
 | [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) | Engineers integrating a static SPA | `caselaw-auth/client`, Vue and Svelte adapters, Keycloak client setup |
 | [REALM_SETUP.md](REALM_SETUP.md) | Administrators configuring a realm | Realm settings, roles, clients, identity providers, hardening |

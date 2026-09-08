@@ -20,6 +20,8 @@ import org.keycloak.services.messages.Messages;
 import org.keycloak.utils.EmailValidationUtil;
 
 final class EmailIdentityAuthenticator extends AbstractUsernameFormAuthenticator {
+  static final String PENDING_EMAIL_OTP_ATTRIBUTE = "caselaw.pending-email-otp";
+
   @Override
   public void authenticate(AuthenticationFlowContext context) {
     if (context.getUser() != null) {
@@ -56,6 +58,10 @@ final class EmailIdentityAuthenticator extends AbstractUsernameFormAuthenticator
         user.setEmail(email);
         user.setEmailVerified(false);
         user.setEnabled(true);
+        // This server-controlled provenance marker lets the maintenance CLI
+        // distinguish abandoned self-service records from manually invited,
+        // federated, or otherwise intentional unverified accounts.
+        user.setSingleAttribute(PENDING_EMAIL_OTP_ATTRIBUTE, "true");
       }
     } catch (ModelDuplicateException duplicate) {
       // A concurrent request may have created the same email between lookup and

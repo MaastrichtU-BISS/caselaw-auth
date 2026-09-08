@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash, randomBytes } from 'node:crypto'
+import { spawnSync } from 'node:child_process'
 
 const keycloakUrl = (process.env.E2E_KEYCLOAK_URL || 'http://localhost:18080').replace(/\/$/, '')
 const mailpitUrl = (process.env.E2E_MAILPIT_URL || 'http://localhost:18025').replace(/\/$/, '')
@@ -76,6 +77,9 @@ assert.equal(pendingUsers.length, 1, 'submitting a new email must create exactly
 assert.equal(pendingUsers[0].emailVerified, false, 'the account must remain unverified before OTP proof')
 assert.equal(pendingUsers[0].firstName, undefined)
 assert.equal(pendingUsers[0].lastName, undefined)
+const pendingUserDetail = await adminApi(adminToken, `/users/${encodeURIComponent(pendingUsers[0].id)}`)
+assert.deepEqual(pendingUserDetail.attributes?.['caselaw.pending-email-otp'], ['true'],
+  'pending self-service account must carry the cleanup provenance marker')
 
 const otp = await readOtp(testEmail)
 const callback = await browser.fetch(formAction(otpHtml), {
@@ -119,6 +123,25 @@ assert.deepEqual(credentials, [], 'email-only account must not have a password c
 const liveRealm = await adminApi(adminToken, '')
 assert.equal(liveRealm.browserFlow, 'caselaw-browser-passwordless-email-first')
 assert.equal(liveRealm.registrationAllowed, false)
+
+const health = spawnSync(process.execPath, [
+  'packages/caselaw-auth/bin/caselaw-auth.mjs',
+  'check-passwordless',
+], {
+  cwd: new URL('../..', import.meta.url),
+  encoding: 'utf8',
+  env: {
+    ...process.env,
+    KEYCLOAK_URL: keycloakUrl,
+    KEYCLOAK_REALM: realm,
+    KEYCLOAK_ADMIN_REALM: 'master',
+    KEYCLOAK_ADMIN: adminUser,
+    KEYCLOAK_ADMIN_PASSWORD: adminPassword,
+    CASELAW_PASSWORDLESS_ESTATE_MODE: 'true',
+  },
+})
+assert.equal(health.status, 0, `${health.stdout}\n${health.stderr}`)
+assert.match(health.stdout, /PASS caselaw/)
 
 console.log(`PASS ${testEmail}: unknown email -> OTP -> verified OIDC account without names or password`)
 

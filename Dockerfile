@@ -25,7 +25,7 @@ ENV KC_DB=postgres
 ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
 COPY --from=provider /tmp/keycloak-magic-link.jar /opt/keycloak/providers/keycloak-magic-link.jar
-COPY --from=email-identity-provider /src/target/caselaw-email-identity-1.0.0.jar /opt/keycloak/providers/caselaw-email-identity.jar
+COPY --from=email-identity-provider /src/target/caselaw-email-identity-1.1.0.jar /opt/keycloak/providers/caselaw-email-identity.jar
 COPY realm/caselaw-realm.json /opt/keycloak/data/import/caselaw-realm.json
 COPY themes /opt/keycloak/themes
 RUN /opt/keycloak/bin/kc.sh build

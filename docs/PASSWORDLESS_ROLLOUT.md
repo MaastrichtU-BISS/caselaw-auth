@@ -122,7 +122,7 @@ product.
 
 | Surface | Client | Shape | Production callback | Passwordless impact |
 |---|---|---|---|---|
-| Case Law Explorer platform | `caselaw-frontend` | public client, server-held session, PKCE | `https://app.caselawexplorer.tech/auth/callback` (demo uses `demo-app`) | Inherits the realm flow; no product OTP code |
+| Case Law Explorer platform | `caselaw-frontend` | public client, server-held session, PKCE | Current OIDC deployment: `https://demo-app.caselawexplorer.tech/auth/callback`; `app` is registered for a later cutover | Inherits the realm flow; no product OTP code |
 | Access console | `caselaw-access` | public client, Python server-held session, PKCE | `https://access.caselawexplorer.tech/auth/callback` | Inherits the realm flow; admin role checks stay local |
 | Database workbench | `caselaw-db-workbench` | public client, server-held session, PKCE | `https://demo-db.caselawexplorer.tech/auth/callback` | Inherits the realm flow; still requires `admin` |
 | Citations API docs/account UI | `citations-api` | public browser client, PKCE | `https://demo-api.caselawexplorer.tech/auth/callback` or `api` | New dedicated client; must not use `caselaw-api` |
@@ -151,22 +151,24 @@ redirects `GET /auth/login` to Keycloak, stores state and the PKCE verifier in
 an httpOnly transaction cookie, handles `GET /auth/callback`, and stores the
 result in server-only cookies. No refresh token is readable by page script.
 
-Production values in the `caselaw-coolify` resource:
+Current values in the deployed `caselaw-coolify` OIDC resource:
 
 ```env
 FRONTEND_AUTH_PROVIDER=oidc
 REQUIRE_FRONTEND_AUTH=true
 FRONTEND_PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/caselaw
 FRONTEND_PUBLIC_AUTH_CLIENT_ID=caselaw-frontend
-FRONTEND_PUBLIC_AUTH_REDIRECT_URI=https://app.caselawexplorer.tech/auth/callback
+FRONTEND_PUBLIC_AUTH_REDIRECT_URI=https://demo-app.caselawexplorer.tech/auth/callback
 FRONTEND_PUBLIC_AUTH_STORAGE_KEY=caselaw:frontend:auth
 AUTH_SESSION_SECRET=<unique random value>
 AUTH_SESSION_TTL=28800
 ```
 
-The demo deployment uses
-`https://demo-app.caselawexplorer.tech/auth/callback`. Local development may
-use the registered localhost callback. `AUTH_SESSION_SECRET` belongs only to
+The public `app.caselawexplorer.tech` host remains the legacy Vercel/Supabase
+deployment until an explicit domain cutover. Its Keycloak callback is pre-registered,
+but registration is not evidence that the OIDC build is live there. Verify that
+`GET /auth/login` redirects to Keycloak before documenting the cutover as complete.
+Local development may use the registered localhost callback. `AUTH_SESSION_SECRET` belongs only to
 the Explorer platform; do not copy the access console or workbench secret.
 
 The platform's old Supabase email-code page is a fallback selected only by
@@ -330,7 +332,7 @@ from any Node 18+ environment that can reach the Keycloak Admin API:
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-npx --yes caselaw-auth@0.6.2 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.3 apply-passwordless-flow
 ```
 
 The administrator does not need shell access to the Keycloak host. Operators who
@@ -463,17 +465,18 @@ names and no password credential.
 ## 10. Security and operations
 
 **SMTP is part of authentication availability.** A relay outage now prevents a
-new passwordless sign-in. Monitor send failures and delivery latency, keep an
-administrator break-glass path, and do not treat “test email succeeded once” as
-ongoing monitoring.
+new passwordless sign-in. Implement the real-mailbox probe and alert thresholds in
+[OTP_OPERATIONS.md](OTP_OPERATIONS.md), keep an administrator break-glass path, and
+do not treat “test email succeeded once” as ongoing monitoring.
 
 **Protect the send step from abuse.** Realm brute-force protection limits bad
 codes; it does not by itself prevent repeated new login sessions from sending
 mail. Rate-limit the public authorization endpoint at the edge and consider the
 provider's Turnstile step before opening self-service sign-in to an untrusted
 audience. Because a first send can create an unverified record, monitor the rate and
-age of unverified users and clean up stale records according to an explicit
-retention policy. Never reveal whether a requested address already existed.
+age of unverified users and use the dry-run-first cleanup command in
+[OTP_OPERATIONS.md](OTP_OPERATIONS.md) under an explicit retention policy. Never
+reveal whether a requested address already existed.
 
 **Email is the first factor.** Anyone controlling the mailbox can sign in. Use
 step-up policy, a federated institutional identity provider, TOTP or WebAuthn
@@ -502,7 +505,7 @@ realm binding is old. Realm import does not update an existing realm. Check
 **Authentication → Bindings**, or run the apply script.
 
 **OTP succeeds, then Keycloak asks for first and last name.** The realm's User
-Profile still marks those attributes as required. Run the `0.6.2` installer. If it
+Profile still marks those attributes as required. Run the `0.6.3` installer. If it
 detects a custom role- or scope-based requirement, review that policy under **Realm
 settings → User profile**, make both fields optional, and rerun it.
 

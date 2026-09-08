@@ -37,6 +37,16 @@ var magicLinkConfig = map[string]string{
 	"ext-magic-token-life-span":         "600",
 }
 
+var pendingMarkerAttribute = map[string]any{
+	"name":        "caselaw.pending-email-otp",
+	"displayName": "Pending email OTP provenance",
+	"permissions": map[string]any{
+		"view": []string{"admin"},
+		"edit": []string{"admin"},
+	},
+	"multivalued": false,
+}
+
 var citationsAPIClient = map[string]any{
 	"clientId":                  "citations-api",
 	"name":                      "Citations API documentation",
@@ -326,12 +336,20 @@ func (i *installer) ensureNamesOptional() error {
 	}
 
 	names := map[string]map[string]any{}
+	var marker map[string]any
 	for _, value := range attributes {
 		attribute, ok := value.(map[string]any)
 		if !ok {
 			return errors.New("the realm user profile contains a malformed attribute; refusing to overwrite it")
 		}
 		name := stringField(attribute, "name")
+		if name == "caselaw.pending-email-otp" {
+			if marker != nil {
+				return errors.New("the realm user profile contains more than one caselaw.pending-email-otp attribute; refusing to overwrite drift")
+			}
+			marker = attribute
+			continue
+		}
 		if name != "firstName" && name != "lastName" {
 			continue
 		}
@@ -339,6 +357,13 @@ func (i *installer) ensureNamesOptional() error {
 			return fmt.Errorf("the realm user profile contains more than one %s attribute; refusing to overwrite drift", name)
 		}
 		names[name] = attribute
+	}
+	if marker != nil {
+		permissions, ok := marker["permissions"].(map[string]any)
+		if !ok || !sameStringSlice(stringSlice(permissions["view"]), []string{"admin"}) ||
+			!sameStringSlice(stringSlice(permissions["edit"]), []string{"admin"}) {
+			return errors.New("caselaw.pending-email-otp has custom permissions; refusing to overwrite drift")
+		}
 	}
 	for _, name := range []string{"firstName", "lastName"} {
 		attribute := names[name]
@@ -353,8 +378,8 @@ func (i *installer) ensureNamesOptional() error {
 		}
 	}
 
-	if !hasActiveRequirement(names["firstName"]["required"]) && !hasActiveRequirement(names["lastName"]["required"]) {
-		fmt.Println("Validated that firstName and lastName are optional.")
+	if !hasActiveRequirement(names["firstName"]["required"]) && !hasActiveRequirement(names["lastName"]["required"]) && marker != nil {
+		fmt.Println("Validated that firstName and lastName are optional and cleanup provenance is admin-only.")
 		return nil
 	}
 
@@ -368,6 +393,9 @@ func (i *installer) ensureNamesOptional() error {
 		if name == "firstName" || name == "lastName" {
 			delete(attribute, "required")
 		}
+	}
+	if marker == nil {
+		updated["attributes"] = append(updated["attributes"].([]any), pendingMarkerAttribute)
 	}
 	i.originalProfile = profile
 	if err := i.api(http.MethodPut, path, updated, nil); err != nil {
@@ -384,7 +412,11 @@ func (i *installer) ensureNamesOptional() error {
 			return fmt.Errorf("%s is still required after updating the realm user profile", name)
 		}
 	}
-	fmt.Println("Made firstName and lastName optional for email-only accounts.")
+	verifiedMarker := findProfileAttribute(verified, "caselaw.pending-email-otp")
+	if verifiedMarker == nil {
+		return errors.New("caselaw.pending-email-otp is missing after updating the realm user profile")
+	}
+	fmt.Println("Made firstName and lastName optional and registered admin-only cleanup provenance.")
 	return nil
 }
 
@@ -852,6 +884,18 @@ func sameStringMap(left, right map[string]string) bool {
 	}
 	for key, value := range right {
 		if left[key] != value {
+			return false
+		}
+	}
+	return true
+}
+
+func sameStringSlice(left, right []string) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for index, value := range right {
+		if left[index] != value {
 			return false
 		}
 	}
