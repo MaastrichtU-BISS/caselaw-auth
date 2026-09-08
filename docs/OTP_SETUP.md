@@ -1,16 +1,16 @@
 # Configure optional email OTP
 
-This guide covers two cases: connecting a project to the already configured shared
-`caselaw` realm, and enabling OTP in another realm. Before OTP is enabled, a new
-realm uses Keycloak's password flow. After OTP is enabled, a person enters only an
+Connect a project to the OTP-enabled `caselaw` realm, or enable OTP in another
+realm. Before OTP is enabled, a new realm uses Keycloak's password flow.
+After OTP is enabled, a person enters only an
 email address and the emailed code. Submitting a new address creates a pending,
 unverified email-only user; completing the code verifies and signs in that user. No
 name or password form is shown.
 
 For current live realms and pending downstream releases, see
 [Authentication rollout status](AUTH_ROLLOUT_STATUS.md). DigiMach already has OTP;
-its domain migration uses [DIGIMACH_HANDOFF.md](DIGIMACH_HANDOFF.md), not a second
-OTP installation.
+follow the [DigiMach domain cutover steps](DIGIMACH_HANDOFF.md) without
+reinstalling OTP.
 
 ## Choose your path
 
@@ -177,7 +177,7 @@ Keycloak, and keep that secret exclusively in the server environment.
 
 Use [CONNECTING_PROJECTS.md](CONNECTING_PROJECTS.md) for the browser-only
 implementation or [SERVER_SIDE_AUTH.md](SERVER_SIDE_AUTH.md) for the server-backed
-implementation. The realm setup in this guide is identical for both.
+implementation. Both integrations use the same realm configuration.
 
 ## Path A: project using the shared `caselaw` realm
 

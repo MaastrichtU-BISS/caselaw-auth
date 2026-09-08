@@ -3,9 +3,8 @@
 Reference and integration guides for Case Law Auth: the shared Keycloak realm,
 its theme, and the `caselaw-auth` npm package.
 
-Start with [Authentication rollout status](AUTH_ROLLOUT_STATUS.md) to distinguish
-deployed features, prepared DigiMach configuration and pending Access/Coolify work.
-For your colleague's DigiMach setup, use [DIGIMACH_HANDOFF.md](DIGIMACH_HANDOFF.md).
+- [Authentication rollout status](AUTH_ROLLOUT_STATUS.md): deployed features and pending releases.
+- [DigiMach authentication setup](DIGIMACH_HANDOFF.md): existing configuration, DNS requirements and issuer cutover.
 
 ## Guides
 
