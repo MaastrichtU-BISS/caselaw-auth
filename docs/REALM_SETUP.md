@@ -180,6 +180,13 @@ copied the token once instead of reading it per request.
 Raise **SSO Session Idle** instead if people complain about being signed out
 while working. That controls how long they may be away, and costs far less.
 
+**Remember me does nothing on its own.** Ticking it only makes Keycloak's
+cookie survive a browser restart; the session behind it still dies after the
+normal 30 minute idle timeout unless **SSO Session Idle Remember Me** and
+**SSO Session Max Remember Me** are set. Both default to 0, which means "same
+as without remember me", so a user who ticks the box and comes back an hour
+later signs in again. The realm file sets them to 14 days and 30 days.
+
 ### Security
 
 The realm file now sets these. **On a realm that already exists they do
@@ -194,6 +201,8 @@ they have to be applied by hand, under Realm settings → Sessions, → Tokens a
 | Password policy | length 12, not the username, last 3 remembered | Keycloak enforces nothing by default |
 | SSO session idle | 30 min | Bounds how long a stolen refresh token keeps working |
 | SSO session max | 10 h | Absolute cap regardless of activity |
+| SSO session idle, remember me | 14 days | Only for sessions where the box was ticked; 0 would fall back to 30 min |
+| SSO session max, remember me | 30 days | Absolute cap for remembered sessions |
 | Revoke refresh token | **On** | Rotation — see below |
 | Refresh token max reuse | 1 | Tolerates one race, still detects theft |
 
