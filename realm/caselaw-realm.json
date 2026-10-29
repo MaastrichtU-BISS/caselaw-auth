@@ -240,6 +240,8 @@
   "accessCodeLifespanLogin": 600,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 36000,
+  "ssoSessionIdleTimeoutRememberMe": 1209600,
+  "ssoSessionMaxLifespanRememberMe": 2592000,
   "bruteForceProtected": true,
   "passwordPolicy": "length(12) and notUsername and passwordHistory(3)",
   "sslRequired": "external"
