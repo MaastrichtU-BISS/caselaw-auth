@@ -12,7 +12,7 @@ tracked separately from source merges, package publication and configuration.
 | `caselaw` realm | Email-only OTP enabled on the shared issuer | Connect each product's own OIDC client; do not reinstall the realm flow |
 | `digimach` realm | Email-only OTP enabled; existing users and localhost callbacks retained; sender `no-reply@digimach.eu` unchanged | Complete the [DigiMach domain cutover](DIGIMACH_HANDOFF.md) |
 | DigiMach custom domain | Coolify route prepared; public DNS, trusted TLS and coordinated issuer/application cutover remain pending | Keep `https://auth.caselawexplorer.tech/realms/digimach` until the cutover is agreed |
-| Explorer frontend | Coolify stabilization remains on `demo-app.caselawexplorer.tech`; `app.caselawexplorer.tech` remains on Vercel | Do not change public-app DNS as part of an auth-domain change |
+| Explorer frontend | Runs on Coolify at `app.caselawexplorer.tech` since 2026-10-30 | Do not change public-app DNS as part of an auth-domain change |
 | Access per-project issuer support | Implementation is pending release/deployment; publishing its preview guide does not enable it | Do not assume the **Project authentication** card or project-auth API exists on the deployed console |
 | Coolify frontend/runtime issuer mapping and derived workbench account URL | [caselaw-coolify PR #18](https://github.com/MaastrichtU-BISS/caselaw-coolify/pull/18) merged into `main` as `968a4cc`; deployment and post-deployment verification remain unconfirmed | Confirm deployment, then test login and logout on `demo-app` before relying on the new variable behavior |
 
