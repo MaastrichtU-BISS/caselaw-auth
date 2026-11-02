@@ -20,20 +20,6 @@ services:
       - keycloak-db
     expose:
       - "8080"
-    labels:
-      # Keycloak sends "/" to its admin console, which is no place to arrive by
-      # accident. Only the bare root of this host moves: other paths, and other
-      # hosts served by this Keycloak, still reach it. The admin console stays
-      # at /admin.
-      - "traefik.http.routers.auth-root.rule=Host(`auth.caselawexplorer.tech`) && Path(`/`)"
-      - "traefik.http.routers.auth-root.entrypoints=https"
-      - "traefik.http.routers.auth-root.priority=1000"
-      - "traefik.http.routers.auth-root.tls=true"
-      - "traefik.http.routers.auth-root.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.auth-root.middlewares=auth-root-to-app"
-      - "traefik.http.routers.auth-root.service=noop@internal"
-      - "traefik.http.middlewares.auth-root-to-app.redirectregex.regex=.*"
-      - "traefik.http.middlewares.auth-root-to-app.redirectregex.replacement=https://app.caselawexplorer.tech/"
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?KEYCLOAK_ADMIN is required}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD is required}
