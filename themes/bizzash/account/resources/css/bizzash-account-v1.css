@@ -1,0 +1,13 @@
+/* Bizzash tokens for the account console (see ../../../login/resources/css/bizzash-login-v1.css). */
+:root {
+  --cle-bg: #faf9f7;
+  --cle-surface: #ffffff;
+  --cle-border: #e7e5e0;
+  --cle-text: #1d1c1a;
+  --cle-muted: #5e5c57;
+  --cle-primary: #005ca9;
+  --cle-primary-hover: #004a8a;
+  --cle-primary-soft: #e9f1f9;
+  --pf-v5-global--primary-color--100: #005ca9;
+  --pf-v5-global--primary-color--200: #004a8a;
+}

@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm'
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
 test('each login theme declares its own local project favicon', async () => {
-  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg']]) {
+  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg'], ['bizzash', 'bizzash-mark-v1.svg']]) {
     const properties = await read(`themes/${theme}/login/theme.properties`)
     assert.ok(properties.split('\n').includes(`favicons=img/${asset}`))
     const svg = await read(`themes/${theme}/login/resources/img/${asset}`)
@@ -170,4 +170,25 @@ test('legal links prefer the client\'s own documents over the theme default', as
   assert.match(digimach, /^legalTermsUrl=\$\{env\.DIGIMACH_AUTH_TERMS_URL:https:\/\/digimach\.eu\/en\/terms-of-service\}$/m)
   assert.match(digimach, /^legalPrivacyUrl=\$\{env\.DIGIMACH_AUTH_PRIVACY_URL:https:\/\/digimach\.eu\/en\/privacy-policy\}$/m)
   assert.match(digimach, /^legalCookiesUrl=\$\{env\.DIGIMACH_AUTH_COOKIES_URL:\}$/m)
+})
+
+test('the Bizzash themes inherit the Case Law coverage and add only a brand layer', async () => {
+  const login = await read('themes/bizzash/login/theme.properties')
+  const account = await read('themes/bizzash/account/theme.properties')
+  const styles = await read('themes/bizzash/login/resources/css/bizzash-login-v1.css')
+  const bizzy = await read('themes/bizzash/login/resources/img/bizzy-v1.svg')
+
+  assert.match(login, /^parent=caselaw$/m)
+  assert.match(account, /^parent=caselaw$/m)
+  assert.match(login, /^styles=css\/caselaw-login-v10\.css css\/bizzash-login-v1\.css$/m)
+  assert.match(login, /^scripts=js\/otp-input-v1\.js$/m)
+  assert.match(account, /^styles=css\/caselaw-account\.css css\/bizzash-account-v1\.css$/m)
+  // No Case Law Explorer documents on an internal BISS tool.
+  for (const key of ['legalTermsUrl', 'legalPrivacyUrl', 'legalCookiesUrl']) {
+    assert.match(login, new RegExp(`^${key}=\\$\\{env\\.BIZZASH_AUTH_\\w+_URL:\\}$`, 'm'))
+  }
+  assert.match(styles, /--bizzash-blue: #005ca9;/)
+  assert.doesNotMatch(styles, /\.cle-login-footer\s*\{[^}]*position:\s*(?:fixed|absolute)/)
+  assert.match(bizzy, /prefers-reduced-motion/)
+  assert.doesNotMatch(bizzy, /<script\b|\bon\w+=|(?:href|src)=/i)
 })
