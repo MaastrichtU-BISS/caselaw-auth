@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Bizzash: a sheet in BISS blue with its corner folded, a white table, and Bizzy's yellow band -->
+  <path d="M7 1.5h13.6L27.5 8.4v19.6a2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 28V4A2.5 2.5 0 0 1 7 1.5z" fill="#005CA9"/>
+  <path d="M20.6 1.5l6.9 6.9h-4.9a2 2 0 0 1-2-2z" fill="#8FC0EA"/>
+  <rect x="8.5" y="11.5" width="15" height="11" rx="1.2" fill="#fff"/>
+  <path d="M8.5 15.2h15M8.5 18.9h15M14.4 11.5v11" stroke="#005CA9" stroke-width="1.4"/>
+  <rect x="4.5" y="24.9" width="23" height="2.6" fill="#FFC917"/>
+  <path d="M7 1.5h13.6L27.5 8.4v19.6a2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 28V4A2.5 2.5 0 0 1 7 1.5z" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width=".8"/>
+</svg>

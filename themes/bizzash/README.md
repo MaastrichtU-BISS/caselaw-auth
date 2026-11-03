@@ -16,7 +16,7 @@ to the left of the form; narrower screens show the form alone.
 | `login/resources/css/bizzash-login-v1.css` | Brand layer over `caselaw-login-v10.css` |
 | `login/resources/img/bizzy-v1.svg` | Bizzy with a slow bob and blink, still under reduced motion |
 | `login/resources/img/bizzash-wordmark-v1.png` | Wordmark at 4× from the app's `BWordmark` |
-| `login/resources/img/bizzash-mark-v1.svg` | Favicon |
+| `login/resources/img/bizzash-mark-v2.svg` | Favicon: a sheet in BISS blue with a white table and the yellow band, as in the app |
 | `account/resources/css/bizzash-account-v1.css` | Bizzash tokens for the account console |
 
 Bizzash has no public legal documents, so the theme sets the legal URLs empty
