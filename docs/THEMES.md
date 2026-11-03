@@ -115,7 +115,10 @@ and hidden when nothing is set:
    `caselaw` defaults to Case Law Explorer's
    [terms](https://app.caselawexplorer.tech/terms-of-service) and
    [privacy policy](https://app.caselawexplorer.tech/privacy-policy). `digimach`
-   defaults to nothing, so it never shows another project's documents.
+   defaults to DigiMach's own
+   [terms](https://digimach.eu/en/terms-of-service) and
+   [privacy policy](https://digimach.eu/en/privacy-policy), never Case Law
+   Explorer's.
 
 Only `http(s)` addresses are linked. Labels are translated in the theme's
 `messages_*.properties` (`legalTerms`, `legalPrivacy`, `legalCookies`).

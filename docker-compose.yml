@@ -57,8 +57,8 @@ services:
       CASELAW_AUTH_TERMS_URL: ${CASELAW_AUTH_TERMS_URL:-https://app.caselawexplorer.tech/terms-of-service}
       CASELAW_AUTH_PRIVACY_URL: ${CASELAW_AUTH_PRIVACY_URL:-https://app.caselawexplorer.tech/privacy-policy}
       CASELAW_AUTH_COOKIES_URL: ${CASELAW_AUTH_COOKIES_URL:-}
-      DIGIMACH_AUTH_TERMS_URL: ${DIGIMACH_AUTH_TERMS_URL:-}
-      DIGIMACH_AUTH_PRIVACY_URL: ${DIGIMACH_AUTH_PRIVACY_URL:-}
+      DIGIMACH_AUTH_TERMS_URL: ${DIGIMACH_AUTH_TERMS_URL:-https://digimach.eu/en/terms-of-service}
+      DIGIMACH_AUTH_PRIVACY_URL: ${DIGIMACH_AUTH_PRIVACY_URL:-https://digimach.eu/en/privacy-policy}
       DIGIMACH_AUTH_COOKIES_URL: ${DIGIMACH_AUTH_COOKIES_URL:-}
 
 volumes:

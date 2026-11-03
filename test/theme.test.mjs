@@ -167,7 +167,7 @@ test('legal links prefer the client\'s own documents over the theme default', as
   assert.match(caselaw, /^legalTermsUrl=\$\{env\.CASELAW_AUTH_TERMS_URL:https:\/\/app\.caselawexplorer\.tech\/terms-of-service\}$/m)
   assert.match(caselaw, /^legalPrivacyUrl=\$\{env\.CASELAW_AUTH_PRIVACY_URL:https:\/\/app\.caselawexplorer\.tech\/privacy-policy\}$/m)
   // DigiMach must not inherit Case Law Explorer's documents from its parent.
-  for (const key of ['legalTermsUrl', 'legalPrivacyUrl', 'legalCookiesUrl']) {
-    assert.match(digimach, new RegExp(`^${key}=\\$\\{env\\.DIGIMACH_AUTH_\\w+_URL:\\}$`, 'm'))
-  }
+  assert.match(digimach, /^legalTermsUrl=\$\{env\.DIGIMACH_AUTH_TERMS_URL:https:\/\/digimach\.eu\/en\/terms-of-service\}$/m)
+  assert.match(digimach, /^legalPrivacyUrl=\$\{env\.DIGIMACH_AUTH_PRIVACY_URL:https:\/\/digimach\.eu\/en\/privacy-policy\}$/m)
+  assert.match(digimach, /^legalCookiesUrl=\$\{env\.DIGIMACH_AUTH_COOKIES_URL:\}$/m)
 })
