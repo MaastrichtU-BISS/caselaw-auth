@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import LegalLinks from './LegalLinks.vue'
 import LoginButton from './LoginButton.vue'
 import { useAuth } from '../vue'
 
@@ -42,6 +43,7 @@ onMounted(() => {
       <strong>{{ title }}</strong>
       <p>{{ message }}</p>
       <LoginButton />
+      <LegalLinks />
     </div>
   </slot>
 </template>

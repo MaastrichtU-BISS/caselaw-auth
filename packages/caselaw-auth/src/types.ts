@@ -1,3 +1,5 @@
+import type { LegalConfig } from './legal'
+
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous' | 'error'
 
 export interface AuthConfig {
@@ -9,6 +11,8 @@ export interface AuthConfig {
   storageKey?: string
   refreshSkewSeconds?: number
   requiredRoles?: string[]
+  /** The product's own terms, privacy and cookie documents, shown beside sign-in. */
+  legal?: LegalConfig
 }
 
 export interface LoginOptions {

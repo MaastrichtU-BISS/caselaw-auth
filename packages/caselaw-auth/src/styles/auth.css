@@ -116,3 +116,21 @@
     transform: rotate(360deg);
   }
 }
+
+.cl-auth-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.cl-auth-legal a {
+  color: var(--cl-auth-muted);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.cl-auth-legal a:hover,
+.cl-auth-legal a:focus-visible {
+  color: var(--cl-auth-text);
+  text-decoration: underline;
+}

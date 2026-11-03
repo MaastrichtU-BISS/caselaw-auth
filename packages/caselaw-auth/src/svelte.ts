@@ -1,5 +1,6 @@
 import { derived, writable, type Readable } from 'svelte/store'
 import { createAuthClient, type OidcAuthClient } from './client'
+import { legalLinks, type LegalLink } from './legal'
 import type { AuthConfig, AuthSession, AuthState, LoginOptions } from './types'
 
 export interface CaselawSvelteAuth {
@@ -8,6 +9,7 @@ export interface CaselawSvelteAuth {
   session: Readable<AuthSession | null>
   user: Readable<AuthSession['user'] | null>
   isAuthenticated: Readable<boolean>
+  legal: LegalLink[]
   init: () => Promise<AuthSession | null>
   login: (options?: LoginOptions) => Promise<void>
   handleCallback: (callbackUrl?: string) => Promise<AuthSession>
@@ -58,6 +60,7 @@ export function createSvelteAuth(config: AuthConfig): CaselawSvelteAuth {
     session: derived(state, ($state) => $state.session),
     user: derived(state, ($state) => $state.user),
     isAuthenticated: derived(state, ($state) => $state.isAuthenticated),
+    legal: legalLinks(config.legal),
     async init() {
       state.update(($state) => ({ ...$state, status: 'loading', error: null }))
       try {

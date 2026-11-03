@@ -287,7 +287,7 @@ shell is needed:
 KEYCLOAK_URL=https://auth.caselawexplorer.tech \
 KEYCLOAK_ADMIN=admin \
 KEYCLOAK_ADMIN_PASSWORD='...' \
-npx --yes caselaw-auth@0.6.4 apply-passwordless-flow
+npx --yes caselaw-auth@0.6.5 apply-passwordless-flow
 ```
 
 Repository operators can instead run the equivalent

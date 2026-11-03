@@ -154,3 +154,20 @@ test('the OTP presentation keeps one sanitized field in sync with six visual slo
   assert.equal(control.classList.contains('is-complete'), true)
   formListeners.get('submit')()
 })
+
+test('legal links prefer the client\'s own documents over the theme default', async () => {
+  const footer = await read('themes/caselaw/login/footer.ftl')
+  const caselaw = await read('themes/caselaw/login/theme.properties')
+  const digimach = await read('themes/digimach/login/theme.properties')
+
+  assert.match(footer, /\(clientAttributes\.tosUri\)!''/)
+  assert.match(footer, /\(clientAttributes\.policyUri\)!''/)
+  assert.match(footer, /properties\.legalTermsUrl/)
+  assert.match(footer, /\?matches\('https\?:\/\/\.\+'\)/)
+  assert.match(caselaw, /^legalTermsUrl=\$\{env\.CASELAW_AUTH_TERMS_URL:https:\/\/app\.caselawexplorer\.tech\/terms-of-service\}$/m)
+  assert.match(caselaw, /^legalPrivacyUrl=\$\{env\.CASELAW_AUTH_PRIVACY_URL:https:\/\/app\.caselawexplorer\.tech\/privacy-policy\}$/m)
+  // DigiMach must not inherit Case Law Explorer's documents from its parent.
+  for (const key of ['legalTermsUrl', 'legalPrivacyUrl', 'legalCookiesUrl']) {
+    assert.match(digimach, new RegExp(`^${key}=\\$\\{env\\.DIGIMACH_AUTH_\\w+_URL:\\}$`, 'm'))
+  }
+})
