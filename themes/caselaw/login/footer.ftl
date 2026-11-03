@@ -25,22 +25,22 @@
   <#if !cookiesUrl?matches('https?://.+')><#assign cookiesUrl=''></#if>
   <#assign hasLegal=(termsUrl?has_content || privacyUrl?has_content || cookiesUrl?has_content)>
 
-  <#if bissUrl?has_content || lawTechUrl?has_content || apiUrl?has_content || hasLegal>
+  <#assign hasRelated=(bissUrl?has_content || lawTechUrl?has_content || apiUrl?has_content)>
+  <#-- An institution the credit line already names is linked there, not repeated. -->
+  <#assign bissInCredit=(bissUrl?has_content && bissLabel?has_content && managedBy?contains(bissLabel))>
+  <#assign lawTechInCredit=(!bissInCredit && lawTechUrl?has_content && lawTechLabel?has_content && managedBy?contains(lawTechLabel))>
+  <#assign creditLabel=bissInCredit?then(bissLabel, lawTechInCredit?then(lawTechLabel, ''))>
+  <#assign creditUrl=bissInCredit?then(bissUrl, lawTechInCredit?then(lawTechUrl, ''))>
+  <#assign showBissLink=(bissUrl?has_content && !bissInCredit)>
+  <#assign showLawTechLink=(lawTechUrl?has_content && !lawTechInCredit)>
+
+  <#--
+    Three rows, most important first: the documents someone agrees to by
+    signing in, then where they are, then who runs the sign-in. No dividers
+    between links: they ended up at the start of a wrapped line.
+  -->
+  <#if hasRelated || hasLegal>
     <footer class="cle-login-footer" aria-label="Related links">
-      <#if bissUrl?has_content || lawTechUrl?has_content || apiUrl?has_content>
-        <p>${managedBy}</p>
-        <nav aria-label="Institution and product links">
-          <#if bissUrl?has_content>
-            <a href="${bissUrl}" target="_blank" rel="noopener noreferrer">${bissLabel}</a>
-          </#if>
-          <#if lawTechUrl?has_content>
-            <a href="${lawTechUrl}" target="_blank" rel="noopener noreferrer">${lawTechLabel}</a>
-          </#if>
-          <#if apiUrl?has_content>
-            <a href="${apiUrl}" target="_blank" rel="noopener noreferrer">${apiLabel}</a>
-          </#if>
-        </nav>
-      </#if>
       <#if hasLegal>
         <nav class="cle-login-legal" aria-label="${msg("legalNavLabel")}">
           <#if termsUrl?has_content>
@@ -53,6 +53,24 @@
             <a href="${cookiesUrl}" target="_blank" rel="noopener noreferrer">${msg("legalCookies")}</a>
           </#if>
         </nav>
+      </#if>
+      <#if hasRelated>
+        <#if showBissLink || showLawTechLink || apiUrl?has_content>
+        <nav class="cle-login-related" aria-label="Institution and product links">
+          <#if showBissLink>
+            <a href="${bissUrl}" target="_blank" rel="noopener noreferrer">${bissLabel}</a>
+          </#if>
+          <#if showLawTechLink>
+            <a href="${lawTechUrl}" target="_blank" rel="noopener noreferrer">${lawTechLabel}</a>
+          </#if>
+          <#if apiUrl?has_content>
+            <a href="${apiUrl}" target="_blank" rel="noopener noreferrer">${apiLabel}</a>
+          </#if>
+        </nav>
+        </#if>
+        <p class="cle-login-managed">
+          <#if creditLabel?has_content>${managedBy?keep_before(creditLabel)}<a href="${creditUrl}" target="_blank" rel="noopener noreferrer">${creditLabel}</a>${managedBy?keep_after(creditLabel)}<#else>${managedBy}</#if>
+        </p>
       </#if>
     </footer>
   </#if>

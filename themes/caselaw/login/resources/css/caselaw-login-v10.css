@@ -1,0 +1,55 @@
+/* Footer hierarchy: legal links, then related links, then a quiet credit line.
+   Rules here follow the base sheet and are scoped one class deeper than the
+   DigiMach brand layer, so its colours still apply to the plain links. */
+@import url("./caselaw-login-v2.css?revision=10");
+
+.login-pf .cle-login-footer {
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 22px;
+}
+
+.login-pf .cle-login-footer nav {
+  gap: 4px 20px;
+}
+
+.login-pf .cle-login-footer a + a {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.login-pf .cle-login-footer a:hover,
+.login-pf .cle-login-footer a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-pf .cle-login-footer .cle-login-legal a {
+  color: #475467;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.login-pf .cle-login-footer .cle-login-related a {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.login-pf .cle-login-footer .cle-login-managed,
+.login-pf .cle-login-footer .cle-login-managed a {
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.login-pf .cle-login-footer .cle-login-managed a {
+  text-decoration: underline;
+  text-decoration-color: #d0d5dd;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .login-pf .cle-login-footer nav {
+    gap: 4px 16px;
+  }
+}
