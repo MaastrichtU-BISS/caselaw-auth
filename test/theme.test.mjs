@@ -37,12 +37,12 @@ test('the OTP page keeps the provider contract and mobile code semantics', async
 
 test('the login theme uses a versioned stylesheet entry point', async () => {
   const properties = await read('themes/caselaw/login/theme.properties')
-  const entrypoint = await read('themes/caselaw/login/resources/css/caselaw-login-v9.css')
+  const entrypoint = await read('themes/caselaw/login/resources/css/caselaw-login-v10.css')
   const styles = await read('themes/caselaw/login/resources/css/caselaw-login-v2.css')
 
-  assert.match(properties, /^styles=css\/caselaw-login-v9\.css$/m)
+  assert.match(properties, /^styles=css\/caselaw-login-v10\.css$/m)
   assert.match(properties, /^scripts=js\/otp-input-v1\.js$/m)
-  assert.match(entrypoint, /caselaw-login-v2\.css\?revision=9/)
+  assert.match(entrypoint, /caselaw-login-v2\.css\?revision=10/)
   assert.match(styles, /html\.login-pf body \{[\s\S]*?background: #ffffff !important;[\s\S]*?background-image: none !important;/)
   assert.match(styles, /\.login-pf body::before \{[\s\S]*?linear-gradient\(rgba\(148, 163, 184, 0\.14\) 1px, transparent 1px\)/)
   assert.match(styles, /\.login-pf body::before \{[\s\S]*?background-size: 32px 32px;/)
@@ -58,7 +58,7 @@ test('the Digimach login theme inherits every Case Law state before branding it'
   const mark = await read('themes/digimach/login/resources/img/digimach-mark.svg')
 
   assert.match(properties, /^parent=caselaw$/m)
-  assert.match(properties, /^styles=css\/caselaw-login-v9\.css css\/digimach-login-v1\.css$/m)
+  assert.match(properties, /^styles=css\/caselaw-login-v10\.css css\/digimach-login-v1\.css$/m)
   assert.match(properties, /^scripts=js\/otp-input-v1\.js$/m)
   assert.match(properties, /footerBissUrl=.*https:\/\/digimach\.eu\//)
   assert.match(styles, /--digimach-brand: #33a58e;/)
@@ -69,7 +69,7 @@ test('the Digimach login theme inherits every Case Law state before branding it'
   assert.match(styles, /#kc-form \.form-group > label,[\s\S]*?display: block;[\s\S]*?width: 100%;/)
   assert.match(styles, /#kc-form input\[type="email"\][\s\S]*?width: 100%;/)
   assert.match(styles, /\.cle-otp-control\.is-complete \.cle-otp-slot/)
-  assert.match(styles, /prefers-reduced-motion|caselaw-login-v9/)
+  assert.match(styles, /prefers-reduced-motion|caselaw-login-v10/)
   assert.match(mark, /viewBox="0 0 32 32"/)
   assert.doesNotMatch(styles, /CASE LAW EXPLORER/)
 })
