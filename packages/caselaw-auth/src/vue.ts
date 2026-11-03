@@ -8,11 +8,13 @@ import {
   type InjectionKey,
 } from 'vue'
 import { createAuthClient, type OidcAuthClient } from './client'
+import { legalLinks, type LegalLink } from './legal'
 import type { AuthConfig, AuthSession, AuthState, LoginOptions } from './types'
 
 export interface CaselawAuth {
   client: OidcAuthClient
   state: Readonly<AuthState>
+  legal: LegalLink[]
   init: () => Promise<void>
   login: (options?: LoginOptions) => Promise<void>
   handleCallback: (callbackUrl?: string) => Promise<AuthSession>
@@ -54,6 +56,7 @@ export function createCaselawAuth(config: AuthConfig): CaselawAuth {
   const auth: CaselawAuth = {
     client,
     state: readonly(mutable) as Readonly<AuthState>,
+    legal: legalLinks(config.legal),
     async init() {
       mutable.status = 'loading'
       mutable.error = null

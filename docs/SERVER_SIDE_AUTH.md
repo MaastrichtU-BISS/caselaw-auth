@@ -11,7 +11,7 @@ for the product, and either `caselaw-auth` v0.2.1 or later (Node) or
 `caselaw-auth-server` (Python).
 
 That is the minimum version for the application API, not the realm installer.
-The current realm-administration instructions pin `caselaw-auth@0.6.4`; see
+The current realm-administration instructions pin `caselaw-auth@0.6.5`; see
 [OTP_SETUP.md](OTP_SETUP.md) when enabling or upgrading OTP in a realm.
 
 > **Python backends use `caselaw-auth-server`.** Every step below applies

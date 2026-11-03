@@ -95,6 +95,39 @@ This overrides the realm Login theme for authorization requests from that
 client. It does not change the realm's account console. Clear the field to make
 the client inherit the realm default again.
 
+## Link a project's terms and privacy policy
+
+The login footer links to the terms of service, privacy policy and cookie
+policy of the project being signed in to. Each link is resolved in this order,
+and hidden when nothing is set:
+
+1. **The client's own documents.** In **Clients → _project client_ → Settings →
+   Login settings**, fill in **Terms of service URL** and **Policy URL**. A
+   cookie policy has no field in the Admin Console; set the client attribute
+   `cookiePolicyUri` through the admin API if one is needed.
+2. **The theme's default**, from the Keycloak container's environment:
+
+   | Theme | Terms | Privacy | Cookies |
+   |---|---|---|---|
+   | `caselaw` | `CASELAW_AUTH_TERMS_URL` | `CASELAW_AUTH_PRIVACY_URL` | `CASELAW_AUTH_COOKIES_URL` |
+   | `digimach` | `DIGIMACH_AUTH_TERMS_URL` | `DIGIMACH_AUTH_PRIVACY_URL` | `DIGIMACH_AUTH_COOKIES_URL` |
+
+   `caselaw` defaults to Case Law Explorer's
+   [terms](https://app.caselawexplorer.tech/terms-of-service) and
+   [privacy policy](https://app.caselawexplorer.tech/privacy-policy). `digimach`
+   defaults to DigiMach's own
+   [terms](https://digimach.eu/en/terms-of-service) and
+   [privacy policy](https://digimach.eu/en/privacy-policy), never Case Law
+   Explorer's.
+
+Only `http(s)` addresses are linked. Labels are translated in the theme's
+`messages_*.properties` (`legalTerms`, `legalPrivacy`, `legalCookies`).
+
+The client fields take effect immediately. The environment variables are read
+when Keycloak starts, so changing them needs a redeploy. Inside the product
+itself, pass the same addresses to the client library's `legal` option; see
+[its README](../packages/caselaw-auth/README.md#legal-links).
+
 ## Verify and troubleshoot
 
 ### Project favicons (browser-tab icons)

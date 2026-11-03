@@ -40,7 +40,7 @@ export KEYCLOAK_ADMIN_PASSWORD='<set securely>'
 export CASELAW_PASSWORDLESS_ESTATE_MODE=false
 ```
 
-4. Run `npx --yes caselaw-auth@0.6.4 apply-passwordless-flow`.
+4. Run `npx --yes caselaw-auth@0.6.5 apply-passwordless-flow`.
 5. Confirm it reports `Bound caselaw-browser-passwordless-email-first`, verify that binding in
    the Admin Console, and complete an OTP login with the new address in a private
    browser. Confirm Keycloak created one email-verified user with no name or password
@@ -62,10 +62,10 @@ After setup, operators have two additional commands. Both use the same
 
 ```bash
 # Read-only: providers, flow, SMTP settings, profile and optional estate clients
-npx --yes caselaw-auth@0.6.4 check-passwordless
+npx --yes caselaw-auth@0.6.5 check-passwordless
 
 # Dry-run by default; add --execute only after reviewing the candidates
-npx --yes caselaw-auth@0.6.4 cleanup-unverified-users --max-age-days 7
+npx --yes caselaw-auth@0.6.5 cleanup-unverified-users --max-age-days 7
 ```
 
 Selection safeguards, scheduling, synthetic mailbox monitoring and the upgrade gate
@@ -195,7 +195,7 @@ useAuthInit();   // restores the session, or completes a callback
 </template>
 ```
 
-`useAuth()` returns `client`, `state`, `init`, `login`, `handleCallback`, `logout`,
+`useAuth()` returns `client`, `state`, `legal`, `init`, `login`, `handleCallback`, `logout`,
 `refresh`, `hasRole`, `hasAnyRole` and `requireRole`.
 
 `useAuthState()` returns reactive `status`, `ready`, `session`, `user`, `error` and
@@ -231,7 +231,7 @@ import "caselaw-auth/vue/style.css";
 {/if}
 ```
 
-`createSvelteAuth` returns a readable store plus `init`, `login`, `logout` and
+`createSvelteAuth` returns a readable store plus `legal`, `init`, `login`, `logout` and
 `hasRole`.
 
 ## Configuration
@@ -244,9 +244,43 @@ import "caselaw-auth/vue/style.css";
 | `postLogoutRedirectUri` | no | Where sign-out lands. Defaults to the origin |
 | `storageKey` | no | localStorage key for the session |
 | `scope` | no | Defaults to `openid profile email` |
+| `legal` | no | The product's terms, privacy and cookie documents; see below |
 
 Give every product a distinct `storageKey`. Two applications on one origin sharing a
 key overwrite each other's sessions.
+
+## Legal links
+
+Each product links its own terms of service, privacy policy and cookie policy.
+Pass them once as `legal`:
+
+```ts
+createCaselawAuthPlugin({
+  issuer: "https://auth.example.org/realms/caselaw",
+  clientId: "my-product",
+  redirectUri: `${location.origin}/auth/callback`,
+  legal: {
+    termsUrl: "https://my-product.example/terms",
+    privacyUrl: "https://my-product.example/privacy",
+    cookiesUrl: "/cookies",                     // same-site paths work too
+    extra: [{ label: "Imprint", href: "https://my-product.example/imprint" }],
+    labels: { privacy: "Privacybeleid" },       // optional translations
+  },
+});
+```
+
+In Vue, `AuthGate` shows them under its sign-in button, and `<LegalLinks />`
+renders them anywhere else, such as a landing page or footer. Pass a `legal` prop
+to override the configured documents for one placement.
+
+Everywhere else, `legalLinks(legal)` returns the configured documents as
+`{ label, href }[]` to render however the product likes. `auth.legal` holds the
+same list on the Vue and Svelte integrations. Empty entries are left out, and so
+is anything that is not an `http(s)` address or a same-site path.
+
+The hosted sign-in page shows the documents set on the product's Keycloak
+client, which is configured separately. See
+[Link a project's terms and privacy policy](../../docs/THEMES.md#link-a-projects-terms-and-privacy-policy).
 
 ## Access tokens are short
 

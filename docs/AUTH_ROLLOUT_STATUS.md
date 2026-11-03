@@ -8,7 +8,7 @@ tracked separately from source merges, package publication and configuration.
 | Component | Verified state | What to do |
 |---|---|---|
 | Shared Keycloak | Project-host routing, both branded login themes/favicons, responsive footer and OTP-only flow are deployed | Use the existing service; no second Keycloak instance is needed |
-| Realm installer | `caselaw-auth@0.6.4` is published | Run it only to enable/upgrade the selected realm's OTP flow; never as a prerequisite for every app deployment |
+| Realm installer | `caselaw-auth@0.6.5` is published | Run it only to enable/upgrade the selected realm's OTP flow; never as a prerequisite for every app deployment |
 | `caselaw` realm | Email-only OTP enabled on the shared issuer | Connect each product's own OIDC client; do not reinstall the realm flow |
 | `digimach` realm | Email-only OTP enabled; existing users and localhost callbacks retained; sender `no-reply@digimach.eu` unchanged | Complete the [DigiMach domain cutover](DIGIMACH_HANDOFF.md) |
 | DigiMach custom domain | Coolify route prepared; public DNS, trusted TLS and coordinated issuer/application cutover remain pending | Keep `https://auth.caselawexplorer.tech/realms/digimach` until the cutover is agreed |
