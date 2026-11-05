@@ -204,5 +204,11 @@ test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy bran
   assert.doesNotMatch(bizzy, /<script\b|\bon\w+=|(?:href|src)=/i)
   // The current drawing: no blush on the cheeks.
   assert.doesNotMatch(bizzy, /ff8fa3|ff5c7a|cheek/i)
-  for (const messages of [en, nl]) assert.match(messages, /^loginAccountTitle=.*Bizzy/m)
+  for (const messages of [en, nl]) {
+    assert.match(messages, /^loginAccountTitle=.*Bizzy/m)
+    // The tab title and header follow the realm's display name; never the old name.
+    assert.match(messages, /^loginTitle=.*\{0\}$/m)
+    assert.match(messages, /^loginTitleHtml=\{0\}$/m)
+    assert.doesNotMatch(messages, /^[^#].*Bizzash/im)
+  }
 })

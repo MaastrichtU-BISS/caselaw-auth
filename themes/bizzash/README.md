@@ -24,7 +24,7 @@ the page `lang="nl"` (realm internationalisation on, Dutch selected).
 | `login/resources/fonts/*.woff2` | Inter and Overpass (latin, latin-ext; SIL OFL, licences beside them), served by Keycloak: no Google Fonts |
 | `login/resources/img/bizzy-v2.svg` | Bizzy as the app's engine draws him (idle), with a slow bob and blink, still under reduced motion |
 | `login/resources/img/bizzash-mark-v2.svg` | Favicon: the app's own `favicon.svg` |
-| `login/messages/messages_{en,nl}.properties` | "Sign in to Bizzy" whatever the realm's display name; all other copy comes from `caselaw` |
+| `login/messages/messages_{en,nl}.properties` | Tab title and header from the realm's display name (`Sign in to {0}`; set to "Bizzy" on the server), the email step's heading "Sign in to Bizzy"; all other copy comes from `caselaw` |
 | `account/resources/css/bizzash-account-v1.css` | Bizzy tokens for the account console |
 
 Bizzy has no public legal documents, so the theme sets the legal URLs empty
