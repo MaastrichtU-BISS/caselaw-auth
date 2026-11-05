@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256" role="img" aria-label="Bizzy">
+  <!-- Bizzy as the app draws him (app/bizzy/engine.js, idle, BISS blue with the yellow band), flattened to fixed colours. -->
+  <style>
+    .b, .s, .e { transform-box: view-box }
+    .b { transform-origin: 30.5px 56px; animation: bob 3.6s cubic-bezier(.45, 0, .55, 1) infinite }
+    .s { transform-origin: 30.5px 58.6px; animation: shade 3.6s cubic-bezier(.45, 0, .55, 1) infinite }
+    .e { transform-origin: 26px 35px; animation: blink 5.4s infinite }
+    @keyframes bob { 0%, 100% { transform: translateY(0) scale(1.012, .988) } 50% { transform: translateY(-1.4px) scale(.99, 1.012) } }
+    @keyframes shade { 0%, 100% { transform: scaleX(1); opacity: 1 } 50% { transform: scaleX(.93); opacity: .8 } }
+    @keyframes blink { 0%, 93%, 100% { transform: scaleY(1) } 95.5% { transform: scaleY(.12) } }
+    @media (prefers-reduced-motion: reduce) { .b, .s, .e { animation: none } }
+  </style>
+  <ellipse class="s" cx="30.5" cy="58.6" rx="15" ry="2.3" fill="#1d1c1a" fill-opacity=".14"/>
+  <g class="b">
+    <rect x="16" y="50" width="6" height="6" rx="1.8" fill="#001935"/>
+    <rect x="29.5" y="50" width="6" height="6" rx="1.8" fill="#001935"/>
+    <polygon points="11,22 41,22 50,13 20,13" fill="#77a0d0"/>
+    <polygon points="41,22 50,13 50,43 41,52" fill="#002c57"/>
+    <rect x="11" y="22" width="30" height="30" fill="#005ca9"/>
+    <rect x="11" y="45.4" width="30" height="2.9" fill="#ffc917"/>
+    <polygon points="41,45.4 50,36.4 50,39.3 41,48.3" fill="#ddab10"/>
+    <g class="e">
+      <rect x="19.35" y="32.2" width="3.3" height="5.6" rx="1.65" fill="#10132a"/>
+      <rect x="29.35" y="32.2" width="3.3" height="5.6" rx="1.65" fill="#10132a"/>
+      <circle cx="20.4" cy="33.4" r=".75" fill="#fff" fill-opacity=".9"/>
+      <circle cx="30.4" cy="33.4" r=".75" fill="#fff" fill-opacity=".9"/>
+    </g>
+    <path d="M23.2 41.4q2.8 2.2 5.6 0" fill="none" stroke="#10132a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

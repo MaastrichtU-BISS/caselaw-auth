@@ -6,7 +6,7 @@ This repository ships two complete Keycloak themes in its Docker image:
 |---|---|---|
 | `caselaw` | Case Law Explorer realms and projects | Login, registration, recovery, errors, email OTP, responsive behavior, and account console |
 | `digimach` | DigiMach realms and projects | The same coverage inherited from `caselaw`, with DigiMach colors, mark, typography, and surfaces |
-| `bizzash` | The Bizzash realm (BISS success dashboard) | The same coverage inherited from `caselaw`, with Bizzash's light split layout, Bizzy and BISS blue |
+| `bizzash` | The `bizzash` realm (Bizzy, formerly Bizzash) | The same coverage inherited from `caselaw`, with Bizzy's warm light theme, self-hosted Inter and Overpass, the mascot and BISS blue |
 
 Theme names are lowercase and case-sensitive. Deploy an image built from this
 repository before selecting a theme; otherwise it will not appear in Keycloak's
