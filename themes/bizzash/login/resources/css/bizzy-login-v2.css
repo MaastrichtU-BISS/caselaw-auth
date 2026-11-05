@@ -11,7 +11,7 @@
   - Inter for text and Overpass for display type, both served by this theme
     (../fonts, SIL OFL), so the sign-in makes no request to Google or any CDN;
   - the brand as the app writes it: the logo mark (Bizzy standing still,
-    img/bizzy-mark-v3.svg), then BIZZY in thin, spaced, outlined capitals.
+    img/bizzy-mark-v4.svg), then BIZZY in thin, spaced, outlined capitals.
 
   On screens 960px and wider a panel on the left carries the welcome page's
   headline and Bizzy standing on a block of Bizzy blue with his yellow band.
@@ -212,7 +212,7 @@ html.login-pf body {
   margin-bottom: 30px;
   padding: 0 0 0 40px;
   border: 0;
-  background: url("../img/bizzy-mark-v3.svg") left top / 30px 30px no-repeat;
+  background: url("../img/bizzy-mark-v4.svg") left top / 30px 30px no-repeat;
   color: transparent;
   font: 300 19px / 37px var(--bizzy-display);
   letter-spacing: 0.16em;
