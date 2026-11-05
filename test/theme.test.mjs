@@ -212,3 +212,40 @@ test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy bran
     assert.doesNotMatch(messages, /^[^#].*Bizzash/im)
   }
 })
+
+test('the Bizzy email theme wraps every email it sends in one layout, in English and Dutch', async () => {
+  const properties = await read('themes/bizzash/email/theme.properties')
+  const layout = await read('themes/bizzash/email/html/template.ftl')
+  const en = await read('themes/bizzash/email/messages/messages_en.properties')
+  const nl = await read('themes/bizzash/email/messages/messages_nl.properties')
+  const keys = (text) => text.split('\n').filter(line => /^\w[\w.-]*=/.test(line)).map(line => line.split('=')[0]).sort()
+
+  assert.match(properties, /^parent=base$/m)
+  assert.match(properties, /^locales=en,nl$/m)
+  assert.deepEqual(keys(nl), keys(en))
+  // A plain apostrophe would be eaten by MessageFormat.
+  assert.doesNotMatch(en + nl, /^[^#=]+=.*[^']'[^']/m)
+  // Email-client rules: table layout, no remote fonts or scripts, nothing that needs a picture to read.
+  assert.match(layout, /<#macro emailLayout heading="" preheader="" reason="">/)
+  assert.match(layout, /role="presentation"/)
+  assert.doesNotMatch(layout, /<script|fonts\.googleapis|@import|<link\b/i)
+  assert.match(layout, />BIZZY<\/a>/)
+  for (const name of ['otp-email', 'magic-link-email', 'magic-link-continuation-email', 'executeActions', 'email-verification', 'email-update-confirmation', 'password-reset', 'email-test']) {
+    const html = await read(`themes/bizzash/email/html/${name}.ftl`)
+    const text = await read(`themes/bizzash/email/text/${name}.ftl`)
+    assert.match(html, /<#import "template\.ftl" as layout>/)
+    assert.match(html, /<@layout\.emailLayout heading=/)
+    assert.match(text, /^<#ftl output_format="plainText">/)
+    assert.match(text, /<@layout\.textLayout/)
+    for (const key of [...`${html}\n${text}`.matchAll(/msg\("(\w+)"/g)].map(m => m[1])) {
+      if (key.startsWith('requiredAction')) continue
+      assert.match(en, new RegExp(`^${key}=`, 'm'), `${key} missing in English`)
+    }
+  }
+  // The sign-in code: large, monospace, with how long it works.
+  const otp = await read('themes/bizzash/email/html/otp-email.ftl')
+  assert.match(otp, /<@layout\.code value=code note=msg\("otpValid"\)\/>/)
+  assert.match(en, /^otpSubject=Your Bizzy sign-in code$/m)
+  assert.match(nl, /^otpSubject=Je inlogcode voor Bizzy$/m)
+  assert.match(en, /^otpValid=Valid for 10 minutes$/m)
+})
