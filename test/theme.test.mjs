@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm'
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
 test('each login theme declares its own local project favicon', async () => {
-  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg'], ['bizzash', 'bizzy-favicon-v3.svg']]) {
+  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg'], ['bizzash', 'bizzy-favicon-v4.svg']]) {
     const properties = await read(`themes/${theme}/login/theme.properties`)
     assert.ok(properties.split('\n').includes(`favicons=img/${asset}`))
     const svg = await read(`themes/${theme}/login/resources/img/${asset}`)
