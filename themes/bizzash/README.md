@@ -24,8 +24,8 @@ the page `lang="nl"` (realm internationalisation on, Dutch selected).
 | `login/resources/css/bizzy-login-v2.css` | Brand layer over `caselaw-login-v10.css` |
 | `login/resources/fonts/*.woff2` | Inter and Overpass (latin, latin-ext; SIL OFL, licences beside them), served by Keycloak: no Google Fonts |
 | `login/resources/img/bizzy-v2.svg` | Bizzy as the app's engine draws him (idle), with a slow bob and blink, still under reduced motion: the left panel |
-| `login/resources/img/bizzy-mark-v3.svg` | The logo mark in the card's header (the app's `public/brand/bizzy-mark.svg`) |
-| `login/resources/img/bizzy-favicon-v3.svg` | Favicon: the app's own `favicon.svg` (pixel-grid drawing; lighter lid and side in a dark browser theme) |
+| `login/resources/img/bizzy-mark-v4.svg` | The logo mark in the card's header (the app's `public/brand/bizzy-mark.svg`) |
+| `login/resources/img/bizzy-favicon-v4.svg` | Favicon: the app's own `favicon.svg` (pixel-grid drawing; lighter lid and side in a dark browser theme) |
 | `login/messages/messages_{en,nl}.properties` | Tab title and header from the realm's display name (`Sign in to {0}`; set to "Bizzy" on the server), the email step's heading "Sign in to Bizzy"; all other copy comes from `caselaw` |
 | `account/resources/css/bizzash-account-v1.css` | Bizzy tokens for the account console |
 | `email/html/template.ftl`, `email/text/template.ftl` | The email layout (HTML and plain text), the same markup as the Bizzy app's own emails |
