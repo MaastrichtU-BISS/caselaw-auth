@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { access, readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { runInNewContext } from 'node:vm'
 
@@ -172,23 +172,43 @@ test('legal links prefer the client\'s own documents over the theme default', as
   assert.match(digimach, /^legalCookiesUrl=\$\{env\.DIGIMACH_AUTH_COOKIES_URL:\}$/m)
 })
 
-test('the Bizzash themes inherit the Case Law coverage and add only a brand layer', async () => {
+test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy brand layer', async () => {
   const login = await read('themes/bizzash/login/theme.properties')
   const account = await read('themes/bizzash/account/theme.properties')
-  const styles = await read('themes/bizzash/login/resources/css/bizzash-login-v1.css')
-  const bizzy = await read('themes/bizzash/login/resources/img/bizzy-v1.svg')
+  const styles = await read('themes/bizzash/login/resources/css/bizzy-login-v1.css')
+  const bizzy = await read('themes/bizzash/login/resources/img/bizzy-v2.svg')
+  const en = await read('themes/bizzash/login/messages/messages_en.properties')
+  const nl = await read('themes/bizzash/login/messages/messages_nl.properties')
 
   assert.match(login, /^parent=caselaw$/m)
   assert.match(account, /^parent=caselaw$/m)
-  assert.match(login, /^styles=css\/caselaw-login-v10\.css css\/bizzash-login-v1\.css$/m)
+  assert.match(login, /^styles=css\/caselaw-login-v10\.css css\/bizzy-login-v1\.css$/m)
   assert.match(login, /^scripts=js\/otp-input-v1\.js$/m)
   assert.match(account, /^styles=css\/caselaw-account\.css css\/bizzash-account-v1\.css$/m)
-  // No Case Law Explorer documents on an internal BISS tool.
+  // No Case Law Explorer documents on Bizzy.
   for (const key of ['legalTermsUrl', 'legalPrivacyUrl', 'legalCookiesUrl']) {
     assert.match(login, new RegExp(`^${key}=\\$\\{env\\.BIZZASH_AUTH_\\w+_URL:\\}$`, 'm'))
   }
-  assert.match(styles, /--bizzash-blue: #005ca9;/)
+  assert.match(login, /^footerManagedBy=\$\{env\.BIZZASH_AUTH_FOOTER_MANAGED_BY:Authentication managed by BISS Institute\}$/m)
+  assert.match(styles, /--bizzy-blue: #005ca9;/)
+  assert.match(styles, /--bizzy-yellow: #ffc917;/)
+  // Fonts are served by the theme itself: no Google Fonts or other remote CSS.
+  assert.doesNotMatch(styles, /@import|fonts\.googleapis|fonts\.gstatic|https?:\/\//)
+  for (const match of styles.matchAll(/url\("\.\.\/fonts\/([^"]+)"\)/g)) {
+    await access(new URL(`../themes/bizzash/login/resources/fonts/${match[1]}`, import.meta.url))
+  }
+  // The panel is decoration: it never takes clicks.
   assert.doesNotMatch(styles, /\.cle-login-footer\s*\{[^}]*position:\s*(?:fixed|absolute)/)
+  assert.match(styles, /:lang\(nl\)::before/)
   assert.match(bizzy, /prefers-reduced-motion/)
   assert.doesNotMatch(bizzy, /<script\b|\bon\w+=|(?:href|src)=/i)
+  // The current drawing: no blush on the cheeks.
+  assert.doesNotMatch(bizzy, /ff8fa3|ff5c7a|cheek/i)
+  for (const messages of [en, nl]) {
+    assert.match(messages, /^loginAccountTitle=.*Bizzy/m)
+    // The tab title and header follow the realm's display name; never the old name.
+    assert.match(messages, /^loginTitle=.*\{0\}$/m)
+    assert.match(messages, /^loginTitleHtml=\{0\}$/m)
+    assert.doesNotMatch(messages, /^[^#].*Bizzash/im)
+  }
 })
