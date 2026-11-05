@@ -10,8 +10,8 @@
     yellow #FFC917 of Bizzy's band;
   - Inter for text and Overpass for display type, both served by this theme
     (../fonts, SIL OFL), so the sign-in makes no request to Google or any CDN;
-  - the brand as the app writes it: Bizzy, then BIZZY in thin, spaced,
-    outlined capitals.
+  - the brand as the app writes it: the logo mark (Bizzy standing still,
+    img/bizzy-mark-v3.svg), then BIZZY in thin, spaced, outlined capitals.
 
   On screens 960px and wider a panel on the left carries the welcome page's
   headline and Bizzy standing on a block of Bizzy blue with his yellow band.
@@ -200,8 +200,10 @@ html.login-pf body {
   max-width: 420px;
 }
 
-/* The brand in place of the product eyebrow: Bizzy, then BIZZY in thin,
-   spaced, outlined capitals (BBrand / BWordmark in the app). */
+/* The brand in place of the product eyebrow: the logo (Bizzy standing still:
+   his block with the band and eyes), then BIZZY in thin, spaced, outlined
+   capitals (BBrand / BWordmark in the app). The word sits on the middle of the
+   block's front face, a little below the middle of the whole mark. */
 .login-pf-page .card-pf::before {
   content: "BIZZY";
   display: block;
@@ -210,9 +212,9 @@ html.login-pf body {
   margin-bottom: 30px;
   padding: 0 0 0 40px;
   border: 0;
-  background: url("../img/bizzy-v2.svg") left center / 30px 30px no-repeat;
+  background: url("../img/bizzy-mark-v3.svg") left top / 30px 30px no-repeat;
   color: transparent;
-  font: 300 19px / 30px var(--bizzy-display);
+  font: 300 19px / 37px var(--bizzy-display);
   letter-spacing: 0.16em;
   text-transform: none;
   -webkit-text-stroke: 1.05px var(--bizzy-navy);
