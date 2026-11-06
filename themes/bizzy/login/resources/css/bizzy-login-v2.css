@@ -1,0 +1,402 @@
+/*
+  Bizzy brand layer for the shared Case Law authentication UI.
+
+  caselaw-login-v10.css loads first and owns the Keycloak and OTP coverage; this
+  file only changes the visual voice, matching Bizzy (bizzy.biss-institute.com,
+  app/assets/css/theme.css and the welcome page):
+
+  - the warm light theme: off-white page, white surfaces, thin warm borders;
+  - BISS blue #005CA9 as the one accent, navy #0B2340 for display type, the
+    yellow #FFC917 of Bizzy's band;
+  - Inter for text and Overpass for display type, both served by this theme
+    (../fonts, SIL OFL), so the sign-in makes no request to Google or any CDN;
+  - the brand as the app writes it: the logo mark (Bizzy standing still,
+    img/bizzy-mark-v4.svg), then BIZZY in thin, spaced, outlined capitals.
+
+  On screens 960px and wider a panel on the left carries the welcome page's
+  headline and Bizzy standing on a block of Bizzy blue with his yellow band.
+  The panel is decoration drawn with pseudo-elements: it never takes clicks and
+  holds no form controls, so every Keycloak screen keeps working unchanged.
+  Its text is in English, and in Dutch when Keycloak marks the page lang="nl".
+*/
+
+@font-face {
+  font-family: "Bizzy Inter";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Bizzy Inter";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../fonts/inter-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Bizzy Overpass";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../fonts/overpass-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Bizzy Overpass";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../fonts/overpass-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  --bizzy-blue: #005ca9;
+  --bizzy-blue-600: #004a8a;
+  --bizzy-blue-lid: #2f7bc4;
+  --bizzy-navy: #0b2340;
+  --bizzy-yellow: #ffc917;
+  --bizzy-font: "Bizzy Inter", "Inter Variable", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --bizzy-display: "Bizzy Overpass", "Overpass Variable", Overpass, var(--bizzy-font);
+
+  /* Bizzy's surfaces and text (theme.css) */
+  --cle-bg: #faf9f7;
+  --cle-surface: #ffffff;
+  --cle-surface-soft: #f6f5f2;
+  --cle-border: #e7e5e0;
+  --cle-border-strong: #d6d3cc;
+  --cle-text: #1d1c1a;
+  --cle-muted: #5e5c57;
+  --cle-primary: var(--bizzy-blue);
+  --cle-primary-hover: var(--bizzy-blue-600);
+  --cle-primary-soft: #e9f1f9;
+  --cle-danger: #c2412f;
+  --cle-focus: rgba(0, 92, 169, 0.16);
+  --cle-shadow: 0 1px 2px rgba(29, 28, 26, 0.04), 0 12px 32px rgba(29, 28, 26, 0.06);
+
+  /* the left panel */
+  --bizzy-panel: 46vw;
+  --bizzy-block: 34vh;
+  --bizzy-size: clamp(140px, 13vw, 200px);
+}
+
+html.login-pf,
+html.login-pf body {
+  background: var(--cle-bg) !important;
+}
+
+.login-pf body {
+  color: var(--cle-text);
+  font-family: var(--bizzy-font);
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.login-pf body input,
+.login-pf body button {
+  font-family: inherit;
+}
+
+/* No grid: a plain, warm page. */
+.login-pf body::before {
+  background-image: none !important;
+}
+
+/* ---- the left panel (wide screens) -------------------------------------- */
+
+@media (min-width: 960px) {
+  /* The panel: Bizzy standing on a block of his blue, with the lighter lid
+     along its top edge and his yellow band across, as on the welcome page. */
+  .login-pf body::after {
+    content: "";
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--bizzy-panel);
+    z-index: 0;
+    pointer-events: none;
+    border-right: 1px solid var(--cle-border);
+    background:
+      url("../img/bizzy-v2.svg") center bottom calc(var(--bizzy-block) - var(--bizzy-size) * 0.125) / var(--bizzy-size) var(--bizzy-size) no-repeat,
+      linear-gradient(var(--bizzy-blue-lid), var(--bizzy-blue-lid)) left 0 bottom calc(var(--bizzy-block) - 12px) / 100% 12px no-repeat,
+      linear-gradient(#d9ab14 0 2px, var(--bizzy-yellow) 2px calc(100% - 2px), #d9ab14 calc(100% - 2px)) left 0 bottom calc(var(--bizzy-block) - 12px - 9vh - 40px) / 100% 40px no-repeat,
+      linear-gradient(var(--bizzy-blue), var(--bizzy-blue)) left bottom / 100% var(--bizzy-block) no-repeat,
+      #f3f2ef;
+  }
+
+  /* The welcome page's headline, in navy Overpass. */
+  html.login-pf::before {
+    content: "Deals, projects and people for UM teams.";
+    position: fixed;
+    left: 0;
+    top: clamp(44px, 11vh, 132px);
+    z-index: 1;
+    box-sizing: border-box;
+    width: var(--bizzy-panel);
+    padding: 0 clamp(36px, 4.4vw, 72px);
+    color: var(--bizzy-navy);
+    font: 800 clamp(34px, 3.7vw, 58px) / 0.98 var(--bizzy-display);
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    pointer-events: none;
+  }
+
+  /* Provenance, on the blue below the band. */
+  html.login-pf::after {
+    content: "Made at BISS, for teams across Maastricht University";
+    position: fixed;
+    left: 0;
+    bottom: calc((var(--bizzy-block) - 12px - 9vh - 40px) / 2 - 0.75em);
+    z-index: 1;
+    box-sizing: border-box;
+    width: var(--bizzy-panel);
+    padding: 0 clamp(36px, 4.4vw, 72px);
+    color: rgba(255, 255, 255, 0.92);
+    font: 500 14px / 1.5 var(--bizzy-font);
+    letter-spacing: 0;
+    pointer-events: none;
+  }
+
+  html.login-pf:lang(nl)::before {
+    content: "Deals, projecten en mensen voor UM-teams.";
+  }
+
+  html.login-pf:lang(nl)::after {
+    content: "Gemaakt bij BISS, voor teams in de hele Universiteit Maastricht";
+  }
+
+  .login-pf-page {
+    position: relative;
+    z-index: 2;
+    margin-left: var(--bizzy-panel) !important;
+    width: calc(100vw - var(--bizzy-panel)) !important;
+    max-width: none !important;
+  }
+}
+
+/* Short wide windows: the headline and Bizzy would meet, so Bizzy steps away. */
+@media (min-width: 960px) and (max-height: 680px) {
+  .login-pf body::after {
+    background:
+      linear-gradient(var(--bizzy-blue-lid), var(--bizzy-blue-lid)) left 0 bottom calc(var(--bizzy-block) - 12px) / 100% 12px no-repeat,
+      linear-gradient(#d9ab14 0 2px, var(--bizzy-yellow) 2px calc(100% - 2px), #d9ab14 calc(100% - 2px)) left 0 bottom calc(var(--bizzy-block) - 12px - 9vh - 40px) / 100% 40px no-repeat,
+      linear-gradient(var(--bizzy-blue), var(--bizzy-blue)) left bottom / 100% var(--bizzy-block) no-repeat,
+      #f3f2ef;
+  }
+}
+
+/* ---- the card ----------------------------------------------------------- */
+
+.login-pf-page .card-pf {
+  border: 1px solid var(--cle-border);
+  border-radius: 12px;
+  box-shadow: var(--cle-shadow);
+  max-width: 420px;
+}
+
+/* The brand in place of the product eyebrow: the logo (Bizzy standing still:
+   his block with the band and eyes), then BIZZY in thin, spaced, outlined
+   capitals (BBrand / BWordmark in the app). The word sits on the middle of the
+   block's front face, a little below the middle of the whole mark. */
+.login-pf-page .card-pf::before {
+  content: "BIZZY";
+  display: block;
+  width: max-content;
+  height: 30px;
+  margin-bottom: 30px;
+  padding: 0 0 0 40px;
+  border: 0;
+  background: url("../img/bizzy-mark-v4.svg") left top / 30px 30px no-repeat;
+  color: transparent;
+  font: 300 19px / 37px var(--bizzy-display);
+  letter-spacing: 0.16em;
+  text-transform: none;
+  -webkit-text-stroke: 1.05px var(--bizzy-navy);
+}
+
+/* Browsers without text stroke draw the word solid instead of invisible. */
+@supports not (-webkit-text-stroke: 1px black) {
+  .login-pf-page .card-pf::before {
+    color: var(--bizzy-navy);
+  }
+}
+
+.login-pf-header {
+  text-align: left;
+}
+
+/* The language menu (realms with internationalisation on): a small button on
+   the brand row, its list hidden until opened. The shared caselaw sheets leave
+   Keycloak's dropdown unstyled, which showed the list open over the title. */
+#kc-locale {
+  position: absolute;
+  top: 38px;
+  right: 40px;
+  z-index: 5;
+  margin: 0;
+}
+
+#kc-locale-dropdown {
+  position: relative;
+}
+
+#kc-locale-dropdown::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 6px;
+}
+
+#kc-current-locale-link {
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--cle-border);
+  border-radius: 7px;
+  background: var(--cle-surface);
+  box-shadow: 0 1px 2px rgba(29, 28, 26, 0.04);
+  color: var(--cle-muted);
+  font: 500 12.5px / 28px var(--bizzy-font);
+  cursor: pointer;
+}
+
+#kc-current-locale-link:hover {
+  background: #efede9;
+  color: var(--cle-text);
+}
+
+#kc-locale ul {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: auto;
+  min-width: 190px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--cle-border);
+  border-radius: 10px;
+  background: var(--cle-surface);
+  box-shadow: 0 12px 32px rgba(29, 28, 26, 0.12), 0 2px 6px rgba(29, 28, 26, 0.06);
+}
+
+#kc-locale-dropdown:hover ul,
+#kc-locale-dropdown:focus-within ul,
+#kc-current-locale-link[aria-expanded="true"] + ul {
+  display: block;
+}
+
+#kc-locale ul a {
+  display: block;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: var(--cle-text);
+  font: 400 13.5px / 1.4 var(--bizzy-font);
+  text-decoration: none;
+}
+
+#kc-locale ul a:hover,
+#kc-locale ul a:focus-visible {
+  background: #efede9;
+  outline: none;
+}
+
+@media (max-width: 520px) {
+  #kc-locale {
+    top: 30px;
+    right: 24px;
+  }
+}
+
+#kc-page-title,
+.login-pf-page .card-pf h1 {
+  color: var(--cle-text);
+  font-family: var(--bizzy-font);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  text-align: left;
+}
+
+label,
+#kc-form .pf-c-form__group-label .pf-c-form__label {
+  color: var(--cle-muted);
+  font-weight: 500;
+}
+
+input[type="email"],
+input[type="text"],
+input[type="password"],
+#kc-form input[type="email"],
+#kc-form .pf-v5-c-input-group .pf-v5-c-form-control {
+  border-radius: 7px !important;
+  border-color: var(--cle-border-strong) !important;
+  box-shadow: none !important;
+}
+
+input[type="email"]:focus,
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: var(--bizzy-blue) !important;
+  box-shadow: 0 0 0 3px var(--cle-focus) !important;
+}
+
+.cle-otp-slot {
+  border-color: var(--cle-border-strong);
+  border-radius: 8px;
+}
+
+.cle-otp-control:focus-within .cle-otp-slot {
+  border-color: var(--bizzy-blue);
+  box-shadow: 0 0 0 3px var(--cle-focus);
+}
+
+.btn,
+#kc-form-buttons input[type="submit"]:not(#kc-resend) {
+  border-radius: 7px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0;
+}
+
+#kc-form-buttons input[type="submit"]:not(#kc-resend) {
+  background: var(--bizzy-blue) !important;
+  border-color: var(--bizzy-blue) !important;
+}
+
+#kc-form-buttons input[type="submit"]:not(#kc-resend):hover {
+  background: var(--bizzy-blue-600) !important;
+  border-color: var(--bizzy-blue-600) !important;
+}
+
+#kc-resend {
+  color: var(--bizzy-blue);
+  font-weight: 500;
+}
+
+#try-another-way,
+.login-pf .cle-login-footer a {
+  color: var(--cle-muted);
+}
+
+#try-another-way:hover,
+.login-pf .cle-login-footer a:hover {
+  color: var(--bizzy-blue);
+}
+
+.login-pf .cle-login-footer {
+  border-top-color: var(--cle-border);
+}
+
+.login-pf .cle-login-footer .cle-login-managed,
+.login-pf .cle-login-footer .cle-login-managed a {
+  color: #8d8a83;
+}

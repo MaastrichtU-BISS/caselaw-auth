@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm'
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
 test('each login theme declares its own local project favicon', async () => {
-  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg'], ['bizzash', 'bizzy-favicon-v4.svg']]) {
+  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg'], ['bizzash', 'bizzy-favicon-v4.svg'], ['bizzy', 'bizzy-favicon-v4.svg']]) {
     const properties = await read(`themes/${theme}/login/theme.properties`)
     assert.ok(properties.split('\n').includes(`favicons=img/${asset}`))
     const svg = await read(`themes/${theme}/login/resources/img/${asset}`)
@@ -173,18 +173,18 @@ test('legal links prefer the client\'s own documents over the theme default', as
 })
 
 test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy brand layer', async () => {
-  const login = await read('themes/bizzash/login/theme.properties')
-  const account = await read('themes/bizzash/account/theme.properties')
-  const styles = await read('themes/bizzash/login/resources/css/bizzy-login-v2.css')
-  const bizzy = await read('themes/bizzash/login/resources/img/bizzy-v2.svg')
-  const en = await read('themes/bizzash/login/messages/messages_en.properties')
-  const nl = await read('themes/bizzash/login/messages/messages_nl.properties')
+  const login = await read('themes/bizzy/login/theme.properties')
+  const account = await read('themes/bizzy/account/theme.properties')
+  const styles = await read('themes/bizzy/login/resources/css/bizzy-login-v2.css')
+  const bizzy = await read('themes/bizzy/login/resources/img/bizzy-v2.svg')
+  const en = await read('themes/bizzy/login/messages/messages_en.properties')
+  const nl = await read('themes/bizzy/login/messages/messages_nl.properties')
 
   assert.match(login, /^parent=caselaw$/m)
   assert.match(account, /^parent=caselaw$/m)
   assert.match(login, /^styles=css\/caselaw-login-v10\.css css\/bizzy-login-v2\.css$/m)
   assert.match(login, /^scripts=js\/otp-input-v1\.js$/m)
-  assert.match(account, /^styles=css\/caselaw-account\.css css\/bizzash-account-v1\.css$/m)
+  assert.match(account, /^styles=css\/caselaw-account\.css css\/bizzy-account-v1\.css$/m)
   // No Case Law Explorer documents on Bizzy.
   for (const key of ['legalTermsUrl', 'legalPrivacyUrl', 'legalCookiesUrl']) {
     assert.match(login, new RegExp(`^${key}=\\$\\{env\\.BIZZASH_AUTH_\\w+_URL:\\}$`, 'm'))
@@ -195,7 +195,7 @@ test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy bran
   // Fonts are served by the theme itself: no Google Fonts or other remote CSS.
   assert.doesNotMatch(styles, /@import|fonts\.googleapis|fonts\.gstatic|https?:\/\//)
   for (const match of styles.matchAll(/url\("\.\.\/fonts\/([^"]+)"\)/g)) {
-    await access(new URL(`../themes/bizzash/login/resources/fonts/${match[1]}`, import.meta.url))
+    await access(new URL(`../themes/bizzy/login/resources/fonts/${match[1]}`, import.meta.url))
   }
   // The panel is decoration: it never takes clicks.
   assert.doesNotMatch(styles, /\.cle-login-footer\s*\{[^}]*position:\s*(?:fixed|absolute)/)
@@ -214,10 +214,10 @@ test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy bran
 })
 
 test('the Bizzy email theme wraps every email it sends in one layout, in English and Dutch', async () => {
-  const properties = await read('themes/bizzash/email/theme.properties')
-  const layout = await read('themes/bizzash/email/html/template.ftl')
-  const en = await read('themes/bizzash/email/messages/messages_en.properties')
-  const nl = await read('themes/bizzash/email/messages/messages_nl.properties')
+  const properties = await read('themes/bizzy/email/theme.properties')
+  const layout = await read('themes/bizzy/email/html/template.ftl')
+  const en = await read('themes/bizzy/email/messages/messages_en.properties')
+  const nl = await read('themes/bizzy/email/messages/messages_nl.properties')
   const keys = (text) => text.split('\n').filter(line => /^\w[\w.-]*=/.test(line)).map(line => line.split('=')[0]).sort()
 
   assert.match(properties, /^parent=base$/m)
@@ -231,8 +231,8 @@ test('the Bizzy email theme wraps every email it sends in one layout, in English
   assert.doesNotMatch(layout, /<script|fonts\.googleapis|@import|<link\b/i)
   assert.match(layout, />BIZZY<\/a>/)
   for (const name of ['otp-email', 'magic-link-email', 'magic-link-continuation-email', 'executeActions', 'email-verification', 'email-update-confirmation', 'password-reset', 'email-test']) {
-    const html = await read(`themes/bizzash/email/html/${name}.ftl`)
-    const text = await read(`themes/bizzash/email/text/${name}.ftl`)
+    const html = await read(`themes/bizzy/email/html/${name}.ftl`)
+    const text = await read(`themes/bizzy/email/text/${name}.ftl`)
     assert.match(html, /<#import "template\.ftl" as layout>/)
     assert.match(html, /<@layout\.emailLayout heading=/)
     assert.match(text, /^<#ftl output_format="plainText">/)
@@ -243,7 +243,7 @@ test('the Bizzy email theme wraps every email it sends in one layout, in English
     }
   }
   // The sign-in code: large, monospace, with how long it works.
-  const otp = await read('themes/bizzash/email/html/otp-email.ftl')
+  const otp = await read('themes/bizzy/email/html/otp-email.ftl')
   assert.match(otp, /<@layout\.code value=code note=msg\("otpValid"\)\/>/)
   assert.match(en, /^otpSubject=Your Bizzy sign-in code$/m)
   assert.match(nl, /^otpSubject=Je inlogcode voor Bizzy$/m)
