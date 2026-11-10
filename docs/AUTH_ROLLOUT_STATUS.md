@@ -7,11 +7,13 @@ tracked separately from source merges, package publication and configuration.
 
 | Component | Verified state | What to do |
 |---|---|---|
+| Shared host | Since 10 November 2026 the default and admin origin is `auth.biss-institute.com`; `caselaw` is pinned to `auth.caselawexplorer.tech`, so its issuer did not change. DigiMach moved to `auth.biss-institute.com/realms/digimach` the same day, together with its `AUTH_ISSUER` on Vercel | See [Current layout](PROJECT_AUTH_DOMAINS.md#current-layout) |
+| `lawnotation` realm | Created 10 November 2026 for LawNotation and Baigle: password sign-in, no self-registration, issuer `https://auth.lawnotation.org/realms/lawnotation`, confidential clients `lawnotation` (`app.lawnotation.org`) and `baigle` (`baigle.lawnotation.org`), realm admins David Wicker and Shashank Chakravarthy | Configure SMTP (`login.lawnotation.org` is already a verified Mailtrap sending domain), then (optionally) OTP; apply the `lawnotation` theme after it is deployed |
 | Shared Keycloak | Project-host routing, both branded login themes/favicons, responsive footer and OTP-only flow are deployed | Use the existing service; no second Keycloak instance is needed |
 | Realm installer | `caselaw-auth@0.6.5` is published | Run it only to enable/upgrade the selected realm's OTP flow; never as a prerequisite for every app deployment |
 | `caselaw` realm | Email-only OTP enabled on the shared issuer | Connect each product's own OIDC client; do not reinstall the realm flow |
 | `digimach` realm | Email-only OTP enabled; existing users and localhost callbacks retained; sender `no-reply@digimach.eu` unchanged | Complete the [DigiMach domain cutover](DIGIMACH_HANDOFF.md) |
-| DigiMach custom domain | Coolify route prepared; public DNS, trusted TLS and coordinated issuer/application cutover remain pending | Keep `https://auth.caselawexplorer.tech/realms/digimach` until the cutover is agreed |
+| DigiMach custom domain | Coolify route prepared; public DNS, trusted TLS and coordinated issuer/application cutover remain pending | Use `https://auth.biss-institute.com/realms/digimach` until the cutover is agreed |
 | Explorer frontend | Runs on Coolify at `app.caselawexplorer.tech` since 2026-10-30 | Do not change public-app DNS as part of an auth-domain change |
 | Access per-project issuer support | Implementation is pending release/deployment; publishing its preview guide does not enable it | Do not assume the **Project authentication** card or project-auth API exists on the deployed console |
 | Coolify frontend/runtime issuer mapping and derived workbench account URL | [caselaw-coolify PR #18](https://github.com/MaastrichtU-BISS/caselaw-coolify/pull/18) merged into `main` as `968a4cc`; deployment and post-deployment verification remain unconfirmed | Confirm deployment, then test login and logout on `demo-app` before relying on the new variable behavior |

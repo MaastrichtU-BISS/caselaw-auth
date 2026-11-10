@@ -10,9 +10,9 @@ For the separate pending Access and Coolify app-bundle releases, see
 
 | Setting | Current value / state |
 |---|---|
-| Keycloak instance / Admin Console | `https://auth.caselawexplorer.tech` |
+| Keycloak instance / Admin Console | `https://auth.biss-institute.com` |
 | Realm | `digimach` (existing users retained) |
-| Current issuer — keep using until coordinated cutover | `https://auth.caselawexplorer.tech/realms/digimach` |
+| Current issuer (since 10 November 2026) — keep using until coordinated cutover | `https://auth.biss-institute.com/realms/digimach` |
 | Prepared future auth origin | `https://auth.digimach.eu`, routed in Coolify to the existing Keycloak service, internal port `8080` |
 | Future issuer — do not activate before DNS and TLS work | `https://auth.digimach.eu/realms/digimach` |
 | Realm Frontend URL | Empty, deliberately retaining the current issuer |
@@ -30,7 +30,7 @@ confirmed until the DNS owner points it to BISS. No separate auth deployment is
 needed. Production callback and logout URLs must be supplied by the DigiMach
 team before BISS can add them to the allowlists.
 
-The shared hostname/admin hostname stay at `https://auth.caselawexplorer.tech`;
+The shared hostname/admin hostname are `https://auth.biss-institute.com`;
 `KEYCLOAK_HOSTNAME_STRICT=true` remains set. These values are mirrored in
 `.env.example` and the operator's ignored `.env.local`. Project routes belong to
 Coolify's **Domains** configuration; do not change global hostname variables to

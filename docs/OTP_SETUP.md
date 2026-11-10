@@ -92,7 +92,7 @@ Then complete these steps in order:
    that will be saved in shell history.
 
    ```bash
-   export KEYCLOAK_URL=https://auth.caselawexplorer.tech
+   export KEYCLOAK_URL=https://auth.biss-institute.com
    export KEYCLOAK_REALM=my-project
    export KEYCLOAK_ADMIN_REALM=master
    export KEYCLOAK_ADMIN=admin
@@ -201,7 +201,7 @@ another product's client.
 
 ### A2. Create the project client in Keycloak
 
-In `https://auth.caselawexplorer.tech/admin`, select realm **caselaw**, then open
+In `https://auth.biss-institute.com/admin`, select realm **caselaw**, then open
 **Clients → Create client**.
 
 For a browser-only SPA:
@@ -298,9 +298,9 @@ different roles, or an independent authentication policy.
 The examples use:
 
 ```text
-Keycloak URL: https://auth.caselawexplorer.tech
+Keycloak URL: https://auth.biss-institute.com
 target realm: my-project
-issuer:       https://auth.caselawexplorer.tech/realms/my-project
+issuer:       https://auth.biss-institute.com/realms/my-project
 client ID:    my-project-web
 callback:     https://my-project.example.org/auth/callback
 ```
@@ -388,7 +388,7 @@ issuer.
 For a server-backed project:
 
 ```env
-AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/my-project
+AUTH_ISSUER=https://auth.biss-institute.com/realms/my-project
 AUTH_CLIENT_ID=my-project-web
 AUTH_CLIENT_SECRET=<server-only secret; omit for a public client>
 AUTH_REDIRECT_URI=https://my-project.example.org/auth/callback
@@ -398,7 +398,7 @@ AUTH_SESSION_SECRET=<unique long random value>
 For a static SPA:
 
 ```env
-PUBLIC_AUTH_ISSUER=https://auth.caselawexplorer.tech/realms/my-project
+PUBLIC_AUTH_ISSUER=https://auth.biss-institute.com/realms/my-project
 PUBLIC_AUTH_CLIENT_ID=my-project-web
 PUBLIC_AUTH_REDIRECT_URI=https://my-project.example.org/auth/callback
 PUBLIC_AUTH_STORAGE_KEY=my-project:auth
@@ -416,7 +416,7 @@ On any machine with Node 18+ and network access to Keycloak, run the pinned npm
 package. No repository checkout or shell access to the Keycloak server is needed:
 
 ```bash
-KEYCLOAK_URL=https://auth.caselawexplorer.tech \
+KEYCLOAK_URL=https://auth.biss-institute.com \
 KEYCLOAK_REALM=my-project \
 KEYCLOAK_ADMIN_REALM=master \
 KEYCLOAK_ADMIN=admin \
