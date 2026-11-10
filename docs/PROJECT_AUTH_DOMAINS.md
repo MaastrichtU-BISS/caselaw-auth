@@ -32,9 +32,9 @@ domain through its Frontend URL:
 |---|---|---|---|
 | `master` | Admin Console | none, follows the server default | `https://auth.biss-institute.com/realms/master` |
 | `caselaw` | Case Law Explorer, Access, Citations API | `https://auth.caselawexplorer.tech` | `https://auth.caselawexplorer.tech/realms/caselaw` |
-| `digimach` | DigiMach | `https://auth.caselawexplorer.tech` until its cutover to `auth.digimach.eu` | `https://auth.caselawexplorer.tech/realms/digimach` |
-| `bizzy` | Bizzy | `https://auth.biss-institute.com` | `https://auth.biss-institute.com/realms/bizzy` |
-| `lawnotation` | LawNotation, Baigle | none, follows the server default | `https://auth.biss-institute.com/realms/lawnotation` |
+| `digimach` | DigiMach | `https://auth.biss-institute.com` until its cutover to `auth.digimach.eu` | `https://auth.biss-institute.com/realms/digimach` |
+| `bizzy` | Bizzy (clients `bizzy`, `bizzy-preview`; the old `bizzash` client is disabled) | `https://auth.biss-institute.com` | `https://auth.biss-institute.com/realms/bizzy` |
+| `lawnotation` | LawNotation (client `lawnotation`), Baigle (client `baigle`) | none, follows the server default | `https://auth.biss-institute.com/realms/lawnotation` |
 
 **Changing `KEYCLOAK_HOSTNAME` moves every realm that has no Frontend URL.** Before
 changing it, pin each realm that must keep its issuer to the origin it uses now,
