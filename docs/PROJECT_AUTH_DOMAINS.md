@@ -33,7 +33,7 @@ domain through its Frontend URL:
 | `master` | Admin Console | none, follows the server default | `https://auth.biss-institute.com/realms/master` |
 | `caselaw` | Case Law Explorer, Access, Citations API | `https://auth.caselawexplorer.tech` | `https://auth.caselawexplorer.tech/realms/caselaw` |
 | `digimach` | DigiMach | `https://auth.biss-institute.com` until its cutover to `auth.digimach.eu` | `https://auth.biss-institute.com/realms/digimach` |
-| `bizzy` | Bizzy (clients `bizzy`, `bizzy-preview`; the old `bizzash` client is disabled) | `https://auth.biss-institute.com` | `https://auth.biss-institute.com/realms/bizzy` |
+| `bizzy` | Bizzy (clients `bizzy`, `bizzy-preview`; the old `bizzash` client is disabled) | `https://auth.usebizzy.eu` (since 10 Nov 2026, 22:50) | `https://auth.usebizzy.eu/realms/bizzy` |
 | `lawnotation` | LawNotation (client `lawnotation`), Baigle (client `baigle`) | `https://auth.lawnotation.org` | `https://auth.lawnotation.org/realms/lawnotation` |
 
 **Changing `KEYCLOAK_HOSTNAME` moves every realm that has no Frontend URL.** Before
@@ -48,7 +48,10 @@ the Keycloak server. That server's Traefik forwards `auth.biss-institute.com` to
 The fixed hostnames and Frontend URLs keep generated URLs correct, but sign-in on
 `auth.biss-institute.com` depends on both servers. A dedicated DNS record for
 `auth.biss-institute.com` pointing at the Keycloak server would remove that hop;
-the domain is already listed on the Keycloak resource. `auth.lawnotation.org` has its
+the domain is already listed on the Keycloak resource. `auth.usebizzy.eu`
+(Bizzy) takes the same hop: it follows the `*.usebizzy.eu` wildcard to that
+server, whose Traefik forwards it with the dynamic file `bizzy-auth.yaml`, a copy
+of `biss-auth.yaml` (Bizzy's `docs/plans/sign-in-host.md`). `auth.lawnotation.org` has its
 own A record (Vercel DNS for lawnotation.org) pointing straight at the Keycloak
 server, so it does not take that hop.
 
