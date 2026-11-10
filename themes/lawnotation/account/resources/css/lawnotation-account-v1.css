@@ -1,0 +1,75 @@
+/* Lawnotation brand layer for the inherited Case Law account-console coverage. */
+
+:root {
+  --lawnotation-brand: #0d5984;
+  --lawnotation-brand-strong: #0b4b6f;
+  --lawnotation-highlight: #b6cdda;
+  --lawnotation-brand-weak: #e9f0f4;
+  --lawnotation-ink: #0f2433;
+
+  --cle-bg: var(--lawnotation-brand-weak);
+  --cle-surface-subtle: #f4f8fa;
+  --cle-surface-muted: #e2ebf0;
+  --cle-card: #ffffff;
+  --cle-border: #d3e0e8;
+  --cle-border-subtle: #e3ecf1;
+  --cle-border-strong: #a9c2d1;
+  --cle-text: var(--lawnotation-ink);
+  --cle-text-body: #2b4554;
+  --cle-muted: #5b6f7c;
+  --cle-primary: var(--lawnotation-brand);
+  --cle-primary-hover: var(--lawnotation-brand-strong);
+  --cle-danger: #b4232d;
+  --cle-focus: rgba(13, 89, 132, 0.22);
+  --cle-radius-sm: 8px;
+  --cle-radius-md: 10px;
+  --cle-shadow-sm: 0 1px 3px rgba(15, 36, 51, 0.07);
+}
+
+.pf-v5-c-masthead {
+  border-top: 3px solid var(--lawnotation-brand);
+}
+
+.pf-v5-c-masthead__brand,
+.pf-v5-c-brand {
+  align-items: center;
+  display: inline-flex;
+}
+
+/* The Lawnotation wordmark replaces the masthead brand text. */
+.pf-v5-c-masthead__brand::before,
+.pf-v5-c-brand::before {
+  background: url("../img/lawnotation-logo-v1.svg") left center / contain no-repeat;
+  content: "";
+  display: block;
+  flex: 0 0 auto;
+  height: 1.9rem;
+  width: 7.05rem;
+}
+
+/* The wordmark already says the name; drop the parent's "Case Law Explorer". */
+.pf-v5-c-masthead__brand::after,
+.pf-v5-c-brand::after {
+  content: none;
+  display: none;
+}
+
+.pf-v5-c-nav__link.pf-m-current,
+.pf-v5-c-nav__item.pf-m-current > .pf-v5-c-nav__link,
+.pf-v5-c-nav__link[aria-current="page"] {
+  background-color: var(--lawnotation-brand-weak);
+  color: var(--lawnotation-brand-strong);
+}
+
+.pf-v5-c-card,
+.pf-v5-c-panel {
+  box-shadow: var(--cle-shadow-sm);
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--lawnotation-brand);
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background-color: var(--lawnotation-brand-strong);
+}

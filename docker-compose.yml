@@ -60,6 +60,9 @@ services:
       DIGIMACH_AUTH_TERMS_URL: ${DIGIMACH_AUTH_TERMS_URL:-https://digimach.eu/en/terms-of-service}
       DIGIMACH_AUTH_PRIVACY_URL: ${DIGIMACH_AUTH_PRIVACY_URL:-https://digimach.eu/en/privacy-policy}
       DIGIMACH_AUTH_COOKIES_URL: ${DIGIMACH_AUTH_COOKIES_URL:-}
+      LAWNOTATION_AUTH_TERMS_URL: ${LAWNOTATION_AUTH_TERMS_URL:-https://app.lawnotation.org/terms-of-service}
+      LAWNOTATION_AUTH_PRIVACY_URL: ${LAWNOTATION_AUTH_PRIVACY_URL:-https://app.lawnotation.org/privacy-policy}
+      LAWNOTATION_AUTH_COOKIES_URL: ${LAWNOTATION_AUTH_COOKIES_URL:-}
 
 volumes:
   keycloak-db-data:

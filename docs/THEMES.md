@@ -1,12 +1,13 @@
 # Applying Keycloak themes
 
-This repository ships two complete Keycloak themes in its Docker image:
+This repository ships complete Keycloak themes in its Docker image:
 
 | Theme | Use for | Coverage |
 |---|---|---|
 | `caselaw` | Case Law Explorer realms and projects | Login, registration, recovery, errors, email OTP, responsive behavior, and account console |
 | `digimach` | DigiMach realms and projects | The same coverage inherited from `caselaw`, with DigiMach colors, mark, typography, and surfaces |
 | `bizzash` | The `bizzash` realm (Bizzy, formerly Bizzash) | The same coverage inherited from `caselaw`, with Bizzy's warm light theme, self-hosted Inter and Overpass, the mascot and BISS blue |
+| `lawnotation` | The `lawnotation` realm (Lawnotation and Baigle) | The same coverage inherited from `caselaw` (login and account), with Lawnotation's blue, wordmark, highlighter mark and Roboto Slab headings |
 
 Theme names are lowercase and case-sensitive. Deploy an image built from this
 repository before selecting a theme; otherwise it will not appear in Keycloak's
@@ -112,6 +113,7 @@ and hidden when nothing is set:
    |---|---|---|---|
    | `caselaw` | `CASELAW_AUTH_TERMS_URL` | `CASELAW_AUTH_PRIVACY_URL` | `CASELAW_AUTH_COOKIES_URL` |
    | `digimach` | `DIGIMACH_AUTH_TERMS_URL` | `DIGIMACH_AUTH_PRIVACY_URL` | `DIGIMACH_AUTH_COOKIES_URL` |
+   | `lawnotation` | `LAWNOTATION_AUTH_TERMS_URL` | `LAWNOTATION_AUTH_PRIVACY_URL` | `LAWNOTATION_AUTH_COOKIES_URL` |
 
    `caselaw` defaults to Case Law Explorer's
    [terms](https://app.caselawexplorer.tech/terms-of-service) and
@@ -119,7 +121,10 @@ and hidden when nothing is set:
    defaults to DigiMach's own
    [terms](https://digimach.eu/en/terms-of-service) and
    [privacy policy](https://digimach.eu/en/privacy-policy), never Case Law
-   Explorer's.
+   Explorer's. `lawnotation` defaults to Lawnotation's
+   [terms](https://app.lawnotation.org/terms-of-service) and
+   [privacy policy](https://app.lawnotation.org/privacy-policy); Baigle, which
+   shares the realm, sets its own on its client.
 
 Only `http(s)` addresses are linked. Labels are translated in the theme's
 `messages_*.properties` (`legalTerms`, `legalPrivacy`, `legalCookies`).
@@ -135,7 +140,8 @@ itself, pass the same addresses to the client library's `legal` option; see
 
 The login favicon follows the selected **Login theme**, including client-level
 overrides. `caselaw` uses the Case Law Explorer demo platform's network icon;
-`digimach` uses the same green DM mark as `digimach.eu`. Email entry, OTP,
+`digimach` uses the same green DM mark as `digimach.eu`; `lawnotation` uses the
+slab "L" on its highlighter block, as on lawnotation.org. Email entry, OTP,
 registration, recovery and login error pages inherit that choice. No frontend
 or server-side auth SDK change, DNS change, SMTP setting or environment variable
 is needed. The Account console is a separate theme surface.
@@ -181,8 +187,9 @@ override should appear only for that client.
   `docker compose -f compose.local.yml up`, which mounts `themes/` and disables
   theme caching.
 
-The static DigiMach login preview is at
-[`themes/digimach/preview.html`](../themes/digimach/preview.html).
+The static login previews are at
+[`themes/digimach/preview.html`](../themes/digimach/preview.html) and
+[`themes/lawnotation/preview.html`](../themes/lawnotation/preview.html).
 
 ## Short screens and footer layout
 
