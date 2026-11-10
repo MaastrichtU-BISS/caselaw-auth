@@ -22,6 +22,34 @@ DigiMach DNS and its application issuer have not yet been migrated. The
 [DigiMach authentication setup](DIGIMACH_HANDOFF.md) lists the existing
 configuration and the cutover steps for each responsible team.
 
+## Current layout
+
+Since 10 November 2026 the shared service's default and administration origin is
+`https://auth.biss-institute.com`. Each project realm keeps or adds its own
+domain through its Frontend URL:
+
+| Realm | Products | Frontend URL (pinned) | Issuer |
+|---|---|---|---|
+| `master` | Admin Console | none, follows the server default | `https://auth.biss-institute.com/realms/master` |
+| `caselaw` | Case Law Explorer, Access, Citations API | `https://auth.caselawexplorer.tech` | `https://auth.caselawexplorer.tech/realms/caselaw` |
+| `digimach` | DigiMach | `https://auth.caselawexplorer.tech` until its cutover to `auth.digimach.eu` | `https://auth.caselawexplorer.tech/realms/digimach` |
+| `bizzy` | Bizzy | `https://auth.biss-institute.com` | `https://auth.biss-institute.com/realms/bizzy` |
+| `lawnotation` | LawNotation, Baigle | none, follows the server default | `https://auth.biss-institute.com/realms/lawnotation` |
+
+**Changing `KEYCLOAK_HOSTNAME` moves every realm that has no Frontend URL.** Before
+changing it, pin each realm that must keep its issuer to the origin it uses now,
+check each realm's `/.well-known/openid-configuration`, and only then redeploy.
+A realm that follows the default changes issuer, which breaks token validation in
+its applications and signs everyone out.
+
+Routing: `*.biss-institute.com` resolves to the server that hosts Coolify, not to
+the Keycloak server. That server's Traefik forwards `auth.biss-institute.com` to
+`https://auth.caselawexplorer.tech` through the dynamic file `biss-auth.yaml`.
+The fixed hostnames and Frontend URLs keep generated URLs correct, but sign-in on
+`auth.biss-institute.com` depends on both servers. A dedicated DNS record for
+`auth.biss-institute.com` pointing at the Keycloak server would remove that hop;
+the domain is already listed on the Keycloak resource.
+
 ## Who does what
 
 | Owner | Action | Access needed |
@@ -42,7 +70,7 @@ before changing an existing realm's Frontend URL.
 | Setting | DigiMach example |
 |---|---|
 | Shared Keycloak service | Existing `caselaw-auth` deployment |
-| Canonical administration origin | `https://auth.caselawexplorer.tech` |
+| Canonical administration origin | `https://auth.biss-institute.com` |
 | Target realm | `digimach` |
 | Project authentication origin / realm Frontend URL | `https://auth.digimach.eu` |
 | New OIDC issuer | `https://auth.digimach.eu/realms/digimach` |
@@ -88,13 +116,13 @@ host. Do not rewrite HTML, tokens or discovery response bodies in the proxy.
 The auth repository's Compose configuration accepts these deployment variables:
 
 ```dotenv
-KEYCLOAK_HOSTNAME=https://auth.caselawexplorer.tech
-KEYCLOAK_ADMIN_HOSTNAME=https://auth.caselawexplorer.tech
+KEYCLOAK_HOSTNAME=https://auth.biss-institute.com
+KEYCLOAK_ADMIN_HOSTNAME=https://auth.biss-institute.com
 KEYCLOAK_HOSTNAME_STRICT=true
 ```
 
 `KEYCLOAK_HOSTNAME` is the server-wide fallback. Do not replace it for each new
-project. Explicitly set `KEYCLOAK_ADMIN_HOSTNAME` to keep the Admin Console on a
+project; if it must change, pin the existing realms first (see Current layout). Explicitly set `KEYCLOAK_ADMIN_HOSTNAME` to keep the Admin Console on a
 shared origin even when the selected realm has a custom Frontend URL.
 The checked-in `.env.example` and shared production deployment explicitly set
 both hostnames to the shared HTTPS origin and strict mode to `true`. In contrast,

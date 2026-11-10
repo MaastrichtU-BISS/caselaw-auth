@@ -95,7 +95,7 @@ styling is realm-wide. See [THEMES.md](THEMES.md) before overriding anything.
 
 ## 3. Keycloak client configuration
 
-In the admin console at `https://auth.caselawexplorer.tech/admin`, realm
+In the admin console at `https://auth.biss-institute.com/admin`, realm
 **`caselaw`**, go to **Clients → Create client**.
 
 ### Public client

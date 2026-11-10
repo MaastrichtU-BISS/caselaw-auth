@@ -201,7 +201,7 @@ another product's client.
 
 ### A2. Create the project client in Keycloak
 
-In `https://auth.caselawexplorer.tech/admin`, select realm **caselaw**, then open
+In `https://auth.biss-institute.com/admin`, select realm **caselaw**, then open
 **Clients → Create client**.
 
 For a browser-only SPA:

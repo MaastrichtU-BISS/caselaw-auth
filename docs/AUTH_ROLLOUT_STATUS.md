@@ -7,6 +7,8 @@ tracked separately from source merges, package publication and configuration.
 
 | Component | Verified state | What to do |
 |---|---|---|
+| Shared host | Since 10 November 2026 the default and admin origin is `auth.biss-institute.com`; `caselaw` and `digimach` are pinned to `auth.caselawexplorer.tech`, so their issuers did not change | See [Current layout](PROJECT_AUTH_DOMAINS.md#current-layout) |
+| `lawnotation` realm | Created 10 November 2026 for LawNotation and Baigle: password sign-in, no self-registration, no clients, SMTP or theme yet | Add the clients, SMTP and (optionally) OTP and a theme before connecting the apps |
 | Shared Keycloak | Project-host routing, both branded login themes/favicons, responsive footer and OTP-only flow are deployed | Use the existing service; no second Keycloak instance is needed |
 | Realm installer | `caselaw-auth@0.6.5` is published | Run it only to enable/upgrade the selected realm's OTP flow; never as a prerequisite for every app deployment |
 | `caselaw` realm | Email-only OTP enabled on the shared issuer | Connect each product's own OIDC client; do not reinstall the realm flow |
