@@ -1,0 +1,280 @@
+/*
+  Lawnotation brand layer for the shared Case Law authentication UI.
+
+  caselaw-login-v10.css is loaded before this file from the parent theme. It
+  owns the Keycloak and OTP coverage; this file only changes the visual voice.
+  The palette is lawnotation-ui's Tailwind palette: primary blue #0d5984 with
+  its low/high steps, the pale secondary surface #e9f0f4, and the tilted
+  highlighter block (#0d5984 at 30%, #b6cdda) behind the wordmark. Headings
+  use Roboto Slab, the typeface of lawnotation.org, served from this theme.
+*/
+
+@font-face {
+  font-display: swap;
+  font-family: "Lawnotation Slab";
+  font-style: normal;
+  font-weight: 100 900;
+  src: url("../fonts/roboto-slab-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Lawnotation Slab";
+  font-style: normal;
+  font-weight: 100 900;
+  src: url("../fonts/roboto-slab-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --lawnotation-brand: #0d5984;
+  --lawnotation-brand-strong: #0b4b6f;
+  --lawnotation-brand-high: #236b95;
+  --lawnotation-highlight: #b6cdda;
+  --lawnotation-secondary: #b2cad7;
+  --lawnotation-brand-weak: #e9f0f4;
+  --lawnotation-ink: #0f2433;
+  --lawnotation-slab:
+    "Lawnotation Slab", "Roboto Slab", Rockwell, "Roboto Serif", Georgia, serif;
+
+  --cle-bg: var(--lawnotation-brand-weak);
+  --cle-surface: #ffffff;
+  --cle-surface-soft: #f4f8fa;
+  --cle-border: #d3e0e8;
+  --cle-border-strong: #a9c2d1;
+  --cle-text: var(--lawnotation-ink);
+  --cle-muted: #546877;
+  --cle-primary: var(--lawnotation-brand);
+  --cle-primary-hover: var(--lawnotation-brand-strong);
+  --cle-primary-soft: var(--lawnotation-brand-weak);
+  --cle-danger: #b4232d;
+  --cle-focus: rgba(13, 89, 132, 0.22);
+  --cle-shadow: 0 24px 70px rgba(15, 36, 51, 0.13);
+}
+
+html.login-pf,
+html.login-pf body {
+  background: var(--lawnotation-brand-weak) !important;
+}
+
+/* Faint ruled lines like a page of text, with two tilted highlighter strokes
+   in the logo's highlight blue: the annotation idea, kept in the background. */
+.login-pf body::before {
+  background-image:
+    linear-gradient(-3deg, transparent 0 18%, rgba(182, 205, 218, 0.5) 18% 21.5%, transparent 21.5%),
+    linear-gradient(-3deg, transparent 0 74%, rgba(182, 205, 218, 0.42) 74% 77%, transparent 77%),
+    linear-gradient(rgba(13, 89, 132, 0.06) 1px, transparent 1px);
+  background-position: center, center, center;
+  background-size: 100% 100%, 100% 100%, 100% 36px;
+}
+
+.login-pf-page .card-pf {
+  border: 1px solid rgba(169, 194, 209, 0.85);
+  border-top: 4px solid var(--lawnotation-brand);
+  border-radius: 12px;
+  box-shadow: var(--cle-shadow);
+}
+
+/* The Lawnotation wordmark from lawnotation-ui, highlighter block included. */
+.login-pf-page .card-pf::before {
+  background: url("../img/lawnotation-logo-v1.svg") left center / contain no-repeat;
+  border: 0;
+  content: "";
+  display: block;
+  height: 44px;
+  margin-bottom: 28px;
+  max-width: 100%;
+  padding-left: 0;
+  width: 164px;
+}
+
+#kc-page-title,
+.login-pf-page .card-pf h1 {
+  color: var(--lawnotation-ink);
+  font-family: var(--lawnotation-slab);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+#kc-username,
+.cle-identity {
+  background: var(--cle-surface-soft);
+  border-color: var(--cle-border);
+}
+
+#kc-attempted-username {
+  color: #23404f;
+}
+
+.pf-c-form__label,
+.control-label,
+label {
+  color: #2b4554;
+}
+
+/* Keycloak versions differ in whether a field is emitted directly or inside
+   Bootstrap/PatternFly column wrappers. Make the intended vertical rhythm
+   explicit so none of those variants can put a label beside its control. */
+#kc-form .form-group,
+#kc-form .pf-c-form__group {
+  display: block;
+}
+
+#kc-form .form-group > [class*="col-"],
+#kc-form .pf-c-form__group-label,
+#kc-form .pf-c-form__group-control {
+  float: none;
+  padding-left: 0;
+  padding-right: 0;
+  width: 100%;
+}
+
+#kc-form .form-group > label,
+#kc-form .form-group > .control-label,
+#kc-form .pf-c-form__group-label label,
+#kc-form .pf-c-form__group-label .pf-c-form__label {
+  display: block;
+  width: 100%;
+}
+
+.form-control,
+.pf-c-form-control,
+.pf-v5-c-form-control,
+.pf-v5-c-text-input-group,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  border-color: var(--cle-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 36, 51, 0.04);
+}
+
+#kc-form .form-control,
+#kc-form .pf-c-form-control,
+#kc-form .pf-v5-c-form-control,
+#kc-form .pf-v5-c-text-input-group,
+#kc-form input[type="text"],
+#kc-form input[type="password"],
+#kc-form input[type="email"] {
+  display: block;
+  width: 100%;
+}
+
+#kc-form .pf-c-input-group,
+#kc-form .pf-v5-c-input-group,
+#kc-form .pf-v5-c-text-input-group {
+  width: 100%;
+}
+
+#kc-form .pf-c-input-group .form-control,
+#kc-form .pf-c-input-group .pf-c-form-control,
+#kc-form .pf-v5-c-input-group .pf-v5-c-form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.form-control:hover,
+.pf-c-form-control:hover,
+input[type="text"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover,
+.cle-otp-control:hover .cle-otp-slot {
+  border-color: #7d9fb4;
+}
+
+.cle-otp-slot {
+  border-color: var(--cle-border-strong);
+  border-radius: 8px;
+}
+
+.cle-otp-control:focus-within .cle-otp-slot {
+  border-color: var(--lawnotation-secondary);
+}
+
+.cle-otp-control.is-complete .cle-otp-slot {
+  background: var(--lawnotation-brand-weak);
+  border-color: #92b5c8;
+}
+
+.cle-field-meta {
+  color: #677a87;
+}
+
+.pf-c-button,
+.btn {
+  border-radius: 8px;
+}
+
+.pf-c-button.pf-m-primary,
+.btn-primary,
+#kc-login,
+#kc-submit,
+#kc-form-buttons input[type="submit"]:not(#kc-resend) {
+  background: var(--lawnotation-brand);
+  border-color: var(--lawnotation-brand);
+}
+
+.pf-c-button.pf-m-primary:hover,
+.btn-primary:hover,
+#kc-login:hover,
+#kc-submit:hover,
+#kc-form-buttons input[type="submit"]:not(#kc-resend):hover {
+  background: var(--lawnotation-brand-strong);
+  border-color: var(--lawnotation-brand-strong);
+}
+
+.cle-resend-row,
+#kc-select-try-another-way-form {
+  border-color: #dbe6ec;
+}
+
+#try-another-way {
+  color: #47606f;
+}
+
+#try-another-way:hover {
+  color: var(--lawnotation-ink);
+}
+
+#try-another-way::after {
+  color: var(--lawnotation-brand);
+}
+
+#kc-social-providers .pf-c-button:hover,
+#kc-social-providers .btn:hover,
+#kc-authenticator-selection-form .pf-c-button:hover,
+#kc-authenticator-selection-form .btn:hover {
+  background: var(--lawnotation-brand-weak);
+  border-color: var(--cle-border-strong);
+}
+
+.login-pf .cle-login-footer p,
+.login-pf .cle-login-footer a {
+  color: #5b6f7c;
+}
+
+.login-pf .cle-login-footer a:hover {
+  color: var(--lawnotation-brand-strong);
+}
+
+.login-pf .cle-login-footer a + a {
+  border-color: #c3d4de;
+}
+
+@media (max-width: 520px) {
+  .login-pf-page .card-pf {
+    border-radius: 10px;
+  }
+
+  .login-pf-page .card-pf::before {
+    height: 38px;
+    margin-bottom: 24px;
+    width: 141px;
+  }
+}

@@ -20,6 +20,7 @@ name or password form is used.
 realm/caselaw-realm.json    the realm: clients, roles, login settings
 themes/caselaw/             the Case Law Explorer login and account theme
 themes/digimach/            the DigiMach sibling theme, inheriting Case Law coverage
+themes/lawnotation/         the Lawnotation sibling theme (lawnotation realm), likewise
 providers/                  email-identity / OTP providers (magic-link sign-in disabled)
 packages/caselaw-auth/      the client library, published on npm
 docker-compose.yml          Keycloak and its Postgres

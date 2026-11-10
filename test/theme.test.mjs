@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm'
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
 test('each login theme declares its own local project favicon', async () => {
-  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg'], ['bizzash', 'bizzy-favicon-v4.svg'], ['bizzy', 'bizzy-favicon-v4.svg']]) {
+  for (const [theme, asset] of [['caselaw', 'caselaw-favicon-v1.svg'], ['digimach', 'digimach-mark.svg'], ['bizzash', 'bizzy-favicon-v4.svg'], ['bizzy', 'bizzy-favicon-v4.svg'], ['lawnotation', 'lawnotation-mark-v1.svg']]) {
     const properties = await read(`themes/${theme}/login/theme.properties`)
     assert.ok(properties.split('\n').includes(`favicons=img/${asset}`))
     const svg = await read(`themes/${theme}/login/resources/img/${asset}`)
@@ -105,6 +105,8 @@ test('both login themes keep the footer in normal document flow', async () => {
   assert.match(footer, /max-width: 100%;/)
   const digimach = await read('themes/digimach/login/resources/css/digimach-login-v1.css')
   assert.doesNotMatch(digimach, /\.cle-login-footer\s*\{[^}]*position:\s*(?:fixed|absolute)/)
+  const lawnotation = await read('themes/lawnotation/login/resources/css/lawnotation-login-v1.css')
+  assert.doesNotMatch(lawnotation, /\.cle-login-footer\s*\{[^}]*position:\s*(?:fixed|absolute)/)
 })
 
 test('the OTP presentation keeps one sanitized field in sync with six visual slots', async () => {
@@ -170,6 +172,69 @@ test('legal links prefer the client\'s own documents over the theme default', as
   assert.match(digimach, /^legalTermsUrl=\$\{env\.DIGIMACH_AUTH_TERMS_URL:https:\/\/digimach\.eu\/en\/terms-of-service\}$/m)
   assert.match(digimach, /^legalPrivacyUrl=\$\{env\.DIGIMACH_AUTH_PRIVACY_URL:https:\/\/digimach\.eu\/en\/privacy-policy\}$/m)
   assert.match(digimach, /^legalCookiesUrl=\$\{env\.DIGIMACH_AUTH_COOKIES_URL:\}$/m)
+})
+
+test('the Lawnotation login theme inherits every Case Law state before branding it', async () => {
+  const properties = await read('themes/lawnotation/login/theme.properties')
+  const styles = await read('themes/lawnotation/login/resources/css/lawnotation-login-v1.css')
+  const logo = await read('themes/lawnotation/login/resources/img/lawnotation-logo-v1.svg')
+  const mark = await read('themes/lawnotation/login/resources/img/lawnotation-mark-v1.svg')
+
+  assert.match(properties, /^parent=caselaw$/m)
+  assert.match(properties, /^styles=css\/caselaw-login-v10\.css css\/lawnotation-login-v1\.css$/m)
+  assert.match(properties, /^scripts=js\/otp-input-v1\.js$/m)
+  assert.match(properties, /^footerManagedBy=\$\{env\.LAWNOTATION_AUTH_FOOTER_MANAGED_BY:Authentication managed by BISS Institute\}$/m)
+  assert.match(properties, /^footerBissUrl=\$\{env\.LAWNOTATION_AUTH_FOOTER_PRODUCT_URL:https:\/\/www\.lawnotation\.org\/\}$/m)
+  assert.match(properties, /^footerLawTechLabel=\$\{env\.LAWNOTATION_AUTH_FOOTER_BISS_LABEL:BISS Institute\}$/m)
+  assert.match(properties, /^footerApiUrl=$/m)
+  assert.match(styles, /--lawnotation-brand: #0d5984;/)
+  assert.match(styles, /--lawnotation-brand-strong: #0b4b6f;/)
+  assert.match(styles, /--lawnotation-highlight: #b6cdda;/)
+  assert.match(styles, /--lawnotation-brand-weak: #e9f0f4;/)
+  assert.match(styles, /--cle-primary: var\(--lawnotation-brand\);/)
+  assert.match(styles, /lawnotation-logo-v1\.svg/)
+  assert.match(styles, /#kc-form \.form-group > label,[\s\S]*?display: block;[\s\S]*?width: 100%;/)
+  assert.match(styles, /#kc-form input\[type="email"\][\s\S]*?width: 100%;/)
+  assert.match(styles, /\.cle-otp-control\.is-complete \.cle-otp-slot/)
+  assert.doesNotMatch(styles, /CASE LAW EXPLORER/)
+  // Roboto Slab is served by the theme itself: no Google Fonts or other remote CSS.
+  assert.doesNotMatch(styles, /@import|fonts\.googleapis|fonts\.gstatic|https?:\/\//)
+  for (const match of styles.matchAll(/url\("\.\.\/fonts\/([^"]+)"\)/g)) {
+    await access(new URL(`../themes/lawnotation/login/resources/fonts/${match[1]}`, import.meta.url))
+  }
+  await access(new URL('../themes/lawnotation/login/resources/fonts/LICENSE-Roboto-Slab.txt', import.meta.url))
+  for (const svg of [logo, mark]) {
+    assert.match(svg, /fill="#0D5984"/)
+    assert.doesNotMatch(svg, /<script\b|\bon\w+=|(?:href|src)=/i)
+  }
+})
+
+test('the Lawnotation account theme inherits PatternFly coverage and overrides its brand', async () => {
+  const properties = await read('themes/lawnotation/account/theme.properties')
+  const styles = await read('themes/lawnotation/account/resources/css/lawnotation-account-v1.css')
+
+  assert.match(properties, /^parent=caselaw$/m)
+  assert.match(properties, /^styles=css\/caselaw-account\.css css\/lawnotation-account-v1\.css$/m)
+  assert.match(styles, /--cle-primary: var\(--lawnotation-brand\);/)
+  assert.match(styles, /\.pf-v5-c-masthead__brand::before/)
+  assert.match(styles, /lawnotation-logo-v1\.svg/)
+  // The wordmark replaces the parent's "Case Law Explorer" text.
+  assert.match(styles, /\.pf-v5-c-masthead__brand::after,[\s\S]*?content: none;/)
+  assert.match(styles, /\.pf-v5-c-nav__link\[aria-current="page"\]/)
+  await access(new URL('../themes/lawnotation/account/resources/img/lawnotation-logo-v1.svg', import.meta.url))
+})
+
+test('the Lawnotation theme never inherits Case Law documents and Compose passes its variables through', async () => {
+  const login = await read('themes/lawnotation/login/theme.properties')
+  const compose = await read('docker-compose.yml')
+
+  assert.match(login, /^legalTermsUrl=\$\{env\.LAWNOTATION_AUTH_TERMS_URL:https:\/\/app\.lawnotation\.org\/terms-of-service\}$/m)
+  assert.match(login, /^legalPrivacyUrl=\$\{env\.LAWNOTATION_AUTH_PRIVACY_URL:https:\/\/app\.lawnotation\.org\/privacy-policy\}$/m)
+  assert.match(login, /^legalCookiesUrl=\$\{env\.LAWNOTATION_AUTH_COOKIES_URL:\}$/m)
+  assert.doesNotMatch(login, /caselawexplorer/)
+  for (const key of ['TERMS', 'PRIVACY', 'COOKIES']) {
+    assert.match(compose, new RegExp(`^\\s+LAWNOTATION_AUTH_${key}_URL: \\$\\{LAWNOTATION_AUTH_${key}_URL:-`, 'm'))
+  }
 })
 
 test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy brand layer', async () => {

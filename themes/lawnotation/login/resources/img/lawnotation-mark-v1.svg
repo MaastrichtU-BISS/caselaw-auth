@@ -1,0 +1,5 @@
+<svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Lawnotation</title>
+  <rect width="48" height="54" rx="2" transform="matrix(0.99863 -0.052336 -0.0989724 0.99509 10.68 6.41)" fill="#B6CDDA"/>
+  <path transform="translate(13.3 -22) scale(0.66)" d="M3.79688 116V110.094L11.4375 108.781V55.0156L3.79688 53.7031V47.75H11.4375H20.6719H28.3125V53.7031L20.6719 55.0156V108.922H44.8125L45.8906 98.1406H52.9688V116H3.79688Z" fill="#0D5984"/>
+</svg>
