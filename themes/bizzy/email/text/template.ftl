@@ -1,6 +1,6 @@
 <#ftl output_format="plainText">
 <#-- The plain-text version of the layout: the word BIZZY, the heading, the text, the same footer as the HTML. -->
-<#assign productUrl = (properties.emailProductUrl)!"https://bizzy.biss-institute.com">
+<#assign productUrl = (properties.emailProductUrl)!"https://app.usebizzy.eu">
 <#macro textLayout heading="" reason="">
 BIZZY
 
