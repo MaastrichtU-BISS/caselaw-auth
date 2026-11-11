@@ -46,10 +46,10 @@ test('packed BISS SDK preserves APIs, declarations, CSS, CLI and sessions', asyn
     run(process.execPath, ['check.mjs'])
     assert.equal(await readFile(join(dir, 'node_modules/biss-auth/dist/style.css'), 'utf8'),
       await readFile(join(dir, 'node_modules/caselaw-auth/dist/style.css'), 'utf8'))
-    const help = run(process.execPath, ['node_modules/biss-auth/bin/biss-auth.mjs', '--help'])
+    const help = run(process.execPath, ['node_modules/.bin/biss-auth', '--help'])
     assert.match(help, /biss-auth apply-passwordless-flow/)
     assert.match(help, /dry run unless --execute/)
-    assert.throws(() => run(process.execPath, ['node_modules/biss-auth/bin/biss-auth.mjs', 'unknown']),
+    assert.throws(() => run(process.execPath, ['node_modules/.bin/biss-auth', 'unknown']),
       error => error.status === 1 && /Unknown command/.test(error.stderr))
     await writeFile(join(dir, 'check.ts'), `
       import { createAuthClient } from 'biss-auth'

@@ -58,7 +58,7 @@
     "bin"
   ],
   "bin": {
-    "biss-auth": "./bin/biss-auth.mjs"
+    "biss-auth": "bin/biss-auth.mjs"
   },
   "dependencies": {
     "caselaw-auth": "0.6.5"
