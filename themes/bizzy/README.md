@@ -1,6 +1,6 @@
 # Bizzy Keycloak theme (`bizzy`)
 
-Bizzy (<https://bizzy.biss-institute.com>), the deals, projects and people
+Bizzy (<https://app.usebizzy.eu>), the deals, projects and people
 system for Maastricht University teams made at BISS, signs in through its own
 `bizzy` realm on the shared Keycloak. The product, realm and theme were called
 Bizzash at first; `themes/bizzash` stays until the realm uses this theme, then
@@ -52,7 +52,7 @@ Keycloak's own text.
 Email-client rules: tables, inline styles, no web fonts needed, 600 px wide and
 fluid below, dark mode handled, a button that works in Outlook without VML. The
 only picture is the 28 px logo, loaded from the Bizzy app
-(`https://bizzy.biss-institute.com/brand/bizzy-mark-56.png`); with pictures
+(`https://app.usebizzy.eu/brand/bizzy-mark-56.png`, on the sender's domain); with pictures
 blocked the header still reads BIZZY and nothing else is missing. Set
 `BIZZASH_EMAIL_LOGO_URL=` (empty) to send no picture at all, which also avoids
 classic Outlook's "download pictures" bar for senders not in the reader's safe

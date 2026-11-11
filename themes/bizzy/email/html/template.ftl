@@ -18,8 +18,8 @@
 <#assign font = "Inter,'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif">
 <#assign mono = "'SF Mono',SFMono-Regular,Menlo,Consolas,'Roboto Mono','Liberation Mono',monospace">
 <#assign logoUrl = (properties.emailLogoUrl)!"">
-<#assign productUrl = (properties.emailProductUrl)!"https://bizzy.biss-institute.com">
-<#assign productHost = (properties.emailProductHost)!"bizzy.biss-institute.com">
+<#assign productUrl = (properties.emailProductUrl)!"https://app.usebizzy.eu">
+<#assign productHost = (properties.emailProductHost)!"app.usebizzy.eu">
 
 <#macro emailLayout heading="" preheader="" reason="">
 <!doctype html>
