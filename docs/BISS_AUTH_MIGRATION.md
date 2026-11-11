@@ -5,7 +5,26 @@ DigiMach, LawNotation / Baigle, Bizzy and other BISS projects.
 
 ## Release status (12 November 2026)
 
-The new distributions are prepared in this change, **not yet published**:
+Python `biss-auth-server==0.3.0` is published and verified from the registry.
+The npm `biss-auth@0.6.5` artifact is prepared; its first publication is awaiting
+the maintainer's npm CLI authenticator check.
+
+The GitHub repository rename is deferred until an organization admin is available.
+BISS package publication uses the current repository `MaastrichtU-BISS/caselaw-auth`
+and does not depend on that rename.
+
+| Release | Status | Evidence |
+|---|---|---|
+| Python 0.3.0 | Published via GitHub OIDC | [PyPI](https://pypi.org/project/biss-auth-server/0.3.0/), [release](https://github.com/MaastrichtU-BISS/caselaw-auth/releases/tag/biss-python-v0.3.0), [successful workflow](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43117861118) |
+| npm 0.6.5 | Prepared; authentication pending | [implementation PR](https://github.com/MaastrichtU-BISS/caselaw-auth/pull/43) |
+
+The Python registry wheel was downloaded, checked against its registry SHA-256,
+and installed in a clean environment using the published legacy dependency. Public
+API identity and session interchange passed. The release tag points to tested
+commit `0ccac7a6c3aa24937d87ecc2383583c857f1ed66`; it was published without merging
+into `main` or redeploying Keycloak.
+
+Package names and compatibility mapping:
 
 | Ecosystem | New distribution | Import / command | Implementation |
 |---|---|---|---|
@@ -20,9 +39,9 @@ configuration or session format is changed by installing these packages.
 Do not advise consumers to install the new names until their registry artifacts
 have been published and independently installed and verified.
 
-## For application teams, after publication
+## For application teams
 
-JavaScript / TypeScript:
+JavaScript / TypeScript (after npm publication):
 
 ```sh
 npm install biss-auth@0.6.5
@@ -36,7 +55,7 @@ import { createServerAuth } from 'biss-auth/server'
 // Vue styles: import 'biss-auth/vue/style.css'
 ```
 
-Python:
+Python (available now):
 
 ```sh
 pip install biss-auth-server==0.3.0
@@ -71,8 +90,11 @@ configuration; it requires no Keycloak or database rollback.
 
 ## Operator: publication and repository rename
 
-1. Merge the package change after CI succeeds. This does not authorize a runtime
-   redeployment: use the existing Keycloak instance and Postgres volume.
+1. Release only a commit that has passed CI. A release tag may point to the
+   tested PR commit while `main` remains unchanged, avoiding its deployment
+   webhook. Merging this package change should be coordinated with the operator
+   because Coolify currently auto-deploys pushes to `main`. Keep the existing
+   Keycloak instance and Postgres volume.
 2. Publish the new npm package once with a maintainer account if needed to
    bootstrap its trusted publisher. Configure `biss-auth` to trust the repository,
    workflow `publish-biss.yml`, GitHub environment `npm`. For Python create a
