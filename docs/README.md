@@ -65,3 +65,8 @@ and correct for SPAs that do not.
 
 - [caselaw-access](https://github.com/MaastrichtU-BISS/caselaw-access) — plans, API keys, quotas
 - [caselaw-ui](https://github.com/MaastrichtU-BISS/caselaw-ui) — shared interface components
+
+## BISS Auth naming migration
+
+See [BISS_AUTH_MIGRATION.md](BISS_AUTH_MIGRATION.md) for new SDK names, publication
+status, compatibility boundaries and the repository/publisher cutover.

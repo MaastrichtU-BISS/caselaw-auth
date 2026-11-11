@@ -1,10 +1,14 @@
-# caselaw-auth
+# BISS Auth
 
 [![npm](https://img.shields.io/npm/v/caselaw-auth?logo=npm&label=npm&color=%23181849)](https://www.npmjs.com/package/caselaw-auth)
 
-One shared account across every Case Law Explorer product. A Keycloak realm, the theme
-it wears, and the client library applications sign in with — in the browser or on
-their own server.
+Shared authentication infrastructure for BISS projects: Case Law Explorer,
+DigiMach, LawNotation / Baigle, Bizzy and others. Each project keeps its own realm
+and branding on one Keycloak service, with SDKs for browser and server sessions.
+
+The BISS package names are prepared but not yet published. Existing packages
+continue working. See the [BISS Auth migration guide](docs/BISS_AUTH_MIGRATION.md)
+for release status, consumer upgrades and the coordinated repository rename.
 
 Username/email and password is the safe default. Operators can opt a realm into
 six-digit email OTP after commissioning SMTP. The
@@ -22,7 +26,10 @@ themes/caselaw/             the Case Law Explorer login and account theme
 themes/digimach/            the DigiMach sibling theme, inheriting Case Law coverage
 themes/lawnotation/         the Lawnotation sibling theme (lawnotation realm), likewise
 providers/                  email-identity / OTP providers (magic-link sign-in disabled)
-packages/caselaw-auth/      the client library, published on npm
+packages/caselaw-auth/      maintained npm implementation (legacy name)
+packages/biss-auth/         BISS npm entry points over the same implementation
+packages/python/            maintained Python server implementation
+packages/python-biss/       BISS Python entry points over the same implementation
 docker-compose.yml          Keycloak and its Postgres
 scripts/                    live-realm installers and smoke checks
 docs/                       integration guides and realm reference
