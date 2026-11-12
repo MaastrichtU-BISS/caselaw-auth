@@ -396,6 +396,16 @@ input[type="password"]:focus {
   border-top-color: var(--cle-border);
 }
 
+/* The privacy notice link: the base sheet's cool grey, made warm. */
+.login-pf .cle-login-footer .cle-login-legal a {
+  color: var(--cle-muted);
+}
+
+.login-pf .cle-login-footer .cle-login-legal a:hover,
+.login-pf .cle-login-footer .cle-login-legal a:focus-visible {
+  color: var(--bizzy-blue);
+}
+
 .login-pf .cle-login-footer .cle-login-managed,
 .login-pf .cle-login-footer .cle-login-managed a {
   color: #8d8a83;

@@ -240,20 +240,23 @@ test('the Lawnotation theme never inherits Case Law documents and Compose passes
 test('the Bizzash themes inherit the Case Law coverage and add only a Bizzy brand layer', async () => {
   const login = await read('themes/bizzy/login/theme.properties')
   const account = await read('themes/bizzy/account/theme.properties')
-  const styles = await read('themes/bizzy/login/resources/css/bizzy-login-v2.css')
+  const styles = await read('themes/bizzy/login/resources/css/bizzy-login-v3.css')
   const bizzy = await read('themes/bizzy/login/resources/img/bizzy-v2.svg')
   const en = await read('themes/bizzy/login/messages/messages_en.properties')
   const nl = await read('themes/bizzy/login/messages/messages_nl.properties')
 
   assert.match(login, /^parent=caselaw$/m)
   assert.match(account, /^parent=caselaw$/m)
-  assert.match(login, /^styles=css\/caselaw-login-v10\.css css\/bizzy-login-v2\.css$/m)
+  assert.match(login, /^styles=css\/caselaw-login-v10\.css css\/bizzy-login-v3\.css$/m)
   assert.match(login, /^scripts=js\/otp-input-v1\.js$/m)
   assert.match(account, /^styles=css\/caselaw-account\.css css\/bizzy-account-v1\.css$/m)
-  // No Case Law Explorer documents on Bizzy.
-  for (const key of ['legalTermsUrl', 'legalPrivacyUrl', 'legalCookiesUrl']) {
+  // Bizzy's own privacy notice on every sign-in page; no Case Law Explorer documents.
+  assert.match(login, /^legalPrivacyUrl=\$\{env\.BIZZASH_AUTH_PRIVACY_URL:https:\/\/app\.usebizzy\.eu\/privacy\}$/m)
+  for (const key of ['legalTermsUrl', 'legalCookiesUrl']) {
     assert.match(login, new RegExp(`^${key}=\\$\\{env\\.BIZZASH_AUTH_\\w+_URL:\\}$`, 'm'))
   }
+  assert.match(en, /^legalPrivacy=Privacy notice$/m)
+  assert.match(nl, /^legalPrivacy=Privacyverklaring$/m)
   assert.match(login, /^footerManagedBy=\$\{env\.BIZZASH_AUTH_FOOTER_MANAGED_BY:Authentication managed by BISS Institute\}$/m)
   assert.match(styles, /--bizzy-blue: #005ca9;/)
   assert.match(styles, /--bizzy-yellow: #ffc917;/)
