@@ -4,14 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "caselaw-auth-server"
-version = "0.3.1"
-description = "Server-side OIDC for Case Law Explorer products, interchangeable with the caselaw-auth npm package."
+version = "0.3.2"
+description = "Deprecated package name: use biss-auth-server. Maintained compatibility wrapper for BISS Auth."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = ["biss-auth-server==0.3.1"]
 
 [project.urls]
+Replacement = "https://pypi.org/project/biss-auth-server/"
 Homepage = "https://github.com/MaastrichtU-BISS/caselaw-auth#readme"
 Repository = "https://github.com/MaastrichtU-BISS/caselaw-auth"
 Issues = "https://github.com/MaastrichtU-BISS/caselaw-auth/issues"

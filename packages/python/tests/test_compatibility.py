@@ -24,3 +24,20 @@ def test_old_and_new_sessions_survive_switching():
 
 def test_legacy_module_is_the_canonical_module():
     assert importlib.import_module("caselaw_auth_server.server") is importlib.import_module("biss_auth_server.server")
+
+
+def test_legacy_import_warning_is_visible_to_developers():
+    import subprocess
+    import sys
+    result = subprocess.run(
+        [sys.executable, "-Wd", "-c", "import caselaw_auth_server; import caselaw_auth_server.server"],
+        check=True, capture_output=True, text=True,
+    )
+    assert result.stderr.count("DeprecationWarning:") == 1
+    assert "biss-auth-server>=0.3.1" in result.stderr
+    assert "biss_auth_server" in result.stderr
+    canonical = subprocess.run(
+        [sys.executable, "-Wd", "-c", "import biss_auth_server; import biss_auth_server.server"],
+        check=True, capture_output=True, text=True,
+    )
+    assert "DeprecationWarning" not in canonical.stderr

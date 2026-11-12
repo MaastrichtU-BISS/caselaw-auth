@@ -30,8 +30,17 @@ print('Standalone wheel works without the legacy distribution')
     subprocess.run([python, '-m', 'pip', 'install', '--disable-pip-version-check', str(legacy)], check=True)
     subprocess.run([python, '-c', '''
 import importlib
-import biss_auth_server as new
-import caselaw_auth_server as old
+import warnings
+with warnings.catch_warnings(record=True) as captured:
+    warnings.simplefilter('always')
+    import biss_auth_server as new
+    assert not captured, 'Canonical package must not emit legacy warnings'
+    import caselaw_auth_server as old
+    import caselaw_auth_server.server
+assert len(captured) == 1
+assert captured[0].category is DeprecationWarning
+assert 'biss-auth-server>=0.3.1' in str(captured[0].message)
+assert 'biss_auth_server' in str(captured[0].message)
 assert old.__all__ == new.__all__
 assert all(getattr(old, n) is getattr(new, n) for n in old.__all__)
 assert importlib.import_module('caselaw_auth_server.server') is importlib.import_module('biss_auth_server.server')

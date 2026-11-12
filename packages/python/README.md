@@ -1,5 +1,10 @@
 # caselaw-auth-server
 
+**Deprecated package name: use `biss-auth-server>=0.3.1` and import
+`biss_auth_server`.** Existing imports remain supported. Starting with 0.3.2,
+legacy imports emit `DeprecationWarning`, shown by pytest and `python -Wd`.
+The implementation and session format are unchanged.
+
 Compatibility package: starting with 0.3.1, this distribution depends on
 `biss-auth-server==0.3.1` and preserves `caselaw_auth_server` imports.
 New consumers should use the BISS package directly. Older published versions
