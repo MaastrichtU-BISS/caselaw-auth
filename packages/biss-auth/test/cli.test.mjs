@@ -5,10 +5,10 @@ import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url)))
-const cliPath = fileURLToPath(new URL('../bin/caselaw-auth.mjs', import.meta.url))
+const cliPath = fileURLToPath(new URL('../bin/biss-auth.mjs', import.meta.url))
 
 test('the npm package exposes the realm administration CLI', () => {
-  assert.equal(packageJson.bin['caselaw-auth'], './bin/caselaw-auth.mjs')
+  assert.equal(packageJson.bin['biss-auth'], 'bin/biss-auth.mjs')
   assert.ok(packageJson.files.includes('admin'))
   assert.ok(packageJson.files.includes('bin'))
 })
@@ -17,12 +17,12 @@ test('the CLI documents the remote passwordless installer', () => {
   const result = spawnSync(process.execPath, [cliPath, '--help'], { encoding: 'utf8' })
 
   assert.equal(result.status, 0)
-  assert.match(result.stdout, /caselaw-auth apply-passwordless-flow/)
+  assert.match(result.stdout, /biss-auth apply-passwordless-flow/)
   assert.match(result.stdout, /KEYCLOAK_URL/)
   assert.match(result.stdout, /KEYCLOAK_REALM/)
   assert.match(result.stdout, /KEYCLOAK_ADMIN_PASSWORD/)
-  assert.match(result.stdout, /caselaw-auth check-passwordless/)
-  assert.match(result.stdout, /caselaw-auth cleanup-unverified-users/)
+  assert.match(result.stdout, /biss-auth check-passwordless/)
+  assert.match(result.stdout, /biss-auth cleanup-unverified-users/)
   assert.match(result.stdout, /dry run unless --execute/)
 })
 

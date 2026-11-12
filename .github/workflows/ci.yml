@@ -21,6 +21,7 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: npm run build
+      - run: npm run test:packages
       - name: Reject production dependency advisories
         run: npm audit --omit=dev
 
@@ -36,3 +37,22 @@ jobs:
       - run: npm ci
       - name: Test fresh install, legacy upgrade, SMTP delivery and stale-user cleanup
         run: npm run test:e2e
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install build pytest ./packages/python ./packages/python-biss
+      - run: python -m pytest -q packages/python/tests packages/python-biss/tests
+      - run: python -m build packages/python-biss
+      - run: python -m build packages/python
+      - run: python test/packaging/python-packages.py
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run build
+      - run: node packages/contract/conformance/interop.mjs "$(which python)"

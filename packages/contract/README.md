@@ -11,7 +11,7 @@ conformance/interop.mjs    seals in each language, unseals in the other
 
 ## Why it exists
 
-`caselaw-auth/server` (TypeScript) and `caselaw-auth-server` (Python) are
+`biss-auth/server` (TypeScript) and `biss-auth-server` (Python) are
 **interchangeable**, not merely similar: a session cookie sealed by either
 unseals in the other, byte for byte. That property is easy to state and easy to
 lose — a default argument changed in one language, and the two silently stop
@@ -33,10 +33,10 @@ client failed its own tests immediately and was fixed in the same pass;
 
 ```bash
 # TypeScript — against dist/, so it checks what ships
-cd packages/caselaw-auth && npm run build && node --test test/
+cd packages/biss-auth && npm run build && node --test test/
 
 # Python
-cd packages/python && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+cd packages/python-biss && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 .venv/bin/python -m pytest
 
 # Cross-language: the property the per-language suites cannot prove

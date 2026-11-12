@@ -11,3 +11,9 @@ packages/python/.venv/
 packages/python/dist/
 packages/python/**/__pycache__/
 packages/python/*.egg-info/
+
+# New Python distribution and isolated package checks
+packages/python-biss/dist/
+packages/python-biss/**/__pycache__/
+.venv/
+.pytest_cache/

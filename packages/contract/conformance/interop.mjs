@@ -34,7 +34,7 @@ if (!existsSync(python)) {
   process.exit(2)
 }
 
-const { createServerAuth } = await import(join(root, 'packages', 'caselaw-auth', 'dist', 'server.js'))
+const { createServerAuth } = await import(join(root, 'packages', 'biss-auth', 'dist', 'server.js'))
 
 const CONFIG = {
   issuer: 'https://auth.example.org/realms/caselaw',
@@ -71,7 +71,7 @@ const pyValue = (value) => `json.loads(${JSON.stringify(JSON.stringify(value))})
 /*
  * The source tree is a fallback, not the default.
  *
- * This used to prepend packages/python/src unconditionally, which meant that
+ * This used to prepend packages/python-biss/src unconditionally, which meant that
  * pointing the script at a virtualenv with the *published* package installed
  * still imported the working tree — so a release could have been checked
  * against code that was never shipped. Import first, fall back only if the
@@ -80,12 +80,12 @@ const pyValue = (value) => `json.loads(${JSON.stringify(JSON.stringify(value))})
 const PY_PREAMBLE = `
 import json, sys
 try:
-    import caselaw_auth_server as _m
+    import biss_auth_server as _m
 except ModuleNotFoundError:
-    sys.path.insert(0, "packages/python/src")
-    import caselaw_auth_server as _m
+    sys.path.insert(0, "packages/python-biss/src")
+    import biss_auth_server as _m
 print(_m.__file__, file=sys.stderr)
-from caselaw_auth_server import create_server_auth
+from biss_auth_server import create_server_auth
 auth = create_server_auth(
     issuer=${JSON.stringify(CONFIG.issuer)},
     client_id=${JSON.stringify(CONFIG.clientId)},

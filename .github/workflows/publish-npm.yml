@@ -1,7 +1,6 @@
 name: Publish to npm
 
-# One published package in this workspace, so a plain version tag is
-# unambiguous: v0.1.1, v0.1.2, …
+# Legacy npm releases retain their original v* tag convention.
 on:
   push:
     tags:
@@ -40,6 +39,8 @@ jobs:
       - name: Verify the tarball contents
         run: npm pack --dry-run
         working-directory: packages/caselaw-auth
+
+      - run: npm run test:packages
 
       - name: Reject production dependency advisories
         run: npm audit --omit=dev
@@ -95,6 +96,12 @@ jobs:
       # publishing without this step produces an empty tarball.
       - name: Build
         run: npm run build
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Require the standalone BISS release first
+        run: python scripts/check-canonical-release.py npm
 
       # No NODE_AUTH_TOKEN: the OIDC identity is the credential, and npm
       # attaches provenance automatically for trusted publishes.

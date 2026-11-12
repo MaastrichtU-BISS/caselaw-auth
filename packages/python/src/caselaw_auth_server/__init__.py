@@ -1,37 +1,17 @@
-"""Server-side OIDC for Python products, interchangeable with ``caselaw-auth/server``."""
+"""Legacy imports for standalone BISS Auth; public object identities are shared."""
+from biss_auth_server import *  # noqa: F401,F403
+from biss_auth_server import __all__
+from importlib.metadata import version
 
-from .server import (
-    COOKIE_BYTE_LIMIT,
-    AuthBackendUnavailable,
-    AuthError,
-    InvalidToken,
-    ServerAuth,
-    ServerAuthConfig,
-    SessionTooLarge,
-    create_pkce_pair,
-    create_server_auth,
-    random_token,
+__version__ = version("caselaw-auth-server")
+
+import warnings as _warnings
+
+_warnings.warn(
+    "caselaw-auth-server is deprecated; install biss-auth-server>=0.3.1 and "
+    "replace caselaw_auth_server imports with biss_auth_server. Keep your issuer, "
+    "clients, session secrets and cookie settings unchanged. "
+    "Existing imports remain supported for compatibility.",
+    DeprecationWarning,
+    stacklevel=2,
 )
-
-__all__ = [
-    "COOKIE_BYTE_LIMIT",
-    "AuthBackendUnavailable",
-    "AuthError",
-    "InvalidToken",
-    "ServerAuth",
-    "ServerAuthConfig",
-    "SessionTooLarge",
-    "create_pkce_pair",
-    "create_server_auth",
-    "random_token",
-]
-
-# Read from the installed distribution rather than written here: a hardcoded
-# string is one more place to forget, and it reported 0.1.0 from a 0.2.0 install
-# until this was noticed.
-try:  # pragma: no cover - trivial
-    from importlib.metadata import version as _version
-
-    __version__ = _version("caselaw-auth-server")
-except Exception:  # not installed, e.g. running straight from a checkout
-    __version__ = "0+unknown"

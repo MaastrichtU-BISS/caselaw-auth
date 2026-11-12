@@ -1,16 +1,18 @@
 {
-  "name": "caselaw-auth-workspace",
+  "name": "biss-auth-workspace",
   "private": true,
   "workspaces": [
+    "packages/biss-auth",
     "packages/caselaw-auth"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspace biss-auth && node scripts/build-legacy-auth.mjs",
     "test": "node --test test/*.test.mjs && npm test --workspaces --if-present",
     "test:passwordless-e2e": "node test/e2e/passwordless-registration.mjs",
     "test:passwordless-legacy-upgrade": "node test/e2e/legacy-alias-upgrade.mjs",
     "test:unverified-cleanup-e2e": "node test/e2e/unverified-cleanup.mjs",
     "test:e2e": "sh test/e2e/run-all.sh",
-    "typecheck": "npm run typecheck --workspaces"
+    "typecheck": "npm run typecheck --workspace biss-auth",
+    "test:packages": "node --test test/packaging/biss-packages.test.mjs"
   }
 }

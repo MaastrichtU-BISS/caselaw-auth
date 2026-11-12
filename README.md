@@ -1,10 +1,14 @@
-# caselaw-auth
+# BISS Auth
 
-[![npm](https://img.shields.io/npm/v/caselaw-auth?logo=npm&label=npm&color=%23181849)](https://www.npmjs.com/package/caselaw-auth)
+[![npm](https://img.shields.io/npm/v/biss-auth?logo=npm&label=npm&color=%23181849)](https://www.npmjs.com/package/biss-auth)
 
-One shared account across every Case Law Explorer product. A Keycloak realm, the theme
-it wears, and the client library applications sign in with — in the browser or on
-their own server.
+Shared authentication infrastructure for BISS projects: Case Law Explorer,
+DigiMach, LawNotation / Baigle, Bizzy and others. Each project keeps its own realm
+and branding on one Keycloak service, with SDKs for browser and server sessions.
+
+The BISS SDKs are published as npm `biss-auth` and Python `biss-auth-server`.
+Existing packages continue working. See the [BISS Auth migration guide](docs/BISS_AUTH_MIGRATION.md)
+for release status, consumer upgrades and the coordinated repository rename.
 
 Username/email and password is the safe default. Operators can opt a realm into
 six-digit email OTP after commissioning SMTP. The
@@ -22,7 +26,10 @@ themes/caselaw/             the Case Law Explorer login and account theme
 themes/digimach/            the DigiMach sibling theme, inheriting Case Law coverage
 themes/lawnotation/         the Lawnotation sibling theme (lawnotation realm), likewise
 providers/                  email-identity / OTP providers (magic-link sign-in disabled)
-packages/caselaw-auth/      the client library, published on npm
+packages/biss-auth/         standalone npm implementation and administration CLI
+packages/caselaw-auth/      legacy npm compatibility wrapper
+packages/python-biss/       standalone Python server implementation
+packages/python/            legacy Python compatibility wrapper
 docker-compose.yml          Keycloak and its Postgres
 scripts/                    live-realm installers and smoke checks
 docs/                       integration guides and realm reference
@@ -104,7 +111,7 @@ including a realm of your own rather than this one.
 
 The imported realm and Compose deployment both keep Keycloak's built-in password
 browser flow by default. To enable OTP, an administrator can run
-`npx --yes caselaw-auth@0.6.5 apply-passwordless-flow` against the target realm from
+`npx --yes biss-auth@0.6.6 apply-passwordless-flow` against the target realm from
 any Node 18+ machine—no repository checkout or server shell is needed. Alternatively,
 a deployment operator can explicitly set `CASELAW_PASSWORDLESS_AUTO_APPLY=true`.
 Either path creates/validates and binds the email flow; SMTP or application

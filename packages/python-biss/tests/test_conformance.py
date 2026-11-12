@@ -16,13 +16,13 @@ from pathlib import Path
 
 import pytest
 
-from caselaw_auth_server import (
+from biss_auth_server import (
     COOKIE_BYTE_LIMIT,
     SessionTooLarge,
     create_pkce_pair,
     create_server_auth,
 )
-from caselaw_auth_server.server import _b64url_encode, _dumps
+from biss_auth_server.server import _b64url_encode, _dumps
 
 CONTRACT_DIR = Path(__file__).resolve().parents[2] / "contract"
 CASES = json.loads((CONTRACT_DIR / "conformance" / "cases.json").read_text())
