@@ -18,7 +18,8 @@ All four versions are published and verified from registry artifacts in clean
 environments. Canonical BISS packages were published and verified first, followed
 by the legacy wrappers. Legacy release workflows enforce that order. There is no
 circular dependency. Previous package versions are immutable and remain available.
-Explorer can remain pinned to its deployed `biss-auth@0.6.5` during this transition.
+Explorer now runs standalone `biss-auth@0.6.6` in production (Citations PR #54),
+with no legacy auth dependency in its lockfile or running container.
 
 The implementation moves without changing runtime behavior, cookies, wire formats,
 public symbol names or exception identities. Legacy entry points and administration
@@ -73,7 +74,11 @@ The registry wheel/sdist hashes and clean installed wheel were verified separate
 The initial implementation-ownership releases below point to commit
 `095bcb64ba05ba226db73296c22b64df6038e6ef`, whose
 three CI jobs passed. The PR remains unmerged so the current Coolify main-branch
-webhook cannot restart Keycloak. Production Explorer remains on `biss-auth@0.6.5`.
+webhook cannot restart Keycloak. Production Explorer was upgraded to `biss-auth@0.6.6` through
+[Citations PR #54](https://github.com/MaastrichtU-BISS/citations/pull/54).
+Its PKCE redirect, expired callback rejection and logout cookie clearing passed
+production checks. Authentication configuration and Keycloak/API/database
+container identities remained unchanged; no complete mailbox OTP login was run.
 
 | Release | Registry | Trusted-publishing run |
 |---|---|---|
