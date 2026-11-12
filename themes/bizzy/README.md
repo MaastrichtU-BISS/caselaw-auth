@@ -21,20 +21,24 @@ the page `lang="nl"` (realm internationalisation on, Dutch selected).
 
 | File | Purpose |
 |---|---|
-| `login/resources/css/bizzy-login-v2.css` | Brand layer over `caselaw-login-v10.css` |
+| `login/resources/css/bizzy-login-v3.css` | Brand layer over `caselaw-login-v10.css` |
 | `login/resources/fonts/*.woff2` | Inter and Overpass (latin, latin-ext; SIL OFL, licences beside them), served by Keycloak: no Google Fonts |
 | `login/resources/img/bizzy-v2.svg` | Bizzy as the app's engine draws him (idle), with a slow bob and blink, still under reduced motion: the left panel |
 | `login/resources/img/bizzy-mark-v4.svg` | The logo mark in the card's header (the app's `public/brand/bizzy-mark.svg`) |
 | `login/resources/img/bizzy-favicon-v4.svg` | Favicon: the app's own `favicon.svg` (pixel-grid drawing; lighter lid and side in a dark browser theme) |
-| `login/messages/messages_{en,nl}.properties` | Tab title and header from the realm's display name (`Sign in to {0}`; set to "Bizzy" on the server), the email step's heading "Sign in to Bizzy"; all other copy comes from `caselaw` |
+| `login/messages/messages_{en,nl}.properties` | Tab title and header from the realm's display name (`Sign in to {0}`; set to "Bizzy" on the server), the email step's heading "Sign in to Bizzy", the footer's "Privacy notice" / "Privacyverklaring"; all other copy comes from `caselaw` |
 | `account/resources/css/bizzy-account-v1.css` | Bizzy tokens for the account console |
 | `email/html/template.ftl`, `email/text/template.ftl` | The email layout (HTML and plain text), the same markup as the Bizzy app's own emails |
 | `email/{html,text}/*.ftl` | The sign-in code (`otp-email`), the sign-in link, required actions, address verification and change, reset, SMTP test |
 | `email/messages/messages_{en,nl}.properties` | Every word of the emails, English and Dutch |
 
-Bizzy has no public legal documents, so the theme sets the legal URLs empty
-instead of inheriting Case Law Explorer's. A client's own Terms/Policy URLs
-still take precedence if they are ever added. The footer's product link
+Every sign-in page (email, code, authenticator code, authenticator setup)
+links Bizzy's privacy notice in the footer:
+<https://app.usebizzy.eu/privacy>, public, English and Dutch, served by the
+app itself. `BIZZASH_AUTH_PRIVACY_URL` overrides it. Bizzy has no terms of
+service or cookie policy, so those URLs stay empty instead of inheriting Case
+Law Explorer's. A client's own Terms/Policy URLs still take precedence if they
+are ever added. The footer's product link
 defaults to Bizzy; `BIZZASH_AUTH_FOOTER_*` environment variables override it.
 
 ## Emails
