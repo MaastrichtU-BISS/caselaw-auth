@@ -6,9 +6,8 @@ Shared authentication infrastructure for BISS projects: Case Law Explorer,
 DigiMach, LawNotation / Baigle, Bizzy and others. Each project keeps its own realm
 and branding on one Keycloak service, with SDKs for browser and server sessions.
 
-The Python package `biss-auth-server` is published. The npm package `biss-auth`
-is prepared and awaiting first-publication authentication. Existing packages
-continue working. See the [BISS Auth migration guide](docs/BISS_AUTH_MIGRATION.md)
+The BISS SDKs are published as npm `biss-auth` and Python `biss-auth-server`.
+Existing packages continue working. See the [BISS Auth migration guide](docs/BISS_AUTH_MIGRATION.md)
 for release status, consumer upgrades and the coordinated repository rename.
 
 Username/email and password is the safe default. Operators can opt a realm into

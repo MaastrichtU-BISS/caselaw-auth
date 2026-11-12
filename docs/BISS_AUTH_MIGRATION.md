@@ -5,9 +5,9 @@ DigiMach, LawNotation / Baigle, Bizzy and other BISS projects.
 
 ## Release status (12 November 2026)
 
-Python `biss-auth-server==0.3.0` is published and verified from the registry.
-The npm `biss-auth@0.6.5` artifact is prepared; its first publication is awaiting
-the maintainer's npm CLI authenticator check.
+Both `biss-auth@0.6.5` (npm) and `biss-auth-server==0.3.0` (PyPI) are published
+and independently verified from their registry artifacts. Existing consumers may
+switch to these package names when their application owners are ready.
 
 The GitHub repository rename is deferred until an organization admin is available.
 BISS package publication uses the current repository `MaastrichtU-BISS/caselaw-auth`
@@ -16,13 +16,30 @@ and does not depend on that rename.
 | Release | Status | Evidence |
 |---|---|---|
 | Python 0.3.0 | Published via GitHub OIDC | [PyPI](https://pypi.org/project/biss-auth-server/0.3.0/), [release](https://github.com/MaastrichtU-BISS/caselaw-auth/releases/tag/biss-python-v0.3.0), [successful workflow](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43117861118) |
-| npm 0.6.5 | Prepared; authentication pending | [implementation PR](https://github.com/MaastrichtU-BISS/caselaw-auth/pull/43) |
+| npm 0.6.5 | Published through maintainer bootstrap; GitHub trusted publisher validated | [npm](https://www.npmjs.com/package/biss-auth/v/0.6.5), [release](https://github.com/MaastrichtU-BISS/caselaw-auth/releases/tag/biss-npm-v0.6.5) |
 
 The Python registry wheel was downloaded, checked against its registry SHA-256,
 and installed in a clean environment using the published legacy dependency. Public
 API identity and session interchange passed. The release tag points to tested
 commit `0ccac7a6c3aa24937d87ecc2383583c857f1ed66`; it was published without merging
 into `main` or redeploying Keycloak.
+
+The npm tarball was checked against its registry SHA-1 and SHA-512 integrity,
+installed in a clean environment, and tested for ESM/CommonJS API identity,
+TypeScript declarations, Vue CSS, installed CLI dispatch and old/new session
+interchange. Its registry SHA-1 is `cb763d3e7d70cb80c872163312d78532bf34cd88`.
+The npm release tag points to `4f33de0a3bd829f82cdc01d8c5f4168b34d98242`.
+
+The new npm trusted publisher is **Valid** for `MaastrichtU-BISS/caselaw-auth`,
+`publish-biss.yml`, environment `npm`, with direct/staged publication permission.
+The Python publisher uses that workflow and the `pypi` environment. No long-lived
+registry tokens were added to GitHub.
+
+The [npm automation validation run](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43127803511)
+passed its checks and authenticated through OIDC, then correctly refused to
+publish over the maintainer's already published `0.6.5`. npm marked the publisher
+Valid. That run's duplicate-version failure is not a failed package release;
+future releases require a new package version and matching release tag.
 
 Package names and compatibility mapping:
 
@@ -36,12 +53,12 @@ The existing Vue names such as `createCaselawAuth` and `CaselawAuthKey` stay val
 The Python facade preserves exception class identity. No runtime authentication
 configuration or session format is changed by installing these packages.
 
-Do not advise consumers to install the new names until their registry artifacts
-have been published and independently installed and verified.
+The initial versions above have passed registry installation checks. Apply the
+same publication and verification gate before recommending each future release.
 
 ## For application teams
 
-JavaScript / TypeScript (after npm publication):
+JavaScript / TypeScript (available now):
 
 ```sh
 npm install biss-auth@0.6.5
@@ -122,10 +139,10 @@ configuration; it requires no Keycloak or database rollback.
    must not be followed by Redeploy merely for the rename. Verify old and new
    clone access and release dry runs after changing publisher configuration.
 
-Publisher administration requires registry sign-in. The connected GitHub account
-currently reports push access but no repository-admin access, and the browser's
-repository Options page confirms that restriction. An organization owner must
-perform the rename or grant the needed access.
+Publisher setup for both BISS packages is complete under the current repository
+name. The connected GitHub account has push access but no repository-admin
+access. Repository renaming is explicitly deferred until an organization owner
+is available; this does not block SDK use or releases.
 
 The Coolify display names were updated to project **BISS Auth**, application
 **biss-auth**, without requesting a deployment. Its production application UUID is
