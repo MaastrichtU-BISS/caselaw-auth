@@ -1,6 +1,6 @@
 # BISS Auth
 
-[![npm](https://img.shields.io/npm/v/caselaw-auth?logo=npm&label=npm&color=%23181849)](https://www.npmjs.com/package/caselaw-auth)
+[![npm](https://img.shields.io/npm/v/biss-auth?logo=npm&label=npm&color=%23181849)](https://www.npmjs.com/package/biss-auth)
 
 Shared authentication infrastructure for BISS projects: Case Law Explorer,
 DigiMach, LawNotation / Baigle, Bizzy and others. Each project keeps its own realm
@@ -26,10 +26,10 @@ themes/caselaw/             the Case Law Explorer login and account theme
 themes/digimach/            the DigiMach sibling theme, inheriting Case Law coverage
 themes/lawnotation/         the Lawnotation sibling theme (lawnotation realm), likewise
 providers/                  email-identity / OTP providers (magic-link sign-in disabled)
-packages/caselaw-auth/      maintained npm implementation (legacy name)
-packages/biss-auth/         BISS npm entry points over the same implementation
-packages/python/            maintained Python server implementation
-packages/python-biss/       BISS Python entry points over the same implementation
+packages/biss-auth/         standalone npm implementation and administration CLI
+packages/caselaw-auth/      legacy npm compatibility wrapper
+packages/python-biss/       standalone Python server implementation
+packages/python/            legacy Python compatibility wrapper
 docker-compose.yml          Keycloak and its Postgres
 scripts/                    live-realm installers and smoke checks
 docs/                       integration guides and realm reference

@@ -1,5 +1,5 @@
 {
-  "$comment": "Single source of truth for the server-side auth implementations. Both packages/caselaw-auth (TypeScript) and packages/python (Python) implement this, and both load conformance/cases.json at test time by relative path. Never inline those cases into a language's own tests: the anti-drift guarantee depends on there being one copy.",
+  "$comment": "Single source of truth for the server-side auth implementations. Both packages/biss-auth (TypeScript) and packages/python-biss (Python) implement this, and both load conformance/cases.json at test time by relative path. Never inline those cases into a language's own tests: the anti-drift guarantee depends on there being one copy.",
   "version": "1.0.0",
   "name": "caselaw-auth server contract",
 

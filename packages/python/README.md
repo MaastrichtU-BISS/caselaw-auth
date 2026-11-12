@@ -1,5 +1,10 @@
 # caselaw-auth-server
 
+Compatibility package: starting with 0.3.1, this distribution depends on
+`biss-auth-server==0.3.1` and preserves `caselaw_auth_server` imports.
+New consumers should use the BISS package directly. Older published versions
+remain available unchanged.
+
 Server-side OIDC for Python products, interchangeable with the
 [`caselaw-auth`](https://www.npmjs.com/package/caselaw-auth) npm package's
 `/server` entry point.

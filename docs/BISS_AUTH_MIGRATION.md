@@ -3,7 +3,29 @@
 BISS Auth is the shared authentication infrastructure for Case Law Explorer,
 DigiMach, LawNotation / Baigle, Bizzy and other BISS projects.
 
-## Release status (12 November 2026)
+## Implementation ownership (12 November 2026)
+
+The next releases reverse the initial compatibility bridge:
+
+| Package | Version | Ownership |
+|---|---|---|
+| npm `biss-auth` | 0.6.6 | Standalone implementation; no legacy dependency |
+| npm `caselaw-auth` | 0.6.6 | Exact dependency on `biss-auth@0.6.6` |
+| PyPI `biss-auth-server` | 0.3.1 | Standalone implementation; no legacy dependency |
+| PyPI `caselaw-auth-server` | 0.3.1 | Exact dependency on `biss-auth-server==0.3.1` |
+
+**These versions are prepared for publication; check registry availability before
+upgrading.** Publish canonical BISS packages first, verify them in isolation, then
+publish legacy wrappers. Legacy release workflows enforce that order. There is no
+circular dependency. Previous package versions are immutable and remain available.
+Explorer can remain pinned to its deployed `biss-auth@0.6.5` during this transition.
+
+The implementation moves without changing runtime behavior, cookies, wire formats,
+public symbol names or exception identities. Legacy entry points and administration
+commands forward to BISS Auth. Installing BISS alone does not install a legacy
+package. No Keycloak deployment is needed.
+
+## Initial bridge releases (published)
 
 Both `biss-auth@0.6.5` (npm) and `biss-auth-server==0.3.0` (PyPI) are published
 and independently verified from their registry artifacts. Existing consumers may
@@ -58,10 +80,10 @@ same publication and verification gate before recommending each future release.
 
 ## For application teams
 
-JavaScript / TypeScript (available now):
+JavaScript / TypeScript (after the standalone release is available):
 
 ```sh
-npm install biss-auth@0.6.5
+npm install biss-auth@0.6.6
 ```
 
 Change package imports, preserving the symbols and subpaths:
@@ -72,10 +94,10 @@ import { createServerAuth } from 'biss-auth/server'
 // Vue styles: import 'biss-auth/vue/style.css'
 ```
 
-Python (available now):
+Python (after the standalone release is available):
 
 ```sh
-pip install biss-auth-server==0.3.0
+pip install biss-auth-server==0.3.1
 ```
 
 ```python
@@ -83,8 +105,9 @@ from biss_auth_server import create_server_auth, create_pkce_pair
 ```
 
 Remove the old *direct* dependency when all application imports use the new name,
-and commit the updated lockfile. The old implementation remains a transitive
-dependency intentionally. Do not manually remove it from the installed tree.
+and commit the updated lockfile. The standalone versions above do not install the legacy package. Lockfiles that
+still include it may have another dependency using the legacy name; retain that
+entry until that dependency migrates.
 
 Teams may upgrade to the current SDK during this migration. Source manifests
 checked on 11 November show DigiMach at 0.6.3, Citations at ^0.4.0, Bizzy at ^0.6.5
@@ -118,7 +141,8 @@ configuration; it requires no Keycloak or database rollback.
    pending publisher for `biss-auth-server`, workflow `publish-biss.yml`, environment
    `pypi`. Both publishers need owner `MaastrichtU-BISS` and the repository's
    **current** name. Do not change the legacy workflow filenames or environments.
-3. Use `biss-npm-v0.6.5` and `biss-python-v0.3.0` tags for the respective packages.
+3. Use `biss-npm-v0.6.6` and `biss-python-v0.3.1` tags for standalone releases,
+   followed by `v0.6.6` and `python-v0.3.1` for the legacy wrappers.
    `publish-biss.yml` also supports an explicit package selection and defaults to
    dry-run validation on manual dispatch. Original `v*` and `python-v*` releases
    still publish the legacy packages through their original workflows.
@@ -178,6 +202,8 @@ python -m pip install build pytest ./packages/python ./packages/python-biss
 python -m pytest -q packages/python/tests packages/python-biss/tests
 node packages/contract/conformance/interop.mjs "$(which python)"
 python -m build packages/python-biss
+python -m build packages/python
+python test/packaging/python-packages.py
 npm run test:e2e
 ```
 

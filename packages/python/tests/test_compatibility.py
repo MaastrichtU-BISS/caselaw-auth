@@ -20,3 +20,7 @@ def test_old_and_new_sessions_survive_switching():
     session = {"user": {"id": "user-1"}, "roles": [], "expiresAt": int(time.time()) + 3600}
     assert renamed.unseal_session(legacy.seal_session(session)) == session
     assert legacy.unseal_session(renamed.seal_session(session)) == session
+
+
+def test_legacy_module_is_the_canonical_module():
+    assert importlib.import_module("caselaw_auth_server.server") is importlib.import_module("biss_auth_server.server")

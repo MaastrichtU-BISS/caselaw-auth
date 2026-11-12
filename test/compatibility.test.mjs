@@ -6,7 +6,7 @@ const dockerfile = await readFile(new URL('../Dockerfile', import.meta.url), 'ut
 const compose = await readFile(new URL('../docker-compose.yml', import.meta.url), 'utf8')
 const operations = await readFile(new URL('../docs/OTP_OPERATIONS.md', import.meta.url), 'utf8')
 const packageJson = JSON.parse(await readFile(
-  new URL('../packages/caselaw-auth/package.json', import.meta.url),
+  new URL('../packages/biss-auth/package.json', import.meta.url),
 ))
 
 test('the tested OTP version matrix matches every production default', () => {
@@ -19,5 +19,5 @@ test('the tested OTP version matrix matches every production default', () => {
   assert.match(operations, /\| Case Law email-identity provider \| `1\.1\.0`/)
   assert.match(dockerfile, /caselaw-email-identity-1\.1\.0\.jar/)
   const escapedVersion = packageJson.version.replaceAll('.', '\\.')
-  assert.match(operations, new RegExp(`caselaw-auth@${escapedVersion}`))
+  assert.match(operations, new RegExp(`biss-auth@${escapedVersion}`))
 })

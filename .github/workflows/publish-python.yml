@@ -26,14 +26,18 @@ jobs:
           python-version: "3.11"
 
       - name: Install
-        working-directory: packages/python
-        run: pip install -e ".[dev]"
+        run: pip install build "./packages/python-biss[dev]" "./packages/python[dev]"
 
       # Loads packages/contract/conformance/cases.json by relative path, so it
       # runs from the checkout rather than from an installed wheel.
       - name: Conformance suite
-        working-directory: packages/python
-        run: python -m pytest -q
+        run: python -m pytest -q packages/python/tests packages/python-biss/tests
+
+      - name: Verify installed wheels
+        run: |
+          python -m build packages/python-biss
+          python -m build packages/python
+          python test/packaging/python-packages.py
 
       - uses: actions/setup-node@v5
         with:
@@ -44,8 +48,8 @@ jobs:
       # two implementations that each pass and cannot talk to each other.
       - name: Cross-language interoperability
         run: |
-          npm --prefix packages/caselaw-auth ci || npm --prefix packages/caselaw-auth install
-          npm --prefix packages/caselaw-auth run build
+          npm ci
+          npm run build
           node packages/contract/conformance/interop.mjs "$(which python)"
 
       - name: Tag matches the version
@@ -73,6 +77,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Require the standalone BISS release first
+        run: python scripts/check-canonical-release.py python
 
       - name: Build
         working-directory: packages/python

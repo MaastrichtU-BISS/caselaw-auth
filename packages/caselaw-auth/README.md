@@ -1,5 +1,10 @@
 # caselaw-auth
 
+Compatibility package: starting with 0.6.6, this package depends on
+`biss-auth@0.6.6` and preserves imports, CSS paths and the `caselaw-auth` CLI.
+New consumers should use the BISS package directly. Older published versions
+remain available unchanged.
+
 OIDC for the Case Law Explorer products, in two halves: a browser client
 (authorization code with PKCE, refresh, role checks, Vue and Svelte adapters) and
 a server one that keeps session handling and credentials out of page JavaScript.

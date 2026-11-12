@@ -1,21 +1,63 @@
 #!/usr/bin/env node
-import { fileURLToPath } from 'node:url'
-import { resolve, dirname } from 'node:path'
-const args = process.argv.slice(2)
-if (!args.length || args[0] === '--help' || args[0] === '-h') {
-  console.log(`BISS Auth administration commands
+
+const program = /(?:^|[\\/])caselaw-auth(?:\.mjs)?$/.test(process.argv[1] || '') ? 'caselaw-auth' : 'biss-auth'
+
+const [command, ...extraArguments] = process.argv.slice(2)
+
+if (!command || command === '--help' || command === '-h') {
+  printHelp()
+  process.exit(0)
+}
+
+switch (command) {
+  case 'apply-passwordless-flow':
+    if (extraArguments.length > 0) {
+      console.error('apply-passwordless-flow does not accept arguments; configure it with environment variables.')
+      process.exit(1)
+    }
+    await import('../admin/apply-passwordless-flow.mjs')
+    break
+  case 'check-passwordless':
+    if (extraArguments.length > 0) {
+      console.error('check-passwordless does not accept arguments; configure it with environment variables.')
+      process.exit(1)
+    }
+    await import('../admin/check-passwordless.mjs')
+    break
+  case 'cleanup-unverified-users':
+    process.env.CASELAW_UNVERIFIED_CLEANUP_ARGUMENTS = JSON.stringify(extraArguments)
+    await import('../admin/cleanup-unverified-users.mjs')
+    break
+  default:
+    console.error(`Unknown command: ${command}`)
+    printHelp()
+    process.exit(1)
+}
+
+function printHelp() {
+  console.log(`${program} administration commands
 
 Usage:
-  biss-auth apply-passwordless-flow
-  biss-auth check-passwordless
-  biss-auth cleanup-unverified-users [--max-age-days DAYS] [--execute]
+  ${program} apply-passwordless-flow
+  ${program} check-passwordless
+  ${program} cleanup-unverified-users [--max-age-days DAYS] [--execute]
 
-Uses the same KEYCLOAK_* and CASELAW_* environment variables as caselaw-auth.
-Run caselaw-auth --help for the full environment and safety reference.
-cleanup-unverified-users is a dry run unless --execute is supplied.
+Required environment variables:
+  KEYCLOAK_ADMIN
+  KEYCLOAK_ADMIN_PASSWORD
+
+Optional environment variables:
+  KEYCLOAK_URL                       default: http://localhost:8080
+  KEYCLOAK_REALM                     default: caselaw
+  KEYCLOAK_ADMIN_REALM               default: master
+  CASELAW_PASSWORDLESS_ESTATE_MODE   default: true only for the caselaw realm
+
+Safety:
+  apply-passwordless-flow enables email OTP only and disables magic links.
+  The exact previously shipped two-method flow is migrated; custom drift is refused.
+  check-passwordless is read-only and verifies the flow, SMTP configuration,
+  user profile and (in estate mode) clients.
+  cleanup-unverified-users is a dry run unless --execute is supplied. It only
+  selects old, unverified, email-only users without credentials or names.
 `)
-} else {
-  // Resolve the installed implementation; the package may be nested by npm.
-  const entry = fileURLToPath(import.meta.resolve('caselaw-auth/server'))
-  await import(resolve(dirname(entry), '../bin/caselaw-auth.mjs'))
 }
