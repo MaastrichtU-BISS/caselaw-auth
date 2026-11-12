@@ -5,7 +5,7 @@ DigiMach, LawNotation / Baigle, Bizzy and other BISS projects.
 
 ## Implementation ownership (12 November 2026)
 
-The next releases reverse the initial compatibility bridge:
+The published standalone releases reverse the initial compatibility bridge:
 
 | Package | Version | Ownership |
 |---|---|---|
@@ -14,9 +14,9 @@ The next releases reverse the initial compatibility bridge:
 | PyPI `biss-auth-server` | 0.3.1 | Standalone implementation; no legacy dependency |
 | PyPI `caselaw-auth-server` | 0.3.1 | Exact dependency on `biss-auth-server==0.3.1` |
 
-**These versions are prepared for publication; check registry availability before
-upgrading.** Publish canonical BISS packages first, verify them in isolation, then
-publish legacy wrappers. Legacy release workflows enforce that order. There is no
+All four versions are published and verified from registry artifacts in clean
+environments. Canonical BISS packages were published and verified first, followed
+by the legacy wrappers. Legacy release workflows enforce that order. There is no
 circular dependency. Previous package versions are immutable and remain available.
 Explorer can remain pinned to its deployed `biss-auth@0.6.5` during this transition.
 
@@ -24,6 +24,30 @@ The implementation moves without changing runtime behavior, cookies, wire format
 public symbol names or exception identities. Legacy entry points and administration
 commands forward to BISS Auth. Installing BISS alone does not install a legacy
 package. No Keycloak deployment is needed.
+
+## Standalone release evidence
+
+All releases point to commit `095bcb64ba05ba226db73296c22b64df6038e6ef`, whose
+three CI jobs passed. The PR remains unmerged so the current Coolify main-branch
+webhook cannot restart Keycloak. Production Explorer remains on `biss-auth@0.6.5`.
+
+| Release | Registry | Trusted-publishing run |
+|---|---|---|
+| BISS npm 0.6.6 | [npm](https://www.npmjs.com/package/biss-auth/v/0.6.6) | [43132164373](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43132164373) |
+| BISS Python 0.3.1 | [PyPI](https://pypi.org/project/biss-auth-server/0.3.1/) | [43132164289](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43132164289) |
+| Legacy npm 0.6.6 | [npm](https://www.npmjs.com/package/caselaw-auth/v/0.6.6) | [43132740206](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43132740206) |
+| Legacy Python 0.3.1 | [PyPI](https://pypi.org/project/caselaw-auth-server/0.3.1/) | [43132437010](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43132437010) |
+
+Registry tarballs/wheels were checked against their published integrity hashes.
+BISS-only installs contain no legacy package. Installing the new legacy wrappers
+preserves ESM/CommonJS identity, Python API/exception identity, CLI dispatch,
+TypeScript declarations, CSS and sessions. Previous npm 0.6.5 sessions work in
+both directions; TypeScript/Python session bytes remain identical. Full disposable
+Keycloak OTP, legacy flow upgrade, two-domain issuer/refresh/logout and cleanup
+checks passed. No production realm or deployment was changed.
+
+Exact registry artifacts are attached to the corresponding GitHub releases:
+`biss-npm-v0.6.6`, `biss-python-v0.3.1`, `v0.6.6`, `python-v0.3.1`.
 
 ## Initial bridge releases (published)
 
@@ -80,7 +104,7 @@ same publication and verification gate before recommending each future release.
 
 ## For application teams
 
-JavaScript / TypeScript (after the standalone release is available):
+JavaScript / TypeScript:
 
 ```sh
 npm install biss-auth@0.6.6
@@ -94,7 +118,7 @@ import { createServerAuth } from 'biss-auth/server'
 // Vue styles: import 'biss-auth/vue/style.css'
 ```
 
-Python (after the standalone release is available):
+Python:
 
 ```sh
 pip install biss-auth-server==0.3.1
