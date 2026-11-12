@@ -12,7 +12,7 @@ The published standalone releases reverse the initial compatibility bridge:
 | npm `biss-auth` | 0.6.6 | Standalone implementation; no legacy dependency |
 | npm `caselaw-auth` | 0.6.6 | Exact dependency on `biss-auth@0.6.6` |
 | PyPI `biss-auth-server` | 0.3.1 | Standalone implementation; no legacy dependency |
-| PyPI `caselaw-auth-server` | 0.3.1 | Exact dependency on `biss-auth-server==0.3.1` |
+| PyPI `caselaw-auth-server` | 0.3.2 | Exact dependency on `biss-auth-server==0.3.1` |
 
 All four versions are published and verified from registry artifacts in clean
 environments. Canonical BISS packages were published and verified first, followed
@@ -44,9 +44,34 @@ After future legacy npm releases, reapply the notice with `npm deprecate
 installation. npm may require a fresh maintainer authenticator code for this
 metadata operation; trusted publishing of releases remains tokenless.
 
+## Legacy Python developer warning
+
+`caselaw-auth-server==0.3.2` retains its exact `biss-auth-server==0.3.1`
+dependency and adds a standard `DeprecationWarning` when importing
+`caselaw_auth_server` (including its `server` submodule). The message directs
+users to install `biss-auth-server>=0.3.1` and use `biss_auth_server` imports,
+keeping authentication configuration unchanged. pytest and `python -Wd` display
+it; normal Python warning filters apply. The canonical BISS import emits no
+legacy warning. The PyPI summary, README and replacement-project link carry the
+same migration guidance.
+
+PyPI's [project-status implementation](https://blog.pypi.org/posts/2025-08-14-project-status-markers/)
+does not yet expose a maintainer deprecation control equivalent to npm's.
+Older artifacts cannot acquire a new import warning; they remain installable.
+This release adds the developer warning without changing authentication behavior,
+public APIs, exception identities or session formats.
+
+[Release](https://github.com/MaastrichtU-BISS/caselaw-auth/releases/tag/python-v0.3.2),
+[PyPI](https://pypi.org/project/caselaw-auth-server/0.3.2/),
+[successful trusted-publishing workflow](https://github.com/MaastrichtU-BISS/caselaw-auth/actions/runs/43133825869).
+The release source is `f63178b`; 37 Python tests and clean-wheel tests confirm one
+legacy warning, no canonical warning, API identity and two-way session interchange.
+The registry wheel/sdist hashes and clean installed wheel were verified separately.
+
 ## Standalone release evidence
 
-All releases point to commit `095bcb64ba05ba226db73296c22b64df6038e6ef`, whose
+The initial implementation-ownership releases below point to commit
+`095bcb64ba05ba226db73296c22b64df6038e6ef`, whose
 three CI jobs passed. The PR remains unmerged so the current Coolify main-branch
 webhook cannot restart Keycloak. Production Explorer remains on `biss-auth@0.6.5`.
 
