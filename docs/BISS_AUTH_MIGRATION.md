@@ -25,6 +25,25 @@ public symbol names or exception identities. Legacy entry points and administrat
 commands forward to BISS Auth. Installing BISS alone does not install a legacy
 package. No Keycloak deployment is needed.
 
+## Legacy npm installation warning
+
+All 17 currently published `caselaw-auth` versions, including 0.6.6, carry npm's
+deprecation metadata. Fresh installs display:
+
+> Renamed to biss-auth. Use biss-auth@0.6.6 or newer and update package imports.
+> Keep your issuer, clients, session secrets and cookie settings unchanged.
+> Existing versions remain available and supported for compatibility.
+
+This is a registry installation notice; no runtime warning or authentication
+behavior changes. Package versions remain installable. The initial
+`biss-auth@0.6.5` bridge also pulls a deprecated legacy dependency, so upgrade it
+to standalone `biss-auth@0.6.6` to remove that dependency and notice.
+
+After future legacy npm releases, reapply the notice with `npm deprecate
+'caselaw-auth@*' '<message above>'` and verify registry metadata and a clean
+installation. npm may require a fresh maintainer authenticator code for this
+metadata operation; trusted publishing of releases remains tokenless.
+
 ## Standalone release evidence
 
 All releases point to commit `095bcb64ba05ba226db73296c22b64df6038e6ef`, whose
