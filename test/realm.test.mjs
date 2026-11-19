@@ -99,6 +99,14 @@ test('the production image keeps passwordless reconciliation opt-in and non-fata
   assert.match(entrypoint, /Keycloak will remain available on its previous browser flow/)
 })
 
+test('the production image always disables the Base64 intrinsic (CVE-2026-114938)', () => {
+  assert.match(dockerfile, /ENTRYPOINT \["\/opt\/keycloak\/bin\/caselaw-entrypoint\.sh"\]/)
+  assert.match(entrypoint, /java4shell_mitigation=-XX:-UseBASE64Intrinsics/)
+  assert.match(entrypoint, /export JAVA_OPTS_APPEND/)
+  const mitigation = entrypoint.indexOf('export JAVA_OPTS_APPEND')
+  assert.ok(mitigation < entrypoint.indexOf('exec "$keycloak"'), 'mitigation must run before Keycloak starts')
+})
+
 test('the installer can apply the generic flow without Case Law estate clients', () => {
   assert.match(compose, /CASELAW_PASSWORDLESS_ESTATE_MODE: \$\{CASELAW_PASSWORDLESS_ESTATE_MODE:-\}/)
   assert.match(nodeConfigurator, /envBoolean\('CASELAW_PASSWORDLESS_ESTATE_MODE', realm === 'caselaw'\)/)

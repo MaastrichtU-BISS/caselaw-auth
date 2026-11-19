@@ -2,6 +2,19 @@
 
 set -u
 
+# Java4Shell (CVE-2026-114938): the HotSpot Base64 intrinsic in Java 17.0.6+,
+# 21, 25 and 27 can be driven to remote code execution. The Keycloak image ships
+# Red Hat OpenJDK 21.0.12, and no fixed Keycloak image exists yet. Disabling the
+# intrinsic is the vendor-recommended mitigation. It is appended here rather
+# than set in compose so an operator's own JAVA_OPTS_APPEND cannot drop it.
+# Remove once the pinned Keycloak image ships a fixed JDK (21.0.13.1 or later).
+java4shell_mitigation=-XX:-UseBASE64Intrinsics
+case " ${JAVA_OPTS_APPEND:-} " in
+  *" $java4shell_mitigation "*) ;;
+  *) JAVA_OPTS_APPEND="${JAVA_OPTS_APPEND:+$JAVA_OPTS_APPEND }$java4shell_mitigation" ;;
+esac
+export JAVA_OPTS_APPEND
+
 keycloak=/opt/keycloak/bin/kc.sh
 configurator=/opt/keycloak/bin/caselaw-passwordless-configurator
 

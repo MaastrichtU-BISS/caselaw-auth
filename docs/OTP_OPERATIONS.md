@@ -19,6 +19,12 @@ A bootstrap admin without an email cannot use that test to establish SMTP delive
 | Case Law email-identity provider | `1.1.0`, built against Keycloak `26.7.0` |
 | Realm administration CLI | `caselaw-auth@0.6.5` |
 
+The image entrypoint always adds `-XX:-UseBASE64Intrinsics` to `JAVA_OPTS_APPEND`,
+on top of any value an operator sets. It mitigates CVE-2026-114938 ("Java4Shell")
+in the image's OpenJDK 21.0.12 until a Keycloak image with a fixed JDK (21.0.13.1
+or later) is pinned; remove it from `scripts/keycloak-entrypoint.sh` then. Check it
+on a running container with `jcmd 1 VM.flags | grep Base64`.
+
 The providers implement Keycloak internal SPIs. Pin both image arguments and treat
 any Keycloak or provider update as an authentication migration. Do not deploy an
 untested floating tag.
